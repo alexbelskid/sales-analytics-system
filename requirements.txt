@@ -1,0 +1,4 @@
+# This file tells Railpack/Nixpacks where to find the Python requirements
+# Symlink to backend/requirements.txt
+
+-r backend/requirements.txt
