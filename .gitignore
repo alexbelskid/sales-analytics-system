@@ -1,0 +1,30 @@
+# Supabase Files
+supabase/.branches
+supabase/.temp
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
