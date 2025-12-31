@@ -235,3 +235,401 @@ https://nextjs.org/docs/messages/module-not-found
    - Local:        http://localhost:3000
 
  ✓ Ready in 1391ms
+ ○ Compiling /settings/email ...
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ✓ Compiled /emails in 621ms (2043 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+(node:47936) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+> sales-analytics@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+
+ ✓ Ready in 1334ms
+ ○ Compiling /settings/email ...
+ ✓ Compiled /settings/email in 1487ms (728 modules)
+ ✓ Compiled in 595ms (375 modules)
+(node:49914) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /emails ...
+ ✓ Compiled /emails in 1295ms (1868 modules)
+ ○ Compiling /proposals ...
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/charts/SalesTrendChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/SalesTrendChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopCustomersChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopCustomersChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/charts/SalesTrendChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/SalesTrendChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopCustomersChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopCustomersChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
