@@ -17,3 +17,19 @@ export function formatCurrency(value: number): string {
 export function formatNumber(value: number): string {
     return new Intl.NumberFormat('ru-RU').format(value)
 }
+
+export function downloadBlob(blob: Blob, name: string) {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', name);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+}
+
+export const monthNames = [
+    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+];

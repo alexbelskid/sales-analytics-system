@@ -83,7 +83,7 @@ export default function ToneSettingsPage() {
                 const newTone = await api.createToneSetting(formData);
                 setTones([...tones, newTone]);
                 setSelectedToneId(newTone.id);
-            } else {
+            } else if (selectedToneId) {
                 const updated = await api.updateToneSetting(selectedToneId, formData);
                 setTones(tones.map(t => t.id === selectedToneId ? updated : t));
             }
