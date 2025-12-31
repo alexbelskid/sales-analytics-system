@@ -210,6 +210,10 @@ export const salaryApi = {
 
 // --- New Email System API ---
 
+export const googleAuthApi = {
+    getAuthUrl: () => fetchAPI<{ url: string }>('/api/google/auth-url'),
+};
+
 export const emailSettingsApi = {
     getEmailSettings: () =>
         fetchAPI<any>('/api/emails/settings/settings').catch(() => null),
@@ -243,8 +247,8 @@ export const inboxApi = {
 
     sendReply: (emailId: string, draft: { draft_text: string; tone_id?: string }) =>
         fetchAPI<{ success: boolean }>((`/api/emails/${emailId}/send` as any), { // cast to any if string template fails TS check locally but it shouldn't
-             method: 'POST', 
-             body: JSON.stringify(draft)
+            method: 'POST',
+            body: JSON.stringify(draft)
         }).catch(err => { throw err; }), // fix url construction
 };
 
@@ -279,7 +283,7 @@ export const templatesApi = {
             method: 'POST',
             body: JSON.stringify(template),
         }),
-        
+
     updateTemplate: (id: string, template: any) =>
         fetchAPI<any>(`/api/templates/${id}`, {
             method: 'PUT',
@@ -302,4 +306,5 @@ export const api = {
     ...inboxApi, // note: inboxApi has sendReply
     ...toneSettingsApi,
     ...templatesApi,
+    ...googleAuthApi
 };

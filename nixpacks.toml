@@ -1,6 +1,6 @@
 # Railway / Nixpacks configuration
 [phases.setup]
-nixPkgs = ["python311", "nodejs-18_x"]
+nixPkgs = ["python311", "nodejs-18_x", "gcc", "gfortran", "libffi"]
 
 [phases.install]
 cmds = ["pip install -r requirements.txt"]

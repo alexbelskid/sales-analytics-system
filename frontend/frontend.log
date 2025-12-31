@@ -633,3 +633,44 @@ Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (impor
 
 Import trace for requested module:
 ./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+ ⚠ ./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+./src/app/proposals/page.tsx
+Attempted import error: 'downloadBlob' is not exported from '@/lib/utils' (imported as 'downloadBlob').
+
+Import trace for requested module:
+./src/app/proposals/page.tsx
+
+> sales-analytics@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+
+ ✓ Ready in 1413ms

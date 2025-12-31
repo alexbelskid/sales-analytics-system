@@ -36,6 +36,12 @@ export default function EmailSettingsPage() {
 
   useEffect(() => {
     loadSettings();
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("oauth_success")) {
+      toast({ title: "Успешно", description: "Аккаунт Google подключен" });
+    } else if (urlParams.get("oauth_error")) {
+      toast({ title: "Ошибка", description: urlParams.get("oauth_error") || "Ошибка авторизации", variant: "destructive" });
+    }
   }, []);
 
   const loadSettings = async () => {
@@ -100,6 +106,19 @@ export default function EmailSettingsPage() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { url } = await api.getAuthUrl();
+      window.location.href = url;
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось получить ссылку для авторизации",
+        variant: "destructive",
+      });
     }
   };
 
@@ -194,7 +213,7 @@ export default function EmailSettingsPage() {
             <TabsContent value="gmail_api">
               <div className="flex flex-col items-center justify-center p-8 border rounded-lg border-dashed">
                 <p className="mb-4 text-center text-muted-foreground">Подключение через официальный API Gmail (OAuth2). <br />Более надежно и безопасно.</p>
-                <Button variant="outline">Войти через Google</Button>
+                <Button variant="outline" onClick={handleGoogleLogin}>Войти через Google</Button>
               </div>
             </TabsContent>
           </Tabs>
