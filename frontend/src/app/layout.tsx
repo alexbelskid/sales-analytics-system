@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
                         </main>
                     </div>
                 </div>
+                <Toaster />
             </body>
         </html>
     );

@@ -207,3 +207,99 @@ export const salaryApi = {
             commission_rate: number;
         }>>('/api/salary/agents'),
 };
+
+// --- New Email System API ---
+
+export const emailSettingsApi = {
+    getEmailSettings: () =>
+        fetchAPI<any>('/api/emails/settings/settings').catch(() => null),
+
+    saveEmailSettings: (settings: any) =>
+        fetchAPI<any>('/api/emails/settings/settings', {
+            method: 'POST',
+            body: JSON.stringify(settings),
+        }),
+
+    testEmailConnection: (settings: any) =>
+        fetchAPI<any>('/api/emails/settings/test-connection', {
+            method: 'POST',
+            body: JSON.stringify(settings),
+        }),
+
+    deleteEmailSettings: () =>
+        fetchAPI<any>('/api/emails/settings/settings', { method: 'DELETE' }),
+};
+
+export const inboxApi = {
+    getInbox: (filter: string = 'new', category?: string, limit: number = 50, offset: number = 0) =>
+        fetchAPI<Array<any>>('/api/emails/inbox', {
+            params: { filter_status: filter, category, limit, offset },
+        }),
+
+    getEmailDetails: (id: string) => fetchAPI<any>(`/api/emails/${id}`),
+
+    syncEmails: () =>
+        fetchAPI<{ status: string; new_emails_count: number }>('/api/emails/sync', { method: 'POST' }),
+
+    sendReply: (emailId: string, draft: { draft_text: string; tone_id?: string }) =>
+        fetchAPI<{ success: boolean }>((`/api/emails/${emailId}/send` as any), { // cast to any if string template fails TS check locally but it shouldn't
+             method: 'POST', 
+             body: JSON.stringify(draft)
+        }).catch(err => { throw err; }), // fix url construction
+};
+
+// Fix for URL construction in sendReply above:
+// actually fetchAPI takes endpoint string.
+// `/api/emails/${emailId}/send` is correct.
+
+export const toneSettingsApi = {
+    getToneSettings: () => fetchAPI<Array<any>>('/api/tone-settings/'),
+
+    createToneSetting: (tone: any) =>
+        fetchAPI<any>('/api/tone-settings/', {
+            method: 'POST',
+            body: JSON.stringify(tone),
+        }),
+
+    updateToneSetting: (id: string, tone: any) =>
+        fetchAPI<any>(`/api/tone-settings/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(tone),
+        }),
+
+    deleteToneSetting: (id: string) =>
+        fetchAPI<any>(`/api/tone-settings/${id}`, { method: 'DELETE' }),
+};
+
+export const templatesApi = {
+    getTemplates: () => fetchAPI<Array<any>>('/api/templates/'),
+
+    createTemplate: (template: any) =>
+        fetchAPI<any>('/api/templates/', {
+            method: 'POST',
+            body: JSON.stringify(template),
+        }),
+        
+    updateTemplate: (id: string, template: any) =>
+        fetchAPI<any>(`/api/templates/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(template),
+        }),
+
+    deleteTemplate: (id: string) =>
+        fetchAPI<any>(`/api/templates/${id}`, { method: 'DELETE' }),
+};
+
+// Unified API Access
+export const api = {
+    ...analyticsApi,
+    ...uploadApi,
+    ...emailApi,
+    ...proposalsApi,
+    ...forecastApi,
+    ...salaryApi,
+    ...emailSettingsApi,
+    ...inboxApi, // note: inboxApi has sendReply
+    ...toneSettingsApi,
+    ...templatesApi,
+};

@@ -1,0 +1,237 @@
+
+> sales-analytics@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+
+ ✓ Ready in 1358ms
+ ○ Compiling /settings/email ...
+ ✓ Compiled /settings/email in 1110ms (715 modules)
+ ✓ Compiled in 167ms (369 modules)
+(node:46556) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ○ Compiling /emails ...
+ ✓ Compiled /emails in 1061ms (1855 modules)
+ ○ Compiling / ...
+ ⚠ ./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/charts/SalesTrendChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/SalesTrendChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopCustomersChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopCustomersChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/charts/SalesTrendChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/SalesTrendChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopCustomersChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopCustomersChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+ ⚠ ./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/charts/SalesTrendChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/SalesTrendChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopCustomersChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopCustomersChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/Dashboard.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/Dashboard.tsx
+
+./src/components/charts/SalesTrendChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/SalesTrendChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopCustomersChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopCustomersChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatCurrency' is not exported from '@/lib/utils' (imported as 'formatCurrency').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+
+./src/components/charts/TopProductsChart.tsx
+Attempted import error: 'formatNumber' is not exported from '@/lib/utils' (imported as 'formatNumber').
+
+Import trace for requested module:
+./src/components/charts/TopProductsChart.tsx
+./src/components/Dashboard.tsx
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./src/components/ui/toaster.tsx:3:0
+Module not found: Can't resolve '@/components/hooks/use-toast'
+[0m [90m 1 |[39m [32m"use client"[39m[0m
+[0m [90m 2 |[39m[0m
+[0m[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m { useToast } [36mfrom[39m [32m"@/components/hooks/use-toast"[39m[0m
+[0m [90m 4 |[39m [36mimport[39m {[0m
+[0m [90m 5 |[39m   [33mToast[39m[33m,[39m[0m
+[0m [90m 6 |[39m   [33mToastClose[39m[33m,[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+
+> sales-analytics@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.1.0
+   - Local:        http://localhost:3000
+
+ ✓ Ready in 1391ms
