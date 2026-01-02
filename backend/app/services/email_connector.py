@@ -20,7 +20,7 @@ class EmailConnector:
             "imap_server": "imap.gmail.com",
             "imap_port": 993,
             "smtp_server": "smtp.gmail.com",
-            "smtp_port": 587
+            "smtp_port": 465  # Changed from 587 - Railway blocks port 587
         },
         "outlook": {
             "imap_server": "outlook.office365.com",
@@ -80,7 +80,7 @@ class EmailConnector:
             "imap_server": f"imap.{domain}",
             "imap_port": 993,
             "smtp_server": f"smtp.{domain}",
-            "smtp_port": 587
+            "smtp_port": 465  # Changed from 587 for Railway compatibility
         }
 
     @staticmethod
