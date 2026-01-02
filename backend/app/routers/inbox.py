@@ -6,6 +6,8 @@ import imaplib
 import email
 from email.header import decode_header
 import datetime
+import socket
+import time
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -16,7 +18,12 @@ class EmailConfig(BaseModel):
 
 @router.post("/sync")
 async def sync_emails(config: Optional[EmailConfig] = None):
-    """Sync emails using IMAP (Simpler, more robust version)"""
+    """Sync emails using IMAP with timeout protection"""
+    start_time = time.time()
+    
+    # Set socket timeout to prevent hanging
+    socket.setdefaulttimeout(10)
+    
     try:
         # 1. Get credentials
         email_addr = ""
@@ -63,7 +70,7 @@ async def sync_emails(config: Optional[EmailConfig] = None):
         
         new_emails_count = 0
         
-        for email_id in email_ids[-10:]:  # Last 10 unseen
+        for email_id in email_ids[-5:]:  # Last 5 unseen (optimized for speed)
             try:
                 status, msg_data = mail.fetch(email_id, "(RFC822)")
                 msg = email.message_from_bytes(msg_data[0][1])
@@ -113,11 +120,34 @@ async def sync_emails(config: Optional[EmailConfig] = None):
         mail.close()
         mail.logout()
         
-        return {"status": "success", "new_emails_count": new_emails_count}
+        elapsed_time = time.time() - start_time
+        print(f"✅ Email sync completed in {elapsed_time:.2f}s - {new_emails_count} new emails")
         
+        return {
+            "status": "success", 
+            "new_emails_count": new_emails_count,
+            "sync_time": round(elapsed_time, 2)
+        }
+        
+    except socket.timeout:
+        elapsed_time = time.time() - start_time
+        print(f"⏱️ IMAP timeout after {elapsed_time:.2f}s")
+        return {
+            "status": "timeout", 
+            "message": "Email sync timed out. Please try again.", 
+            "new_emails_count": 0
+        }
     except Exception as e:
-        print(f"Sync error: {e}")
-        return {"status": "error", "message": str(e), "new_emails_count": 0}
+        elapsed_time = time.time() - start_time
+        print(f"❌ Sync error after {elapsed_time:.2f}s: {e}")
+        return {
+            "status": "error", 
+            "message": str(e), 
+            "new_emails_count": 0
+        }
+    finally:
+        # Reset socket timeout to default
+        socket.setdefaulttimeout(None)
 
 @router.get("/inbox")
 async def get_inbox(filter_status: str = "new", limit: int = 50):

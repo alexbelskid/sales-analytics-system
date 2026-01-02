@@ -242,8 +242,18 @@ export const inboxApi = {
 
     getEmailDetails: (id: string) => fetchAPI<any>(`/api/emails/${id}`),
 
-    syncEmails: () =>
-        fetchAPI<{ status: string; new_emails_count: number }>('/api/emails/sync', { method: 'POST' }),
+    syncEmails: () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s timeout
+
+        return fetchAPI<{ status: string; new_emails_count: number; sync_time?: number }>(
+            '/api/emails/sync',
+            {
+                method: 'POST',
+                signal: controller.signal
+            }
+        ).finally(() => clearTimeout(timeoutId));
+    },
 
     sendReply: (emailId: string, draft: { draft_text: string; tone_id?: string }) =>
         fetchAPI<{ success: boolean }>((`/api/emails/${emailId}/send` as any), { // cast to any if string template fails TS check locally but it shouldn't

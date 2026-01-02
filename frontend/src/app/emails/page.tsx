@@ -92,12 +92,48 @@ export default function EmailsPage() {
         setSyncing(true);
         try {
             const res = await api.syncEmails();
-            if (res.new_emails_count > 0) {
-                // toast(`Synced ${res.new_emails_count} new emails`);
+
+            if (res.status === 'timeout') {
+                toast({
+                    title: "Синхронизация заняла слишком много времени",
+                    description: "Попробуйте снова через несколько секунд",
+                    variant: "destructive",
+                });
+            } else if (res.status === 'error') {
+                toast({
+                    title: "Ошибка синхронизации",
+                    description: res.message || "Не удалось синхронизировать почту",
+                    variant: "destructive",
+                });
+            } else if (res.new_emails_count > 0) {
+                toast({
+                    title: "✅ Синхронизация завершена",
+                    description: `Загружено новых писем: ${res.new_emails_count}`,
+                });
                 loadEmails();
+            } else {
+                toast({
+                    title: "Синхронизация завершена",
+                    description: "Нет новых писем",
+                });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Sync failed", error);
+
+            // Handle AbortController timeout
+            if (error.name === 'AbortError') {
+                toast({
+                    title: "Превышено время ожидания",
+                    description: "Сервер не отвечает. Проверьте подключение к интернету.",
+                    variant: "destructive",
+                });
+            } else {
+                toast({
+                    title: "Ошибка синхронизации",
+                    description: error.message || "Не удалось подключиться к серверу",
+                    variant: "destructive",
+                });
+            }
         } finally {
             setSyncing(false);
         }
@@ -192,7 +228,13 @@ export default function EmailsPage() {
                 <ScrollArea className="flex-1 border rounded-md">
                     <div className="flex flex-col gap-1 p-2">
                         {loading && <div className="text-center p-4"><Loader2 className="animate-spin h-6 w-6 mx-auto" /></div>}
-                        {!loading && emails.length === 0 && <div className="text-center p-4 text-muted-foreground">Нет писем</div>}
+                        {!loading && emails.length === 0 && (
+                            <div className="text-center p-8 text-muted-foreground">
+                                <Mail className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                <p className="font-medium">Нет новых писем</p>
+                                <p className="text-xs mt-1">Нажмите кнопку обновления для синхронизации</p>
+                            </div>
+                        )}
 
                         {emails.map((email) => (
                             <div
