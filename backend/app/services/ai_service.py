@@ -6,7 +6,11 @@ from typing import List, Dict
 # Initialize OpenAI client
 client = None
 if settings.openai_api_key:
-    client = OpenAI(api_key=settings.openai_api_key)
+    try:
+        client = OpenAI(api_key=settings.openai_api_key)
+    except Exception as e:
+        print(f"Failed to initialize OpenAI client: {e}")
+        client = None
 
 
 async def generate_email_reply(email_content: str, email_type: str = "general") -> str:
