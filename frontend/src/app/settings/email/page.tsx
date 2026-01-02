@@ -128,7 +128,7 @@ export default function EmailSettingsPage() {
     <div className="container mx-auto py-6 max-w-4xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Подключение почты</h1>
-        <p className="text-muted-foreground">Настройте подключение к вашему почтовому ящику для синхронизации писем.</p>
+        <p className="text-muted-foreground">Настройте подключение к вашему почтовому ящику через IMAP/SMTP.</p>
       </div>
 
       <Card>
@@ -137,8 +137,8 @@ export default function EmailSettingsPage() {
           <CardDescription>Выберите вашего почтового провайдера</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {["gmail", "outlook", "yandex", "mail_ru", "yahoo", "custom"].map((prov) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {["gmail", "outlook", "yandex", "mail_ru", "custom"].map((prov) => (
               <div
                 key={prov}
                 onClick={() => handleProviderChange(prov)}
@@ -155,68 +155,51 @@ export default function EmailSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Настройки подключения</CardTitle>
-          <CardDescription>
-            {settings.connection_type === "imap" ? "Настройки IMAP/SMTP" : "OAuth авторизация"}
-          </CardDescription>
+          <CardDescription>IMAP/SMTP (универсальный способ для всех провайдеров)</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <Tabs defaultValue="imap" value={settings.connection_type} onValueChange={(v) => setSettings({ ...settings, connection_type: v })}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="imap">IMAP / Пароль</TabsTrigger>
-              <TabsTrigger value="gmail_api" disabled={settings.email_provider !== "gmail"}>Gmail API</TabsTrigger>
-              <TabsTrigger value="graph_api" disabled={settings.email_provider !== "outlook"}>Outlook API</TabsTrigger>
-            </TabsList>
+        <CardContent className="space-y-4">
+          <div className="grid gap-2">
+            <Label>Email адрес</Label>
+            <Input
+              value={settings.email_address}
+              onChange={(e) => setSettings({ ...settings, email_address: e.target.value })}
+              placeholder="user@example.com"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label>Пароль приложения</Label>
+            <Input
+              type="password"
+              value={settings.password}
+              onChange={(e) => setSettings({ ...settings, password: e.target.value })}
+              placeholder="••••••••"
+            />
+            <p className="text-xs text-muted-foreground">
+              Для Gmail/Yandex/Mail.ru используйте "Пароль приложения" (App Password), не обычный пароль
+            </p>
+          </div>
 
-            <TabsContent value="imap" className="space-y-4">
-              <div className="grid gap-2">
-                <Label>Email адрес</Label>
-                <Input
-                  value={settings.email_address}
-                  onChange={(e) => setSettings({ ...settings, email_address: e.target.value })}
-                  placeholder="user@example.com"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Пароль приложения / Пароль</Label>
-                <Input
-                  type="password"
-                  value={settings.password}
-                  onChange={(e) => setSettings({ ...settings, password: e.target.value })}
-                  placeholder="••••••••"
-                />
-                <p className="text-xs text-muted-foreground">Для Gmail/Yandex/Mail.ru лучше использовать "Пароль приложения"</p>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>IMAP Сервер</Label>
+              <Input value={settings.imap_server} onChange={(e) => setSettings({ ...settings, imap_server: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Порт</Label>
+              <Input type="number" value={settings.imap_port} onChange={(e) => setSettings({ ...settings, imap_port: parseInt(e.target.value) })} />
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>IMAP Сервер</Label>
-                  <Input value={settings.imap_server} onChange={(e) => setSettings({ ...settings, imap_server: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Порт</Label>
-                  <Input value={settings.imap_port} onChange={(e) => setSettings({ ...settings, imap_port: parseInt(e.target.value) })} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>SMTP Сервер</Label>
-                  <Input value={settings.smtp_server} onChange={(e) => setSettings({ ...settings, smtp_server: e.target.value })} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Порт</Label>
-                  <Input value={settings.smtp_port} onChange={(e) => setSettings({ ...settings, smtp_port: parseInt(e.target.value) })} />
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="gmail_api">
-              <div className="flex flex-col items-center justify-center p-8 border rounded-lg border-dashed">
-                <p className="mb-4 text-center text-muted-foreground">Подключение через официальный API Gmail (OAuth2). <br />Более надежно и безопасно.</p>
-                <Button variant="outline" onClick={handleGoogleLogin}>Войти через Google</Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>SMTP Сервер</Label>
+              <Input value={settings.smtp_server} onChange={(e) => setSettings({ ...settings, smtp_server: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Порт</Label>
+              <Input type="number" value={settings.smtp_port} onChange={(e) => setSettings({ ...settings, smtp_port: parseInt(e.target.value) })} />
+            </div>
+          </div>
 
           {testResult && (
             <Alert variant={testResult.success ? "default" : "destructive"}>
