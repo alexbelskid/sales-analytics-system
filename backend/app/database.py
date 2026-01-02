@@ -6,17 +6,18 @@ from app.config import settings
 supabase: Optional[Client] = None
 
 # Only create client if URL and KEY are provided
-if settings.supabase_url and settings.supabase_key:
+if settings.supabase_url and settings.supabase_service_key:
     try:
         supabase = create_client(
             settings.supabase_url,
-            settings.supabase_key
+            settings.supabase_service_key
         )
     except Exception as e:
         print(f"Warning: Could not connect to Supabase: {e}")
         supabase = None
 else:
-    print("Warning: SUPABASE_URL and SUPABASE_KEY not configured. Database features disabled.")
+    print("Warning: SUPABASE_URL and SUPABASE_SERVICE_KEY not configured. Database features disabled.")
+
 
 
 def get_supabase() -> Optional[Client]:
