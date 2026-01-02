@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # App
     app_name: str = "Sales Analytics API"
     debug: bool = True
+    frontend_url: str = "http://localhost:3000"
+    api_base_url: str = "http://localhost:8000"
     
     class Config:
         env_file = ".env"

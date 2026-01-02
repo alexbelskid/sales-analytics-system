@@ -113,10 +113,10 @@ export default function EmailSettingsPage() {
     try {
       const { url } = await api.getAuthUrl();
       window.location.href = url;
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Ошибка",
-        description: "Не удалось получить ссылку для авторизации",
+        description: error.message || "Не удалось получить ссылку для авторизации",
         variant: "destructive",
       });
     }

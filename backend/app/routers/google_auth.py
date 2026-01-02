@@ -23,7 +23,7 @@ def get_google_config():
             "client_secret": settings.gmail_client_secret,
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-            "redirect_uris": ["http://localhost:8000/api/google/callback"]
+            "redirect_uris": [f"{settings.api_base_url}/api/google/callback"]
         }
     }
 
@@ -36,7 +36,7 @@ async def get_auth_url():
     flow = Flow.from_client_config(
         get_google_config(),
         scopes=SCOPES,
-        redirect_uri="http://localhost:8000/api/google/callback"
+        redirect_uri=f"{settings.api_base_url}/api/google/callback"
     )
     
     auth_url, _ = flow.authorization_url(prompt='consent', access_type='offline')
@@ -52,7 +52,7 @@ async def callback(request: Request):
     flow = Flow.from_client_config(
         get_google_config(),
         scopes=SCOPES,
-        redirect_uri="http://localhost:8000/api/google/callback"
+        redirect_uri=f"{settings.api_base_url}/api/google/callback"
     )
     
     try:
@@ -76,7 +76,7 @@ async def callback(request: Request):
         
         # For now, we redirect to frontend with success/fail
         # In production, this would be more robust
-        frontend_url = "http://localhost:3000/settings/email?oauth_success=true"
+        frontend_url = f"{settings.frontend_url}/settings/email?oauth_success=true"
         # We also need to save these credentials to the DB.
         # Since we don't have the user_id context here easily without Auth, 
         # let's assume we update the only existing setting for now.
@@ -102,4 +102,4 @@ async def callback(request: Request):
 
         return RedirectResponse(url=frontend_url)
     except Exception as e:
-        return RedirectResponse(url=f"http://localhost:3000/settings/email?oauth_error={str(e)}")
+        return RedirectResponse(url=f"{settings.frontend_url}/settings/email?oauth_error={str(e)}")

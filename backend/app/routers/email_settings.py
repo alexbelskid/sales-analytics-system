@@ -54,9 +54,14 @@ async def save_email_settings(settings: EmailSettingsCreate):
         else:
             response = supabase.table("email_settings").insert(data).execute()
             
+        if not response.data or len(response.data) == 0:
+            # Fallback for some supabase client versions/configs that might not return data on success
+            # or if the operation didn't return a record as expected.
+            return await get_email_settings()
+            
         return response.data[0]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @router.post("/test-connection")
 async def test_connection(settings: EmailSettingsCreate):
