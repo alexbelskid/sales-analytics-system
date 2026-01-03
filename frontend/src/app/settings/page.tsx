@@ -1,42 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import {
-    Sparkles,
-    BookOpen,
-    BrainCircuit,
-    Mail,
-    MessageSquare,
-    ArrowRight,
-    Settings2,
-    Lock
-} from "lucide-react";
+import { Mail, MessageSquare, Lock } from "lucide-react";
 
 const SETTINGS_CARDS = [
     {
-        title: "Google Gemini API",
-        description: "Конфигурация нейронной сети и управление API ключами",
-        icon: Sparkles,
-        href: "/settings/gemini",
-        color: "text-white"
-    },
-    {
-        title: "База знаний",
-        description: "Управление данными о продуктах, ценах и условиях компании",
-        icon: BookOpen,
-        href: "/settings/knowledge",
-        color: "text-white"
-    },
-    {
-        title: "Обучение AI",
-        description: "Загрузка примеров переписки для улучшения качества ответов",
-        icon: BrainCircuit,
-        href: "/settings/training",
-        color: "text-white"
-    },
-    {
         title: "Подключение почты",
-        description: "Настройка IMAP/SMTP для автоматической работы с письмами",
+        description: "Настройте IMAP/SMTP для автоматической работы с письмами",
         icon: Mail,
         href: "/settings/email",
         color: "text-white"
@@ -61,17 +31,13 @@ const SETTINGS_CARDS = [
 export default function SettingsPage() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white p-8">
-            <div className="max-w-5xl mx-auto space-y-12">
+            <div className="max-w-4xl mx-auto space-y-12">
 
                 {/* Header */}
                 <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[#808080] mb-2">
-                        <Settings2 className="h-4 w-4" />
-                        <span className="text-xs uppercase tracking-widest font-medium">Конфигурация</span>
-                    </div>
                     <h1 className="text-[40px] font-semibold tracking-tight">Настройки</h1>
                     <p className="text-sm text-[#808080] max-w-md">
-                        Персонализируйте работу системы, настраивайте AI ассистента и управляйте интеграциями в одном месте.
+                        Персонализируйте работу системы под ваши предпочтения
                     </p>
                 </div>
 
@@ -95,14 +61,13 @@ export default function SettingsPage() {
                                     </div>
 
                                     {!card.disabled && (
-                                        <div className="mt-8 flex items-center text-[10px] uppercase tracking-widest text-[#404040] group-hover:text-white transition-all duration-300">
-                                            <span>Управлять</span>
-                                            <ArrowRight className="ml-2 h-3 w-3 translate-x-0 group-hover:translate-x-1 transition-transform" />
+                                        <div className="mt-8 text-[10px] uppercase tracking-widest text-[#404040] group-hover:text-white transition-all duration-300">
+                                            <span>Управлять →</span>
                                         </div>
                                     )}
 
                                     {card.disabled && (
-                                        <div className="mt-8 flex items-center text-[10px] uppercase tracking-widest text-[#404040]">
+                                        <div className="mt-8 text-[10px] uppercase tracking-widest text-[#404040]">
                                             <span>Скоро доступно</span>
                                         </div>
                                     )}
