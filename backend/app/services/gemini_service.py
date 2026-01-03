@@ -44,187 +44,147 @@ class GeminiService:
         email_subject: str,
         email_body: str,
         tone: str = "professional",
-        knowledge_base: Optional[str] = None,
+        knowledge_base: Optional[str] = None, # kept for signature compatibility
         training_examples: Optional[str] = None,
         include_analytics: bool = True
     ) -> Dict[str, Any]:
-        """
-        Generate AI-powered email response using Gemini
-        
-        Args:
-            email_from: Sender email address
-            email_subject: Email subject
-            email_body: Email body text
-            tone: Response tone (professional, friendly, formal, etc.)
-            knowledge_base: Context from knowledge base
-            training_examples: Similar examples from training data
-            include_analytics: Whether to include dynamic analytics data
-            
-        Returns:
-            Dict with success status, response text, and confidence score
-        """
+        """Generate AI response with full context"""
         
         if not self.is_available():
             return {
                 "success": False,
-                "response": "Gemini API не настроен. Добавьте API ключ в настройках.",
+                "response": "Gemini API не настроен.",
                 "confidence": 0.0,
                 "error": "API key not configured"
             }
         
         try:
-            # Get dynamic analytics data if enabled
-            analytics_context = None
+            # 1. Static Knowledge (Fetch from DB if not provided)
+            knowledge_text = knowledge_base
+            if not knowledge_text and supabase:
+                try:
+                    k_res = supabase.table("knowledge_base").select("title, content").execute()
+                    if k_res.data:
+                        knowledge_text = self._format_knowledge(k_res.data)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch knowledge: {e}")
+
+            # 2. Training Examples
+            training_text = training_examples
+            if not training_text and supabase:
+                try:
+                    t_res = supabase.table("training_examples").select("question, answer").limit(10).execute()
+                    if t_res.data:
+                        training_text = self._format_training(t_res.data)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch training: {e}")
+
+            # 3. Dynamic Analytics
+            analytics_text = None
             if include_analytics:
-                analytics_context = self._get_analytics_context()
-            
-            # Build prompt with context
-            prompt = self._build_prompt(
-                email_from=email_from,
-                email_subject=email_subject,
-                email_body=email_body,
-                tone=tone,
-                knowledge_base=knowledge_base,
-                training_examples=training_examples,
-                analytics_context=analytics_context
+                try:
+                    from app.services.analytics_service import AnalyticsService
+                    analytics = AnalyticsService()
+                    
+                    sales = analytics.get_sales_summary()
+                    clients = analytics.get_clients_summary()
+                    monthly = analytics.get_monthly_stats()
+                    
+                    analytics_text = self._format_analytics(sales, clients, monthly)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch analytics: {e}")
+
+            # 4. Build Prompt
+            prompt = self._build_enhanced_prompt(
+                email_from, email_subject, email_body, tone,
+                knowledge_text, training_text, analytics_text
             )
             
-            # Generate response with timeout
-            response = await self._generate_with_timeout(prompt, timeout=30)
+            # Generate
+            response = await self._generate_with_timeout(prompt)
             
             if response:
                 return {
                     "success": True,
                     "response": response,
-                    "confidence": 0.95,  # Gemini doesn't provide confidence, using fixed high value
-                    "model": self.model_name,
-                    "context_used": {
-                        "knowledge_base": knowledge_base is not None,
-                        "training_examples": training_examples is not None,
-                        "analytics": analytics_context is not None
-                    }
+                    "confidence": 0.95,
+                    "model": self.model_name
                 }
-            else:
-                return {
-                    "success": False,
-                    "response": "Не удалось сгенерировать ответ",
-                    "confidence": 0.0,
-                    "error": "Empty response from Gemini"
-                }
-                
-        except Exception as e:
-            logger.error(f"Gemini generation error: {e}")
             return {
                 "success": False,
-                "response": f"Ошибка генерации: {str(e)}",
-                "confidence": 0.0,
-                "error": str(e)
+                "response": "Empty response",
+                "confidence": 0.0
             }
-    
-    def _get_analytics_context(self) -> Optional[str]:
-        """Fetch and format analytics data for prompt"""
-        try:
-            from app.services.analytics_context_service import analytics_service
-            return analytics_service.format_for_prompt()
+            
         except Exception as e:
-            logger.error(f"Error getting analytics context: {e}")
-            return None
-    
-    def _build_prompt(
-        self,
-        email_from: str,
-        email_subject: str,
-        email_body: str,
-        tone: str,
-        knowledge_base: Optional[str] = None,
-        training_examples: Optional[str] = None,
-        analytics_context: Optional[str] = None
-    ) -> str:
-        """Build comprehensive prompt with all available context"""
-        
-        tone_instructions = {
-            "professional": "профессиональным и деловым",
-            "friendly": "дружелюбным и неформальным",
-            "formal": "официальным и строгим",
-            "brief": "кратким и по делу",
-            "detailed": "подробным и исчерпывающим",
-            "creative": "креативным и оригинальным"
-        }
-        
-        tone_desc = tone_instructions.get(tone, "профессиональным")
-        
-        prompt = f"""Ты — AI ассистент компании по продаже кондитерских изделий.
+            logger.error(f"Generation error: {e}")
+            return {"success": False, "error": str(e), "response": "Error generating response"}
 
-ТВОЯ ЗАДАЧА: Сгенерировать {tone_desc} ответ на письмо клиента.
+    def _format_knowledge(self, items):
+        return "\n".join([f"- {k.get('title')}: {k.get('content')}" for k in items])
 
-"""
-        
-        # Add knowledge base if available (static company info)
-        if knowledge_base:
-            prompt += f"""═══ БАЗА ЗНАНИЙ (СТАТИЧНАЯ ИНФОРМАЦИЯ) ═══
-{knowledge_base}
+    def _format_training(self, items):
+        return "\n".join([f"Q: {t.get('question')}\nA: {t.get('answer')}\n" for t in items])
 
-"""
+    def _format_analytics(self, sales, clients, monthly):
+        lines = []
+        lines.append(f"📊 СТАТИСТИКА ({monthly['period']}):")
+        lines.append(f"Выручка: {monthly['revenue']:,.2f} BYN")
+        lines.append(f"Заказов: {monthly['orders']}")
         
-        # Add dynamic analytics data (real-time from DB)
-        if analytics_context:
-            prompt += f"""═══ ДИНАМИЧЕСКИЕ ДАННЫЕ (ИЗ ЗАГРУЖЕННЫХ ФАЙЛОВ) ═══
-{analytics_context}
+        if sales:
+            lines.append("\n🏆 ТОП ПРОДУКТОВ:")
+            for p in sales[:5]:
+                lines.append(f"- {p['product']}: {p['quantity']} шт ({p['total']:,.2f} BYN)")
+                
+        if clients:
+            lines.append("\n👥 ТОП КЛИЕНТОВ:")
+            for c in clients[:5]:
+                lines.append(f"- {c['client']}: {c['orders']} зак. ({c['total']:,.2f} BYN)")
+                
+        return "\n".join(lines)
 
-"""
+    def _build_enhanced_prompt(self, email_from, email_subject, email_body, tone, knowledge, training, analytics):
+        return f"""You are an AI Sales Assistant for a confectionery company.
         
-        # Add training examples if available
-        if training_examples:
-            prompt += f"""═══ ПРИМЕРЫ ПОХОЖИХ ОТВЕТОВ ═══
-{training_examples}
+TONE: {tone}
 
-"""
-        
-        # Add email details
-        prompt += f"""═══ НОВОЕ ПИСЬМО ОТ КЛИЕНТА ═══
-От: {email_from}
-Тема: {email_subject}
-Текст:
+===== KNOWLEDGE BASE =====
+{knowledge or "No specific knowledge available."}
+
+===== CURRENT STATS & DATA =====
+{analytics or "No analytics available."}
+
+===== EXAMPLES =====
+{training or "No examples available."}
+
+===== INCOMING EMAIL =====
+From: {email_from}
+Subject: {email_subject}
+Body:
 {email_body}
 
-═══ ТРЕБОВАНИЯ К ОТВЕТУ ═══
-1. Отвечай на русском языке
-2. Используй информацию из базы знаний для цен и условий
-3. Используй динамические данные для статистики (топ товары, выручка, клиенты)
-4. Если клиент спрашивает о продажах/статистике — отвечай конкретными цифрами
-5. Следуй стилю примеров ответов (если есть)
-6. Будь вежливым и профессиональным
-7. Отвечай конкретно на вопросы клиента
-8. НЕ придумывай информацию, которой нет в контексте
-9. Тон ответа: {tone_desc}
+RESPONSE INSTRUCTIONS:
+1. Answer in RUSSIAN.
+2. Use the data provided. Be specific with numbers if asked.
+3. Match the requested tone.
+4. Be professional and helpful.
 
-═══ СГЕНЕРИРУЙ ОТВЕТ ═══"""
-        
-        return prompt
-    
+RESPONSE:"""
+
     async def _generate_with_timeout(self, prompt: str, timeout: int = 30) -> Optional[str]:
-        """Generate response with timeout protection"""
-        import asyncio
-        
+        """Generate content with timeout protection"""
+        if not self.client:
+            return None
+            
         try:
-            # Gemini SDK doesn't have native async, run in executor
-            loop = asyncio.get_event_loop()
-            response = await asyncio.wait_for(
-                loop.run_in_executor(None, self._sync_generate, prompt),
-                timeout=timeout
-            )
-            return response
-        except asyncio.TimeoutError:
-            logger.error(f"Gemini generation timeout after {timeout}s")
-            return None
+            # Note: synchronous call wrapped or handle async if library supports it
+            # newer google-generativeai supports async methods
+            response = await self.client.generate_content_async(prompt)
+            return response.text
         except Exception as e:
-            logger.error(f"Gemini generation error: {e}")
+            logger.error(f"Gemini generation timeout/error: {e}")
             return None
-    
-    def _sync_generate(self, prompt: str) -> str:
-        """Synchronous generation call"""
-        response = self.client.generate_content(prompt)
-        return response.text if response and response.text else ""
 
 
 # Global instance

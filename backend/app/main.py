@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import analytics, upload, email, proposals, forecast, salary
-from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training
+from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training, data_upload
 
 app = FastAPI(
     title="Sales Analytics API",
@@ -42,6 +42,9 @@ app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 # Knowledge Base & Training
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["Knowledge Base"])
 app.include_router(training.router, prefix="/api/training", tags=["Training"])
+
+# Data Integration (CSV upload + analytics summary)
+app.include_router(data_upload.router)
 
 
 @app.get("/")

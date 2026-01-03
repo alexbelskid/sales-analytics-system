@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useDebounce } from "use-debounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,6 +25,7 @@ export default function EmailsPage() {
     const [sender, setSender] = useState("");
     const [subject, setSubject] = useState("");
     const [body, setBody] = useState("");
+    const [debouncedBody] = useDebounce(body, 300);
     const [tone, setTone] = useState("professional");
 
     // Result State
