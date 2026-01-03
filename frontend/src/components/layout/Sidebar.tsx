@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -12,7 +12,9 @@ import {
     Settings,
     ChevronLeft,
     ChevronRight,
-    Sparkles
+    Sparkles,
+    X,
+    Menu
 } from 'lucide-react';
 
 const navigation = [
@@ -23,80 +25,170 @@ const navigation = [
     { name: 'Зарплаты', href: '/salary', icon: Calculator },
 ];
 
-const NavItem = memo(({
-    item,
-    isActive,
-    isCollapsed
-}: {
-    item: { name: string, href: string, icon: any },
-    isActive: boolean,
-    isCollapsed: boolean
-}) => (
+interface NavItemProps {
+    item: { name: string; href: string; icon: any };
+    isActive: boolean;
+    isCollapsed: boolean;
+    onClick?: () => void;
+}
+
+const NavItem = memo(({ item, isActive, isCollapsed, onClick }: NavItemProps) => (
     <Link
         href={item.href}
+        onClick={onClick}
         title={isCollapsed ? item.name : ''}
-        className={`flex items-center gap-3 px-3 py-2 text-sm rounded transition-all duration-200 ${isActive
-            ? 'bg-white text-black font-medium shadow-sm'
-            : 'text-[#808080] hover:text-white hover:bg-[#1A1A1A]'
+        className={`flex items-center gap-3 px-3 py-3 text-sm rounded-lg transition-all duration-200 min-h-[44px] ${isActive
+                ? 'bg-white text-black font-medium shadow-sm'
+                : 'text-[#808080] hover:text-white hover:bg-[#1A1A1A] active:bg-[#2A2A2A]'
             } ${isCollapsed ? 'justify-center px-2' : ''}`}
     >
-        <item.icon className="h-4 w-4 shrink-0" />
+        <item.icon className="h-5 w-5 shrink-0" />
         {!isCollapsed && <span className="truncate">{item.name}</span>}
     </Link>
 ));
 
 NavItem.displayName = 'NavItem';
 
-export default function Sidebar() {
+interface SidebarProps {
+    isMobileOpen?: boolean;
+    onMobileClose?: () => void;
+}
+
+export default function Sidebar({ isMobileOpen = false, onMobileClose }: SidebarProps) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
-    return (
-        <aside
-            className={`hidden border-r border-[#2A2A2A] bg-[#0A0A0A] md:flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'
-                }`}
-        >
-            <div className="flex h-full flex-col">
-                {/* Logo Section */}
-                <div className={`flex h-16 items-center border-b border-[#2A2A2A] shrink-0 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'
-                    }`}>
-                    {!isCollapsed && (
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <Sparkles className="h-5 w-5 text-white shrink-0" />
-                            <span className="text-lg font-bold text-white truncate">Alterini AI</span>
-                        </div>
-                    )}
-                    {isCollapsed && <Sparkles className="h-6 w-6 text-white" />}
+    // Close mobile sidebar when route changes
+    useEffect(() => {
+        if (onMobileClose) {
+            onMobileClose();
+        }
+    }, [pathname]);
 
+    // Handle escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isMobileOpen && onMobileClose) {
+                onMobileClose();
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [isMobileOpen, onMobileClose]);
+
+    // Prevent body scroll when mobile sidebar is open
+    useEffect(() => {
+        if (isMobileOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isMobileOpen]);
+
+    const handleNavClick = useCallback(() => {
+        if (onMobileClose) {
+            onMobileClose();
+        }
+    }, [onMobileClose]);
+
+    const sidebarContent = (
+        <div className="flex h-full flex-col">
+            {/* Logo Section */}
+            <div className={`flex h-16 items-center border-b border-[#2A2A2A] shrink-0 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'
+                }`}>
+                {!isCollapsed && (
+                    <div className="flex items-center gap-2 overflow-hidden">
+                        <Sparkles className="h-5 w-5 text-white shrink-0" />
+                        <span className="text-lg font-bold text-white truncate">Alterini AI</span>
+                    </div>
+                )}
+                {isCollapsed && <Sparkles className="h-6 w-6 text-white" />}
+
+                {/* Collapse button - only on desktop */}
+                <button
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="hidden lg:flex p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
+                >
+                    {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+                </button>
+
+                {/* Close button - only on mobile */}
+                {onMobileClose && (
                     <button
-                        onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="p-1.5 rounded bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors ml-1"
+                        onClick={onMobileClose}
+                        className="lg:hidden p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
-                        {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+                        <X size={20} />
                     </button>
-                </div>
-
-                {/* Navigation */}
-                <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden">
-                    {navigation.map((item) => (
-                        <NavItem
-                            key={item.name}
-                            item={item}
-                            isActive={pathname === item.href}
-                            isCollapsed={isCollapsed}
-                        />
-                    ))}
-                </nav>
-
-                {/* Settings */}
-                <div className="border-t border-[#2A2A2A] p-3 shrink-0">
-                    <NavItem
-                        item={{ name: 'Настройки', href: '/settings', icon: Settings }}
-                        isActive={pathname === '/settings'}
-                        isCollapsed={isCollapsed}
-                    />
-                </div>
+                )}
             </div>
-        </aside>
+
+            {/* Navigation */}
+            <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden">
+                {navigation.map((item) => (
+                    <NavItem
+                        key={item.name}
+                        item={item}
+                        isActive={pathname === item.href}
+                        isCollapsed={isCollapsed}
+                        onClick={handleNavClick}
+                    />
+                ))}
+            </nav>
+
+            {/* Settings */}
+            <div className="border-t border-[#2A2A2A] p-3 shrink-0">
+                <NavItem
+                    item={{ name: 'Настройки', href: '/settings', icon: Settings }}
+                    isActive={pathname === '/settings'}
+                    isCollapsed={isCollapsed}
+                    onClick={handleNavClick}
+                />
+            </div>
+        </div>
+    );
+
+    return (
+        <>
+            {/* Desktop Sidebar */}
+            <aside
+                className={`hidden lg:flex border-r border-[#2A2A2A] bg-[#0A0A0A] flex-col overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'
+                    }`}
+            >
+                {sidebarContent}
+            </aside>
+
+            {/* Mobile Overlay */}
+            {isMobileOpen && (
+                <div
+                    className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+                    onClick={onMobileClose}
+                />
+            )}
+
+            {/* Mobile Sidebar */}
+            <aside
+                className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0A0A0A] border-r border-[#2A2A2A] transform transition-transform duration-300 ease-in-out ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+            >
+                {sidebarContent}
+            </aside>
+        </>
+    );
+}
+
+// Export MobileMenuButton for use in layout
+export function MobileMenuButton({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className="lg:hidden p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Открыть меню"
+        >
+            <Menu size={20} />
+        </button>
     );
 }

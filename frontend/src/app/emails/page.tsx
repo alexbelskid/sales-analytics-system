@@ -71,12 +71,12 @@ export default function EmailsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white p-8">
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className="min-h-screen bg-[#0A0A0A] text-white">
+            <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-[32px] font-semibold mb-2">Автоответы</h1>
+                    <h1 className="text-2xl sm:text-[32px] font-semibold mb-2">Автоответы</h1>
                     <div className="h-[1px] bg-[#1A1A1A]" />
                 </div>
 
@@ -84,14 +84,14 @@ export default function EmailsPage() {
                 {/* Input Form */}
                 <div className="space-y-6">
                     {/* Two columns */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-[#808080] mb-2">От кого</label>
                             <Input
                                 placeholder="client@example.com"
                                 value={sender}
                                 onChange={(e) => setSender(e.target.value)}
-                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-[4px] h-12 px-4 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
+                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-[4px] h-12 px-4 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors min-h-[44px]"
                             />
                         </div>
                         <div>

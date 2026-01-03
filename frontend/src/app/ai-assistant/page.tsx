@@ -237,10 +237,10 @@ export default function AIAssistantPage() {
         <div className="min-h-screen bg-[#0A0A0A] text-white">
             <div className="max-w-7xl mx-auto px-8 py-12">
                 {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                <div className="flex flex-col gap-4 mb-8 sm:mb-12">
                     <div>
-                        <h1 className="text-[48px] font-semibold tracking-tight leading-tight mb-4">AI Ассистент</h1>
-                        <p className="text-[#808080] text-lg max-w-2xl leading-relaxed">
+                        <h1 className="text-2xl sm:text-4xl lg:text-[48px] font-semibold tracking-tight leading-tight mb-3 sm:mb-4">AI Ассистент</h1>
+                        <p className="text-[#808080] text-sm sm:text-lg max-w-2xl leading-relaxed">
                             Управляйте знаниями и обучением вашего искусственного интеллекта для точных и эффективных ответов клиентам.
                         </p>
                     </div>
@@ -256,7 +256,7 @@ export default function AIAssistantPage() {
                                     setShowTrainingModal(true);
                                 }
                             }}
-                            className="bg-white text-black hover:bg-[#E0E0E0] rounded-[4px] px-8 h-12 font-medium shrink-0 transition-transform active:scale-95"
+                            className="bg-white text-black hover:bg-[#E0E0E0] rounded-[4px] px-6 sm:px-8 h-12 font-medium w-full sm:w-auto transition-transform active:scale-95 min-h-[44px]"
                         >
                             <Plus className="mr-2 h-5 w-5" />
                             {activeTab === 'knowledge' ? 'Добавить информацию' : 'Добавить пример'}
@@ -265,7 +265,7 @@ export default function AIAssistantPage() {
                 </div>
 
                 {/* Tabs Navigation */}
-                <div className="flex gap-8 border-b border-[#1A1A1A] mb-10 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-4 sm:gap-8 border-b border-[#1A1A1A] mb-6 sm:mb-10 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                     {[
                         { id: 'status', label: 'Статус' },
                         { id: 'knowledge', label: 'База знаний' },

@@ -1,12 +1,19 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import Sidebar from '@/components/layout/Sidebar';
+import LayoutWrapper from '@/components/layout/LayoutWrapper';
 import { Toaster } from "@/components/ui/toaster";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
     title: 'Alterini AI - Аналитика продаж',
     description: 'Система аналитики продаж с AI-автоответами и прогнозированием',
+};
+
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
 };
 
 export default function RootLayout({
@@ -16,15 +23,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ru" className="dark">
-            <body>
-                <div className="flex h-screen bg-[#0A0A0A]">
-                    <Sidebar />
-                    <div className="flex flex-1 flex-col overflow-hidden">
-                        <main className="flex-1 overflow-y-auto p-8">
-                            {children}
-                        </main>
-                    </div>
-                </div>
+            <body className="overflow-hidden">
+                <LayoutWrapper>
+                    {children}
+                </LayoutWrapper>
                 <Toaster />
                 <SpeedInsights />
             </body>

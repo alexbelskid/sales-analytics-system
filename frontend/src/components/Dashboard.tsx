@@ -220,14 +220,14 @@ export default function Dashboard() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col gap-4">
                 <div>
-                    <h1 className="text-[40px] font-semibold tracking-tight mb-2">Дашборд</h1>
+                    <h1 className="text-2xl md:text-[40px] font-semibold tracking-tight mb-2">Дашборд</h1>
                     <p className="text-sm text-[#808080]">Аналитика, загрузка данных и прогнозы в одном месте</p>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <select className="rounded-[4px] bg-[#111] border border-[#2A2A2A] px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <select className="rounded-[4px] bg-[#111] border border-[#2A2A2A] px-4 py-3 sm:py-2.5 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer min-h-[44px]">
                         <option>Этот месяц</option>
                         <option>Прошлый месяц</option>
                         <option>Этот квартал</option>
@@ -236,7 +236,7 @@ export default function Dashboard() {
 
                     <button
                         onClick={() => setShowUploader(!showUploader)}
-                        className={`flex items-center gap-2 rounded-[4px] border border-[#2A2A2A] px-4 py-2.5 text-sm transition-all hover:bg-[#1A1A1A] ${showUploader ? 'bg-[#1A1A1A] border-[#404040]' : ''}`}
+                        className={`flex items-center justify-center gap-2 rounded-[4px] border border-[#2A2A2A] px-4 py-3 sm:py-2.5 text-sm transition-all hover:bg-[#1A1A1A] min-h-[44px] ${showUploader ? 'bg-[#1A1A1A] border-[#404040]' : ''}`}
                     >
                         <UploadIcon className="h-4 w-4" />
                         <span>Загрузить данные</span>
@@ -361,7 +361,7 @@ export default function Dashboard() {
             {/* Metrics Grid */}
             <div>
                 <h2 className="text-lg font-semibold mb-4">Ключевые метрики</h2>
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {metricCards.map((metric) => (
                         <div key={metric.title} className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6 hover:border-[#2A2A2A] transition-colors group">
                             <div className="flex items-center justify-between mb-4">
@@ -379,18 +379,18 @@ export default function Dashboard() {
             </div>
 
             {/* Charts Row */}
-            <div className="grid gap-6 lg:grid-cols-2">
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 sm:p-6">
                     <h3 className="text-lg font-semibold mb-6">Тренд продаж</h3>
                     <SalesTrendChart />
                 </div>
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 sm:p-6">
                     <h3 className="text-lg font-semibold mb-6">Топ продуктов</h3>
                     <TopProductsChart />
                 </div>
             </div>
 
-            <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+            <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 sm:p-6">
                 <h3 className="text-lg font-semibold mb-6">Топ клиенты</h3>
                 <TopCustomersChart />
             </div>
