@@ -14,16 +14,7 @@ import {
 } from 'recharts';
 import { analyticsApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
-
-// Demo data
-const demoData = [
-    { period: '2024-01', amount: 1850000, count: 45 },
-    { period: '2024-02', amount: 2100000, count: 52 },
-    { period: '2024-03', amount: 1950000, count: 48 },
-    { period: '2024-04', amount: 2300000, count: 58 },
-    { period: '2024-05', amount: 2150000, count: 54 },
-    { period: '2024-06', amount: 2450000, count: 62 },
-];
+import { TrendingUp } from 'lucide-react';
 
 interface TrendData {
     period: string;
@@ -32,8 +23,9 @@ interface TrendData {
 }
 
 export default function SalesTrendChart() {
-    const [data, setData] = useState<TrendData[]>(demoData);
+    const [data, setData] = useState<TrendData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasRealData, setHasRealData] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -42,11 +34,12 @@ export default function SalesTrendChart() {
     async function loadData() {
         try {
             const trend = await analyticsApi.getSalesTrend('month');
-            if (trend.length > 0) {
+            if (trend && trend.length > 0) {
                 setData(trend);
+                setHasRealData(true);
             }
         } catch (err) {
-            // Use demo data on error
+            console.log('SalesTrend: No data available');
         } finally {
             setLoading(false);
         }
@@ -55,13 +48,13 @@ export default function SalesTrendChart() {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="rounded-lg border bg-background p-3 shadow-lg">
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-sm text-primary">
-                        Выручка: {formatCurrency(payload[0].value)}
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#0A0A0A] p-3 shadow-lg">
+                    <p className="text-sm font-medium text-white">{label}</p>
+                    <p className="text-sm text-white">
+                        Сумма: {formatCurrency(payload[0].value)}
                     </p>
                     {payload[0].payload.count && (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-[#808080]">
                             Продаж: {payload[0].payload.count}
                         </p>
                     )}
@@ -71,34 +64,69 @@ export default function SalesTrendChart() {
         return null;
     };
 
+    if (loading) {
+        return (
+            <div className="h-80 flex items-center justify-center">
+                <div className="text-[#808080] text-sm">Загрузка...</div>
+            </div>
+        );
+    }
+
+    if (!hasRealData || data.length === 0) {
+        return (
+            <div className="h-80 flex flex-col items-center justify-center text-center">
+                <TrendingUp className="h-12 w-12 text-[#404040] mb-4" />
+                <p className="text-[#808080] text-sm mb-2">Нет данных о продажах</p>
+                <p className="text-[#505050] text-xs">Загрузите данные продаж для отображения тренда</p>
+            </div>
+        );
+    }
+
+    if (data.length === 1) {
+        return (
+            <div className="h-80 flex flex-col items-center justify-center text-center">
+                <TrendingUp className="h-12 w-12 text-[#404040] mb-4" />
+                <p className="text-[#808080] text-sm mb-2">Недостаточно данных для тренда</p>
+                <p className="text-[#505050] text-xs">
+                    Текущая сумма: {formatCurrency(data[0].amount)}
+                </p>
+                <p className="text-[#505050] text-xs mt-1">
+                    Загрузите данные за несколько периодов
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data}>
                     <defs>
                         <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
                     <XAxis
                         dataKey="period"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
+                        stroke="#404040"
+                        fontSize={10}
                         tickLine={false}
+                        axisLine={false}
                     />
                     <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
+                        stroke="#404040"
+                        fontSize={10}
                         tickLine={false}
-                        tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`}
+                        axisLine={false}
+                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Area
                         type="monotone"
                         dataKey="amount"
-                        stroke="hsl(var(--primary))"
+                        stroke="#FFFFFF"
                         strokeWidth={2}
                         fill="url(#colorAmount)"
                     />

@@ -13,24 +13,15 @@ import {
 } from 'recharts';
 import { analyticsApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
-
-// Demo data
-const demoData = [
-    { name: 'Товар А', total_quantity: 245, total_amount: 367500 },
-    { name: 'Товар Б', total_quantity: 189, total_amount: 283500 },
-    { name: 'Товар В', total_quantity: 156, total_amount: 234000 },
-    { name: 'Товар Г', total_quantity: 134, total_amount: 201000 },
-    { name: 'Товар Д', total_quantity: 98, total_amount: 147000 },
-    { name: 'Товар Е', total_quantity: 87, total_amount: 130500 },
-];
+import { Package } from 'lucide-react';
 
 const COLORS = [
-    'hsl(221, 83%, 53%)',  // primary blue
-    'hsl(142, 76%, 36%)',  // green
-    'hsl(262, 83%, 58%)',  // purple
-    'hsl(25, 95%, 53%)',   // orange
-    'hsl(199, 89%, 48%)',  // cyan
-    'hsl(346, 77%, 50%)',  // pink
+    '#FFFFFF',
+    '#E0E0E0',
+    '#C0C0C0',
+    '#A0A0A0',
+    '#808080',
+    '#606060',
 ];
 
 interface ProductData {
@@ -41,8 +32,9 @@ interface ProductData {
 }
 
 export default function TopProductsChart() {
-    const [data, setData] = useState<ProductData[]>(demoData);
+    const [data, setData] = useState<ProductData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [hasRealData, setHasRealData] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -51,11 +43,12 @@ export default function TopProductsChart() {
     async function loadData() {
         try {
             const products = await analyticsApi.getTopProducts(6);
-            if (products.length > 0) {
+            if (products && products.length > 0) {
                 setData(products);
+                setHasRealData(true);
             }
         } catch (err) {
-            // Use demo data on error
+            console.log('TopProducts: No data available');
         } finally {
             setLoading(false);
         }
@@ -65,12 +58,12 @@ export default function TopProductsChart() {
         if (active && payload && payload.length) {
             const item = payload[0].payload;
             return (
-                <div className="rounded-lg border bg-background p-3 shadow-lg">
-                    <p className="text-sm font-medium">{label}</p>
-                    <p className="text-sm text-primary">
-                        Выручка: {formatCurrency(item.total_amount)}
+                <div className="rounded-lg border border-[#2A2A2A] bg-[#0A0A0A] p-3 shadow-lg">
+                    <p className="text-sm font-medium text-white">{label}</p>
+                    <p className="text-sm text-white">
+                        Сумма: {formatCurrency(item.total_amount)}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-[#808080]">
                         Продано: {formatNumber(item.total_quantity)} шт.
                     </p>
                 </div>
@@ -79,25 +72,48 @@ export default function TopProductsChart() {
         return null;
     };
 
+    if (loading) {
+        return (
+            <div className="h-72 flex items-center justify-center">
+                <div className="text-[#808080] text-sm">Загрузка...</div>
+            </div>
+        );
+    }
+
+    if (!hasRealData || data.length === 0) {
+        return (
+            <div className="h-72 flex flex-col items-center justify-center text-center">
+                <Package className="h-12 w-12 text-[#404040] mb-4" />
+                <p className="text-[#808080] text-sm mb-2">Нет данных о продуктах</p>
+                <p className="text-[#505050] text-xs">Загрузите данные продаж для отображения графика</p>
+            </div>
+        );
+    }
+
     return (
         <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <BarChart data={data} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" horizontal={false} />
                     <XAxis
-                        dataKey="name"
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
+                        type="number"
+                        stroke="#404040"
+                        fontSize={10}
                         tickLine={false}
-                    />
-                    <YAxis
-                        stroke="hsl(var(--muted-foreground))"
-                        fontSize={12}
-                        tickLine={false}
+                        axisLine={false}
                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                     />
+                    <YAxis
+                        type="category"
+                        dataKey="name"
+                        stroke="#404040"
+                        fontSize={10}
+                        tickLine={false}
+                        axisLine={false}
+                        width={100}
+                    />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="total_amount" radius={[4, 4, 0, 0]}>
+                    <Bar dataKey="total_amount" radius={[0, 4, 4, 0]}>
                         {data.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}

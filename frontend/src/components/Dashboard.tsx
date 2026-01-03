@@ -192,22 +192,22 @@ export default function Dashboard() {
 
     const metricCards = [
         {
-            title: 'Общая выручка',
+            title: 'Сумма продаж',
             value: metrics ? formatCurrency(metrics.total_revenue) : '—',
-            change: '+12.5%',
-            trend: 'up',
+            change: null, // No previous period data available
+            trend: null,
         },
         {
             title: 'Количество продаж',
             value: metrics ? formatNumber(metrics.total_sales) : '—',
-            change: '+8.2%',
-            trend: 'up',
+            change: null,
+            trend: null,
         },
         {
             title: 'Средний чек',
             value: metrics ? formatCurrency(metrics.average_check) : '—',
-            change: '+3.1%',
-            trend: 'up',
+            change: null,
+            trend: null,
         },
     ];
 
@@ -366,11 +366,13 @@ export default function Dashboard() {
                         <div key={metric.title} className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6 hover:border-[#2A2A2A] transition-colors group">
                             <div className="flex items-center justify-between mb-4">
                                 <p className="text-sm text-[#808080] group-hover:text-gray-400 transition-colors uppercase tracking-wider text-[10px]">{metric.title}</p>
-                                <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${metric.trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'
-                                    }`}>
-                                    {metric.trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                                    {metric.change}
-                                </div>
+                                {metric.change !== null && (
+                                    <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${metric.trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'
+                                        }`}>
+                                        {metric.trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                        {metric.change}
+                                    </div>
+                                )}
                             </div>
                             <p className="text-3xl font-bold tracking-tight">{metric.value}</p>
                         </div>
