@@ -8,13 +8,13 @@
     --obsidian: 10 14% 5%;
     --charcoal: 220 24% 15%;
     --slate: 215 20% 25%;
-    
+
     /* Accent System (NO BLUE!) */
     --amber-glow: 43 96% 56%;
     --emerald-data: 158 64% 52%;
     --crimson-alert: 0 84% 60%;
     --frost: 199 89% 94%;
-    
+
     /* Semantic Tokens */
     --background: var(--obsidian);
     --foreground: 210 40% 98%;
@@ -36,7 +36,7 @@
     --input: 217 33% 18%;
     --ring: var(--amber-glow);
     --radius: 0.5rem;
-    
+
     /* Custom Properties */
     --diagonal-angle: 8deg;
     --glow-amber: 0 0 40px rgba(251, 191, 36, 0.15);
@@ -48,13 +48,13 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1, "kern" 1;
     font-family: var(--font-body), system-ui, sans-serif;
   }
-  
+
   /* Grain Texture Overlay */
   body::before {
     content: '';
@@ -66,25 +66,33 @@
     z-index: 9999;
     mix-blend-mode: overlay;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display), serif;
     font-weight: 700;
     letter-spacing: -0.02em;
   }
-  
-  code, pre, .font-mono {
+
+  code,
+  pre,
+  .font-mono {
     font-family: var(--font-mono), monospace;
   }
 }
 
 @layer components {
+
   /* Metric Cards with Diagonal Accent */
   .metric-card {
     @apply relative bg-card rounded-lg border border-border p-6 shadow-lg transition-all duration-300;
     background: linear-gradient(135deg, hsl(var(--charcoal)) 0%, hsl(var(--obsidian)) 100%);
   }
-  
+
   .metric-card::before {
     content: '';
     position: absolute;
@@ -98,34 +106,34 @@
     opacity: 0;
     transition: opacity 0.3s ease;
   }
-  
+
   .metric-card:hover::before {
     opacity: 1;
   }
-  
+
   .metric-card:hover {
     transform: scale(1.02);
     box-shadow: var(--glow-amber);
   }
-  
+
   /* Gradient Text (Amber, NOT blue) */
   .gradient-text {
     @apply bg-gradient-to-r from-amber-400 to-yellow-300 bg-clip-text text-transparent;
     font-family: var(--font-display), serif;
   }
-  
+
   /* Glass Effect with Grain */
   .glass-effect {
     @apply backdrop-blur-xl border border-white/10;
     background: rgba(26, 31, 46, 0.7);
   }
-  
+
   /* Diagonal Divider */
   .diagonal-divider {
     position: relative;
     overflow: hidden;
   }
-  
+
   .diagonal-divider::after {
     content: '';
     position: absolute;
@@ -133,78 +141,83 @@
     right: 0;
     width: 2px;
     height: 100%;
-    background: linear-gradient(180deg, 
-      transparent 0%, 
-      hsl(var(--amber-glow)) 50%, 
-      transparent 100%
-    );
+    background: linear-gradient(180deg,
+        transparent 0%,
+        hsl(var(--amber-glow)) 50%,
+        transparent 100%);
     transform: skewY(var(--diagonal-angle));
   }
-  
+
   /* Ambient Glow Button */
   .glow-button {
-    @apply relative bg-amber-500 text-charcoal font-semibold px-6 py-3 rounded-lg transition-all duration-300;
+    @apply relative bg-amber-500 text-primary-foreground font-semibold px-6 py-3 rounded-lg transition-all duration-300;
     box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
   }
-  
+
   .glow-button:hover {
     box-shadow: var(--glow-amber);
     transform: translateY(-2px);
   }
-  
+
   .glow-button:active {
     transform: translateY(0) scale(0.98);
   }
 }
 
 @layer utilities {
+
   /* Staggered Animation */
   .stagger-in {
     animation: stagger-in 0.6s ease-out forwards;
     opacity: 0;
   }
-  
+
   @keyframes stagger-in {
     from {
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  
+
   /* Diagonal Slide */
   .diagonal-slide {
     animation: diagonal-slide 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  
+
   @keyframes diagonal-slide {
     from {
       transform: translateX(-100%) rotate(var(--diagonal-angle));
       opacity: 0;
     }
+
     to {
       transform: translateX(0) rotate(0deg);
       opacity: 1;
     }
   }
-  
+
   /* Glow Pulse */
   .glow-pulse {
     animation: glow-pulse 2s ease-in-out infinite;
   }
-  
+
   @keyframes glow-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
     }
+
     50% {
       box-shadow: var(--glow-amber);
     }
   }
-  
+
   /* Typewriter Effect */
   .typewriter {
     overflow: hidden;
@@ -212,18 +225,26 @@
     white-space: nowrap;
     animation: typing 2s steps(40) forwards, blink 0.75s step-end infinite;
   }
-  
+
   @keyframes typing {
-    from { width: 0; }
-    to { width: 100%; }
+    from {
+      width: 0;
+    }
+
+    to {
+      width: 100%;
+    }
   }
-  
+
   @keyframes blink {
-    50% { border-color: transparent; }
+    50% {
+      border-color: transparent;
+    }
   }
-  
+
   /* Reduced Motion Support */
   @media (prefers-reduced-motion: reduce) {
+
     .stagger-in,
     .diagonal-slide,
     .glow-pulse,
@@ -232,7 +253,7 @@
       opacity: 1;
       transform: none;
     }
-    
+
     .metric-card:hover {
       transform: none;
     }
