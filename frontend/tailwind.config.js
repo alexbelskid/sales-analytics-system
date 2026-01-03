@@ -16,6 +16,16 @@ module.exports = {
         },
         extend: {
             colors: {
+                // Data Brutalism Color System
+                obsidian: "hsl(var(--obsidian))",
+                charcoal: "hsl(var(--charcoal))",
+                slate: "hsl(var(--slate))",
+                'amber-glow': "hsl(var(--amber-glow))",
+                'emerald-data': "hsl(var(--emerald-data))",
+                'crimson-alert': "hsl(var(--crimson-alert))",
+                frost: "hsl(var(--frost))",
+
+                // Semantic tokens
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
@@ -50,6 +60,11 @@ module.exports = {
                     foreground: "hsl(var(--card-foreground))",
                 },
             },
+            fontFamily: {
+                display: ['var(--font-display)', 'serif'],
+                body: ['var(--font-body)', 'sans-serif'],
+                mono: ['var(--font-mono)', 'monospace'],
+            },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
@@ -71,5 +86,5 @@ module.exports = {
             },
         },
     },
-    plugins: [],
+    plugins: [require("tailwindcss-animate")],
 };
