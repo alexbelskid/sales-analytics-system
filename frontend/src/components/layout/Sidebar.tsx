@@ -16,6 +16,8 @@ const navigation = [
     { name: 'Дашборд', href: '/' },
     { name: 'Загрузка данных', href: '/upload' },
     { name: 'Автоответы', href: '/emails' },
+    { name: 'База знаний', href: '/knowledge' },
+    { name: 'Обучение', href: '/training' },
     { name: 'КП', href: '/proposals' },
     { name: 'Прогнозы', href: '/forecast' },
     { name: 'Зарплаты', href: '/salary' },
@@ -41,8 +43,8 @@ export default function Sidebar() {
                                 key={item.name}
                                 href={item.href}
                                 className={`block px-3 py-2 text-sm rounded transition-colors ${isActive
-                                        ? 'bg-white text-black font-medium'
-                                        : 'text-[#808080] hover:text-white hover:bg-[#1A1A1A]'
+                                    ? 'bg-white text-black font-medium'
+                                    : 'text-[#808080] hover:text-white hover:bg-[#1A1A1A]'
                                     }`}
                             >
                                 {item.name}
