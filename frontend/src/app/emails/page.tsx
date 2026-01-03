@@ -138,7 +138,7 @@ export default function EmailsPage() {
                     {/* Generate Button */}
                     <Button
                         onClick={handleGenerate}
-                        disabled={loading || !body || !aiAvailable}
+                        disabled={loading || !body}
                         className="w-full bg-white text-black hover:bg-[#E0E0E0] rounded-[4px] h-12 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? (
