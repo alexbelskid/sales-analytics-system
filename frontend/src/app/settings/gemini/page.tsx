@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Sparkles, Eye, EyeOff, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function GeminiSettingsPage() {
     const { toast } = useToast();
@@ -73,6 +74,12 @@ export default function GeminiSettingsPage() {
     return (
         <div className="min-h-screen bg-[#0A0A0A] text-white p-8">
             <div className="max-w-3xl mx-auto space-y-8">
+
+                {/* Breadcrumbs / Back */}
+                <Link href="/settings" className="inline-flex items-center gap-2 text-[#808080] hover:text-white transition-colors mb-4 group">
+                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                    <span className="text-xs uppercase tracking-widest font-medium">Назад в настройки</span>
+                </Link>
 
                 {/* Header */}
                 <div>

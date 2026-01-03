@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit2, Trash2, Upload, FileText } from "lucide-react";
+import { Plus, Edit2, Trash2, Upload, FileText, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 interface TrainingExample {
     id: string;
@@ -178,6 +179,12 @@ export default function TrainingPage() {
         <div className="min-h-screen bg-[#0A0A0A] text-white p-8">
             <div className="max-w-5xl mx-auto space-y-8">
 
+                {/* Breadcrumbs / Back */}
+                <Link href="/settings" className="inline-flex items-center gap-2 text-[#808080] hover:text-white transition-colors mb-4 group">
+                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                    <span className="text-xs uppercase tracking-widest font-medium">Назад в настройки</span>
+                </Link>
+
                 {/* Header */}
                 <div>
                     <h1 className="text-[32px] font-semibold">Обучение AI</h1>
@@ -192,8 +199,8 @@ export default function TrainingPage() {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors ${isDragging
-                            ? 'border-white bg-[#1A1A1A]'
-                            : 'border-[#2A2A2A] hover:border-[#404040]'
+                        ? 'border-white bg-[#1A1A1A]'
+                        : 'border-[#2A2A2A] hover:border-[#404040]'
                         }`}
                 >
                     <Upload className="h-12 w-12 mx-auto mb-4 text-[#808080]" />

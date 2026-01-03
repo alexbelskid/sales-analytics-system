@@ -16,8 +16,6 @@ const navigation = [
     { name: 'Дашборд', href: '/' },
     { name: 'Загрузка данных', href: '/upload' },
     { name: 'Автоответы', href: '/emails' },
-    { name: 'База знаний', href: '/knowledge' },
-    { name: 'Обучение', href: '/training' },
     { name: 'КП', href: '/proposals' },
     { name: 'Прогнозы', href: '/forecast' },
     { name: 'Зарплаты', href: '/salary' },
