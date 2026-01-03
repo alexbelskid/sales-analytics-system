@@ -1,6 +1,11 @@
+"""
+Groq AI Service using OpenAI-compatible API
+This uses the openai library (already installed) pointed to Groq's endpoint
+"""
+
 import logging
-from typing import Optional, Dict, Any, List
-from groq import Groq
+from typing import Optional, Dict, Any
+from openai import OpenAI
 from app.config import get_settings
 from app.database import supabase
 
@@ -10,11 +15,20 @@ class GroqService:
     def __init__(self):
         settings = get_settings()
         self.client = None
-        if settings.groq_api_key:
+        self.api_key = settings.groq_api_key
+        
+        if self.api_key:
             try:
-                self.client = Groq(api_key=settings.groq_api_key)
+                # Use OpenAI client with Groq's base URL
+                self.client = OpenAI(
+                    api_key=self.api_key,
+                    base_url="https://api.groq.com/openai/v1"
+                )
             except Exception as e:
                 logger.error(f"Failed to initialize Groq client: {e}")
+        else:
+            logger.warning("GROQ_API_KEY not configured")
+            
         self.model = "llama-3.3-70b-versatile"
     
     def check_status(self) -> dict:
@@ -66,7 +80,7 @@ class GroqService:
                 knowledge_text, training_text, analytics_text
             )
             
-            # 3. Generate
+            # 3. Generate using OpenAI-compatible endpoint
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
@@ -119,7 +133,6 @@ class GroqService:
             return ""
             
         try:
-            # Import inside method to avoid circular imports if any
             from app.services.analytics_service import AnalyticsService
             analytics = AnalyticsService()
             
