@@ -1,20 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
+import os
 from app.routers import analytics, upload, email, proposals, forecast, salary
 from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training, data_upload
 
 app = FastAPI(
-    title="Sales Analytics API",
-    description="API для аналитической системы продаж",
-    version="1.0.0"
+    title="Alterini AI API",
+    description="API для аналитической системы продаж с AI-ассистентом",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
-        "https://sales-analytics-system-psi.vercel.app",
-        "*"
+        "http://localhost:3000",      # Local development
+        "http://127.0.0.1:3000",      # Local development alt
+        "https://sales-analytics-system-psi.vercel.app",  # Vercel production
+        "*"  # Allow all for development (remove in production)
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -47,16 +53,38 @@ app.include_router(training.router, prefix="/api/training", tags=["Training"])
 app.include_router(data_upload.router)
 
 
-@app.get("/")
+@app.get("/", tags=["Health"])
 async def root():
-    return {"message": "Sales Analytics API", "version": "1.0.0"}
+    """API информация и статус"""
+    return {
+        "name": "Alterini AI API",
+        "version": "1.0.0",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health"
+    }
 
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 async def health():
-    return {"status": "ok"}
+    """Проверка здоровья сервиса"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": os.getenv("ENVIRONMENT", "development")
+    }
 
 
-@app.get("/api/health")
+@app.get("/api/health", tags=["Health"])
 async def api_health():
-    return {"status": "ok", "service": "sales-ai-backend", "version": "1.0.0"}
+    """Детальная проверка здоровья API"""
+    return {
+        "status": "healthy",
+        "service": "alterini-ai-backend",
+        "version": "1.0.0",
+        "timestamp": datetime.utcnow().isoformat(),
+        "components": {
+            "api": "ok",
+            "database": "check /api/data/analytics/summary"
+        }
+    }
