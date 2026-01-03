@@ -13,6 +13,8 @@ import StatusTab from "@/components/ai-assistant/StatusTab";
 import KnowledgeModal from "@/components/ai-assistant/KnowledgeModal";
 import TrainingModal from "@/components/ai-assistant/TrainingModal";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+
 interface KnowledgeItem {
     id: string;
     category: string;
@@ -92,15 +94,15 @@ export default function AIAssistantPage() {
         setLoading(true);
         try {
             if (activeTab === 'knowledge') {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/knowledge`);
+                const response = await fetch(`${API_BASE}/api/knowledge`);
                 const data = await response.json();
                 setKnowledgeItems(data);
             } else if (activeTab === 'training') {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/training`);
+                const response = await fetch(`${API_BASE}/api/training`);
                 const data = await response.json();
                 setTrainingExamples(data);
             } else if (activeTab === 'status') {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/data/analytics/summary`);
+                const response = await fetch(`${API_BASE}/api/data/analytics/summary`);
                 const data = await response.json();
                 setAIStatus(data);
             }
@@ -115,8 +117,8 @@ export default function AIAssistantPage() {
     const handleSaveKnowledge = async (data: { category: string; title: string; content: string }) => {
         try {
             const url = editingKnowledge
-                ? `${process.env.NEXT_PUBLIC_API_URL}/api/knowledge / ${editingKnowledge.id} `
-                : `${process.env.NEXT_PUBLIC_API_URL}/api/knowledge`;
+                ? `${API_BASE}/api/knowledge/${editingKnowledge.id}`
+                : `${API_BASE}/api/knowledge`;
             const method = editingKnowledge ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
@@ -139,7 +141,7 @@ export default function AIAssistantPage() {
     const handleDeleteKnowledge = async (id: string) => {
         if (!confirm("Удалить эту запись?")) return;
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/knowledge/${id}`, { method: 'DELETE' });
+            const response = await fetch(`${API_BASE}/api/knowledge/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 toast({ title: "Удалено" });
                 loadData();
@@ -153,8 +155,8 @@ export default function AIAssistantPage() {
     const handleSaveTraining = async (data: { question: string; answer: string; tone: string; confidence_score: number }) => {
         try {
             const url = editingTraining
-                ? `${process.env.NEXT_PUBLIC_API_URL}/api/training / ${editingTraining.id} `
-                : `${process.env.NEXT_PUBLIC_API_URL}/api/training`;
+                ? `${API_BASE}/api/training/${editingTraining.id}`
+                : `${API_BASE}/api/training`;
             const method = editingTraining ? 'PUT' : 'POST';
 
             const response = await fetch(url, {
@@ -177,7 +179,7 @@ export default function AIAssistantPage() {
     const handleDeleteTraining = async (id: string) => {
         if (!confirm("Удалить этот пример?")) return;
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/training/${id}`, { method: 'DELETE' });
+            const response = await fetch(`${API_BASE}/api/training/${id}`, { method: 'DELETE' });
             if (response.ok) {
                 toast({ title: "Удалено" });
                 loadData();
@@ -197,7 +199,7 @@ export default function AIAssistantPage() {
         formData.append('file', file);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/training/upload/csv`, {
+            const response = await fetch(`${API_BASE}/api/training/upload/csv`, {
                 method: 'POST',
                 body: formData,
             });
@@ -272,8 +274,8 @@ export default function AIAssistantPage() {
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`pb - 4 text - sm font - medium tracking - wide transition - colors relative whitespace - nowrap ${activeTab === tab.id ? 'text-white' : 'text-[#404040] hover:text-[#808080]'
-                                } `}
+                            className={`pb-4 text-sm font-medium tracking-wide transition-colors relative whitespace-nowrap ${activeTab === tab.id ? 'text-white' : 'text-[#404040] hover:text-[#808080]'
+                                }`}
                         >
                             {tab.label}
                             {activeTab === tab.id && (
