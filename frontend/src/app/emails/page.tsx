@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
-import { api } from "@/lib/api";
+import { Loader2, Copy, Sparkles } from "lucide-react";
+import { aiApi, knowledgeApi, trainingApi } from "@/lib/api";
 
 const TONES = [
     { id: 'professional', label: 'Профессиональный' },
@@ -20,6 +20,11 @@ const TONES = [
 export default function EmailsPage() {
     const { toast } = useToast();
 
+    // AI Status
+    const [aiAvailable, setAiAvailable] = useState(false);
+    const [knowledgeCount, setKnowledgeCount] = useState(0);
+    const [trainingCount, setTrainingCount] = useState(0);
+
     // Form State
     const [sender, setSender] = useState("");
     const [subject, setSubject] = useState("");
@@ -28,12 +33,30 @@ export default function EmailsPage() {
 
     // Result State
     const [generatedResponse, setGeneratedResponse] = useState("");
+    const [confidence, setConfidence] = useState(0);
     const [loading, setLoading] = useState(false);
 
-    // Version check
     useEffect(() => {
-        api.checkVersion().catch(() => { });
+        loadAIStatus();
     }, []);
+
+    const loadAIStatus = async () => {
+        try {
+            // Check AI status
+            const aiStatus = await aiApi.getStatus();
+            setAiAvailable(aiStatus.available);
+
+            // Get knowledge base stats
+            const knowledgeStats = await knowledgeApi.getStats();
+            setKnowledgeCount(knowledgeStats.total);
+
+            // Get training stats
+            const trainingStats = await trainingApi.getStats();
+            setTrainingCount(trainingStats.total);
+        } catch (error) {
+            console.error("Failed to load AI status:", error);
+        }
+    };
 
     const handleGenerate = async () => {
         if (!body) {
@@ -43,14 +66,23 @@ export default function EmailsPage() {
 
         setLoading(true);
         try {
-            const res = await api.generateResponse(sender, subject, body, tone);
-            if (res.status === 'success') {
-                setGeneratedResponse(res.generated_reply);
+            const res = await aiApi.generateResponse(sender, subject, body, tone);
+
+            if (res.success) {
+                setGeneratedResponse(res.response);
+                setConfidence(res.confidence);
+                toast({
+                    title: "Готово",
+                    description: `Ответ сгенерирован (${(res.confidence * 100).toFixed(0)}% уверенности)`
+                });
             } else {
                 toast({ title: "Ошибка", description: "Не удалось сгенерировать ответ" });
             }
         } catch (error: any) {
-            toast({ title: "Ошибка", description: error.message || "Ошибка соединения" });
+            toast({
+                title: "Ошибка",
+                description: error.message || "Ошибка соединения"
+            });
         } finally {
             setLoading(false);
         }
@@ -67,8 +99,24 @@ export default function EmailsPage() {
 
                 {/* Header */}
                 <div>
-                    <h1 className="text-[32px] font-semibold mb-8">Автоответы</h1>
+                    <h1 className="text-[32px] font-semibold mb-2">Автоответы</h1>
                     <div className="h-[1px] bg-[#1A1A1A]" />
+                </div>
+
+                {/* AI Status Indicator */}
+                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className={`h-2 w-2 rounded-full ${aiAvailable ? 'bg-white' : 'bg-[#808080]'}`} />
+                        <span className="text-sm font-medium">
+                            AI ассистент: {aiAvailable ? 'Подключён' : 'Не настроен'}
+                        </span>
+                        {aiAvailable && <Sparkles className="h-4 w-4 text-white" />}
+                    </div>
+                    <div className="text-xs text-[#808080] flex gap-4">
+                        <span>База знаний: {knowledgeCount} записей</span>
+                        <span>•</span>
+                        <span>Обучено: {trainingCount} примеров</span>
+                    </div>
                 </div>
 
                 {/* Input Form */}
@@ -130,16 +178,19 @@ export default function EmailsPage() {
                     {/* Generate Button */}
                     <Button
                         onClick={handleGenerate}
-                        disabled={loading || !body}
+                        disabled={loading || !body || !aiAvailable}
                         className="w-full bg-white text-black hover:bg-[#E0E0E0] rounded-[4px] h-12 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Генерируем...
+                                AI думает...
                             </>
                         ) : (
-                            'Сгенерировать'
+                            <>
+                                <Sparkles className="mr-2 h-4 w-4" />
+                                Сгенерировать
+                            </>
                         )}
                     </Button>
                 </div>
@@ -149,7 +200,14 @@ export default function EmailsPage() {
 
                 {/* Response */}
                 <div className="space-y-4">
-                    <label className="block text-sm text-[#808080]">Ответ</label>
+                    <div className="flex items-center justify-between">
+                        <label className="block text-sm text-[#808080]">Ответ</label>
+                        {generatedResponse && confidence > 0 && (
+                            <span className="text-xs text-[#808080]">
+                                Уверенность: {(confidence * 100).toFixed(0)}%
+                            </span>
+                        )}
+                    </div>
                     {generatedResponse ? (
                         <div className="space-y-4">
                             <Textarea
@@ -159,7 +217,10 @@ export default function EmailsPage() {
                             />
                             <div className="flex gap-3">
                                 <Button
-                                    onClick={() => setGeneratedResponse("")}
+                                    onClick={() => {
+                                        setGeneratedResponse("");
+                                        setConfidence(0);
+                                    }}
                                     variant="outline"
                                     className="bg-transparent border-[#2A2A2A] text-white hover:bg-[#1A1A1A] hover:text-white rounded-[4px] h-10"
                                 >
@@ -169,13 +230,18 @@ export default function EmailsPage() {
                                     onClick={handleCopy}
                                     className="bg-white text-black hover:bg-[#E0E0E0] rounded-[4px] h-10"
                                 >
+                                    <Copy className="mr-2 h-4 w-4" />
                                     Копировать
                                 </Button>
                             </div>
                         </div>
                     ) : (
                         <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-[4px] min-h-[200px] flex items-center justify-center">
-                            <p className="text-[#404040] text-sm">Ответ появится здесь после генерации</p>
+                            <p className="text-[#404040] text-sm">
+                                {aiAvailable
+                                    ? "Ответ появится здесь после генерации"
+                                    : "Настройте Google Gemini API в настройках"}
+                            </p>
                         </div>
                     )}
                 </div>

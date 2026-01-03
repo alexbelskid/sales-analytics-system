@@ -330,3 +330,33 @@ export const api = {
     ...googleAuthApi,
     checkVersion: () => fetchAPI<{ status: string; version: string; service: string }>('/api/health'),
 };
+
+// AI API
+export const aiApi = {
+    generateResponse: (emailFrom: string, emailSubject: string, emailBody: string, tone: string, context?: string) =>
+        fetchAPI<{ success: boolean; response: string; confidence: number; model?: string }>('/api/ai/generate-response', {
+            method: 'POST',
+            body: JSON.stringify({
+                email_from: emailFrom,
+                email_subject: emailSubject,
+                email_body: emailBody,
+                tone,
+                context,
+            }),
+        }),
+
+    getStatus: () =>
+        fetchAPI<{ available: boolean; model: string | null; api_key_configured: boolean }>('/api/ai/status'),
+};
+
+// Knowledge Base API
+export const knowledgeApi = {
+    getStats: () =>
+        fetchAPI<{ total: number; by_category: Record<string, number> }>('/api/knowledge/stats/summary'),
+};
+
+// Training API
+export const trainingApi = {
+    getStats: () =>
+        fetchAPI<{ total: number; by_tone: Record<string, number>; average_confidence: number }>('/api/training/stats/summary'),
+};
