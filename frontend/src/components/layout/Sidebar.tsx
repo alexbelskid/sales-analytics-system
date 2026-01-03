@@ -14,11 +14,9 @@ import {
 
 const navigation = [
     { name: 'Дашборд', href: '/' },
-    { name: 'Загрузка данных', href: '/upload' },
     { name: 'Автоответы', href: '/emails' },
     { name: 'AI Ассистент', href: '/ai-assistant' },
     { name: 'КП', href: '/proposals' },
-    { name: 'Прогнозы', href: '/forecast' },
     { name: 'Зарплаты', href: '/salary' },
 ];
 
