@@ -198,9 +198,7 @@ export default function EmailsPage() {
                     ) : (
                         <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-[4px] min-h-[200px] flex items-center justify-center">
                             <p className="text-[#404040] text-sm">
-                                {aiAvailable
-                                    ? "Ответ появится здесь после генерации"
-                                    : "Настройте Google Gemini API в настройках"}
+                                Ответ появится здесь после генерации
                             </p>
                         </div>
                     )}
