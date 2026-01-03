@@ -1,65 +1,79 @@
 "use client";
 
 import Link from "next/link";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, MessageSquare, ArrowRight, UserCog } from "lucide-react";
+import { Key, Mail, MessageSquare, ArrowRight, Sparkles } from "lucide-react";
 
 export default function SettingsPage() {
     return (
-        <div className="container mx-auto py-8">
-            <h1 className="text-3xl font-bold tracking-tight mb-6">Настройки</h1>
+        <div className="min-h-screen bg-[#0A0A0A] text-white p-8">
+            <div className="max-w-4xl mx-auto space-y-8">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Link href="/settings/email">
-                    <Card className="h-full hover:bg-accent/50 transition-colors cursor-pointer group">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Mail className="h-5 w-5 text-primary" />
-                                Подключение почты
-                            </CardTitle>
-                            <CardDescription>
-                                Настройка IMAP/SMTP и интеграций с почтовыми сервисами
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-sm text-muted-foreground flex items-center group-hover:text-primary transition-colors">
-                                Настроить подключение <ArrowRight className="ml-2 h-4 w-4" />
+                {/* Header */}
+                <div>
+                    <h1 className="text-[32px] font-semibold">Настройки</h1>
+                    <p className="text-sm text-[#808080] mt-1">Конфигурация системы</p>
+                </div>
+
+                <div className="h-[1px] bg-[#1A1A1A]" />
+
+                {/* Settings Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* Google Gemini API */}
+                    <Link href="/settings/gemini">
+                        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded p-6 hover:border-white/20 transition-colors cursor-pointer group">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 rounded bg-white/10">
+                                    <Sparkles className="h-5 w-5 text-white" />
+                                </div>
+                                <h3 className="text-lg font-semibold">Google Gemini API</h3>
                             </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                <Link href="/settings/response-tone">
-                    <Card className="h-full hover:bg-accent/50 transition-colors cursor-pointer group">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <MessageSquare className="h-5 w-5 text-primary" />
-                                Тон ответов
-                            </CardTitle>
-                            <CardDescription>
-                                Настройка стилей общения, приветствий и подписей
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-sm text-muted-foreground flex items-center group-hover:text-primary transition-colors">
-                                Редактировать тона <ArrowRight className="ml-2 h-4 w-4" />
+                            <p className="text-sm text-[#808080] mb-4">
+                                Настройка AI ассистента для генерации ответов
+                            </p>
+                            <div className="flex items-center text-xs text-[#808080] group-hover:text-white transition-colors">
+                                Настроить <ArrowRight className="ml-2 h-3 w-3" />
                             </div>
-                        </CardContent>
-                    </Card>
-                </Link>
+                        </div>
+                    </Link>
 
-                {/* Placeholder for future Profile/Team settings */}
-                <Card className="h-full opacity-60">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <UserCog className="h-5 w-5" />
-                            Профиль и команда
-                        </CardTitle>
-                        <CardDescription>
-                            Управление пользователями (скоро)
-                        </CardDescription>
-                    </CardHeader>
-                </Card>
+                    {/* Email Settings */}
+                    <Link href="/settings/email">
+                        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded p-6 hover:border-white/20 transition-colors cursor-pointer group">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 rounded bg-white/10">
+                                    <Mail className="h-5 w-5 text-white" />
+                                </div>
+                                <h3 className="text-lg font-semibold">Подключение почты</h3>
+                            </div>
+                            <p className="text-sm text-[#808080] mb-4">
+                                Настройка IMAP/SMTP и интеграций
+                            </p>
+                            <div className="flex items-center text-xs text-[#808080] group-hover:text-white transition-colors">
+                                Настроить <ArrowRight className="ml-2 h-3 w-3" />
+                            </div>
+                        </div>
+                    </Link>
+
+                    {/* Response Tone */}
+                    <Link href="/settings/response-tone">
+                        <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded p-6 hover:border-white/20 transition-colors cursor-pointer group">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 rounded bg-white/10">
+                                    <MessageSquare className="h-5 w-5 text-white" />
+                                </div>
+                                <h3 className="text-lg font-semibold">Тон ответов</h3>
+                            </div>
+                            <p className="text-sm text-[#808080] mb-4">
+                                Настройка стилей общения и подписей
+                            </p>
+                            <div className="flex items-center text-xs text-[#808080] group-hover:text-white transition-colors">
+                                Редактировать <ArrowRight className="ml-2 h-3 w-3" />
+                            </div>
+                        </div>
+                    </Link>
+
+                </div>
             </div>
         </div>
     );
