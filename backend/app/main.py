@@ -49,4 +49,4 @@ async def health():
 
 @app.get("/api/health")
 async def api_health():
-    return {"status": "ok", "service": "sales-ai-backend"}
+    return {"status": "ok", "service": "sales-ai-backend", "version": "1.0.0"}

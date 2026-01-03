@@ -22,6 +22,26 @@ export default function ManualEmailGeneratorPage() {
     const [generatedResponse, setGeneratedResponse] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // Checks
+    useEffect(() => {
+        api.checkVersion().then(res => {
+            if (res.version !== "1.0.0") {
+                toast({
+                    title: "Обновление доступно",
+                    description: `Backend v${res.version} отличается от клиентов. Обновите страницу.`,
+                    variant: "destructive"
+                });
+            }
+        }).catch(() => {
+            // If health check fails, backend might be down
+            toast({
+                title: "Нет связи с сервером",
+                description: "Backend недоступен.",
+                variant: "destructive"
+            });
+        });
+    }, []);
+
     const handleGenerate = async () => {
         if (!body) {
             toast({ title: "Ошибка", description: "Вставьте текст письма", variant: "destructive" });

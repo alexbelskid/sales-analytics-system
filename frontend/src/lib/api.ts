@@ -327,5 +327,5 @@ export const api = {
     ...inboxApi, // note: inboxApi has sendReply
     ...toneSettingsApi,
     ...templatesApi,
-    ...googleAuthApi
+    checkVersion: () => fetchAPI<{ status: string; version: string; service: string }>('/api/health'),
 };
