@@ -260,6 +260,17 @@ export const inboxApi = {
             method: 'POST',
             body: JSON.stringify(draft)
         }).catch(err => { throw err; }), // fix url construction
+
+    generateResponse: (from: string, subject: string, body: string, tone: string) =>
+        fetchAPI<{
+            original_subject: string;
+            generated_reply: string;
+            status: string;
+            tone_used: string;
+        }>('/api/emails/generate-response', {
+            method: 'POST',
+            body: JSON.stringify({ from, subject, body, tone }),
+        }),
 };
 
 // Fix for URL construction in sendReply above:

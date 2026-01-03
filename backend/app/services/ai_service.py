@@ -167,6 +167,106 @@ def _generate_template_reply(email_type: str) -> str:
     return templates.get(email_type, templates["general"])
 
 
+async def generate_manual_response(subject: str, body: str, sender: str, tone: str = "professional") -> str:
+    """
+    Manual generation of email response with specific tone.
+    """
+    if not client:
+        return _generate_tone_template(subject, sender, tone)
+
+    system_prompt = f"""You are an expert sales assistant. Write a reply to the email below.
+    
+Tone: {tone}
+Language: Russian
+    
+Rules:
+1. Be polite and professional (unless tone is 'creative')
+2. Use the provided Subject as context
+3. Address the sender if known
+4. { 'Keep it under 50 words' if tone == 'brief' else 'Provide detailed information' if tone == 'detailed' else 'Standard length' }
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model=settings.openai_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"From: {sender}\nSubject: {subject}\n\nBody:\n{body}"}
+            ],
+            temperature=0.7 if tone != "creative" else 1.0,
+            max_tokens=800
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"OpenAI error: {e}")
+        return _generate_tone_template(subject, sender, tone)
+
+
+def _generate_tone_template(subject: str, sender: str, tone: str) -> str:
+    """Fallback templates based on tone"""
+    
+    # Extract name from sender if possible
+    name = sender.split('@')[0] if '@' in sender else "Client"
+    
+    templates = {
+        "professional": f"""Здравствуйте, {name}!
+
+Спасибо за ваше письмо по теме "{subject}".
+
+Мы получили ваш запрос и внимательно его изучили. Мы свяжемся с вами в течение рабочего дня для обсуждения деталей.
+
+С уважением,
+Команда Sales AI""",
+
+        "friendly": f"""Привет, {name}! 👋
+
+Спасибо, что написали нам насчет "{subject}".
+
+Всё получили! Я сейчас всё проверю и вернусь с ответом как можно скорее.
+
+Хорошего дня!
+Команда Sales AI""",
+
+        "formal": f"""Уважаемый(ая) {name}!
+
+Настоящим подтверждаем получение вашего письма касательно "{subject}".
+
+Ваш запрос принят в обработку. Ответ будет предоставлен в установленные регламентом сроки.
+
+С уважением,
+Sales Analytics System""",
+
+        "brief": f"""Здравствуйте, {name}.
+
+Получили ваш запрос по теме "{subject}". Ответим в ближайшее время.
+
+Спасибо.""",
+
+        "detailed": f"""Здравствуйте, {name}!
+
+Большое спасибо за ваше подробное письмо относительно "{subject}".
+
+Мы очень ценим ваш интерес и внимание к деталям. Мы получили вашу информацию и передали её профильным специалистам для глубокого анализа.
+Мы подготовим развернутый ответ, учитывающий все описанные вами нюансы, и свяжемся с вами, как только он будет готов.
+
+Если у вас есть дополнительные вопросы или материалы, пожалуйста, присылайте их в ответном письме.
+
+С наилучшими пожеланиями,
+Команда Sales AI""",
+
+        "creative": f"""Здравствуйте, {name}! 🚀
+
+Ваше письмо по теме "{subject}" только что приземлилось в нашем инбоксе!
+
+Мы уже работаем над магическим решением для вас. Ожидайте вестей от наших почтовых сов в ближайшее время! 🦉
+
+Искренне ваши,
+Волшебники Sales AI"""
+    }
+    
+    return templates.get(tone, templates["professional"])
+
+
 def _generate_simple_proposal(customer: str, products: List[Dict], conditions: str) -> str:
     """Простой шаблон КП без AI"""
     products_text = "\n".join([

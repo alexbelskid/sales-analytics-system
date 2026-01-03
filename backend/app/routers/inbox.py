@@ -164,20 +164,23 @@ async def get_inbox(filter_status: str = "new", limit: int = 50):
 
 @router.post("/generate-response")
 async def generate_response(request: Dict):
-    """Simple generation without AI dependency for now"""
-    subject = request.get("email", {}).get("subject", "")
-    tone = "professional" # Default
+    """
+    Manual email response generation.
+    Accepts: {
+        "from": "sender@example.com",
+        "subject": "Email Subject",
+        "body": "Email Body text...",
+        "tone": "professional" | "friendly" | "formal" ...
+    }
+    """
+    from app.services.ai_service import generate_manual_response
     
-    response = f'''Здравствуйте!
-
-Спасибо за ваше письмо по теме "{subject}".
-
-Мы получили ваш запрос и обработаем его в ближайшее время.
-
-[Сгенерировано Sales AI]
-
-С уважением,
-Команда Sales AI'''
+    sender = request.get("from", "")
+    subject = request.get("subject", "")
+    body = request.get("body", "")
+    tone = request.get("tone", "professional")
+    
+    response = await generate_manual_response(subject, body, sender, tone)
     
     return {
         "original_subject": subject,
