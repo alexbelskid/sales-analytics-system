@@ -74,10 +74,15 @@ export const analyticsApi = {
 
 // Upload API
 export const uploadApi = {
-    uploadExcel: async (file: File, dataType: 'sales' | 'customers' | 'products') => {
+    uploadExcel: async (
+        file: File,
+        dataType: 'sales' | 'customers' | 'products',
+        mode: 'append' | 'replace' = 'append'
+    ) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('data_type', dataType);
+        formData.append('mode', mode);
 
         const response = await fetch(`${API_BASE}/api/upload/excel`, {
             method: 'POST',
@@ -89,11 +94,25 @@ export const uploadApi = {
             throw new Error(error.detail);
         }
 
-        return response.json();
+        return response.json() as Promise<{
+            type: string;
+            mode: string;
+            imported: number;
+            skipped: number;
+            total: number;
+        }>;
     },
 
     getTemplate: (dataType: 'sales' | 'customers' | 'products') =>
         fetchAPI<{ template: string; type: string }>(`/api/upload/template/${dataType}`),
+
+    getStats: () =>
+        fetchAPI<{
+            customers: number;
+            products: number;
+            sales: number;
+            sale_items: number;
+        }>('/api/upload/stats'),
 };
 
 // Email API

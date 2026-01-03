@@ -1,6 +1,7 @@
 """
 Google Gemini AI Service
 Handles AI-powered email response generation using Google Gemini API
+With dynamic data from uploaded sales/customers/products
 """
 
 import os
@@ -8,7 +9,10 @@ import logging
 from typing import Optional, Dict, Any
 import google.generativeai as genai
 
+from app.database import supabase
+
 logger = logging.getLogger(__name__)
+
 
 class GeminiService:
     """Service for interacting with Google Gemini API"""
@@ -41,7 +45,8 @@ class GeminiService:
         email_body: str,
         tone: str = "professional",
         knowledge_base: Optional[str] = None,
-        training_examples: Optional[str] = None
+        training_examples: Optional[str] = None,
+        include_analytics: bool = True
     ) -> Dict[str, Any]:
         """
         Generate AI-powered email response using Gemini
@@ -53,6 +58,7 @@ class GeminiService:
             tone: Response tone (professional, friendly, formal, etc.)
             knowledge_base: Context from knowledge base
             training_examples: Similar examples from training data
+            include_analytics: Whether to include dynamic analytics data
             
         Returns:
             Dict with success status, response text, and confidence score
@@ -67,6 +73,11 @@ class GeminiService:
             }
         
         try:
+            # Get dynamic analytics data if enabled
+            analytics_context = None
+            if include_analytics:
+                analytics_context = self._get_analytics_context()
+            
             # Build prompt with context
             prompt = self._build_prompt(
                 email_from=email_from,
@@ -74,7 +85,8 @@ class GeminiService:
                 email_body=email_body,
                 tone=tone,
                 knowledge_base=knowledge_base,
-                training_examples=training_examples
+                training_examples=training_examples,
+                analytics_context=analytics_context
             )
             
             # Generate response with timeout
@@ -85,7 +97,12 @@ class GeminiService:
                     "success": True,
                     "response": response,
                     "confidence": 0.95,  # Gemini doesn't provide confidence, using fixed high value
-                    "model": self.model_name
+                    "model": self.model_name,
+                    "context_used": {
+                        "knowledge_base": knowledge_base is not None,
+                        "training_examples": training_examples is not None,
+                        "analytics": analytics_context is not None
+                    }
                 }
             else:
                 return {
@@ -104,6 +121,15 @@ class GeminiService:
                 "error": str(e)
             }
     
+    def _get_analytics_context(self) -> Optional[str]:
+        """Fetch and format analytics data for prompt"""
+        try:
+            from app.services.analytics_context_service import analytics_service
+            return analytics_service.format_for_prompt()
+        except Exception as e:
+            logger.error(f"Error getting analytics context: {e}")
+            return None
+    
     def _build_prompt(
         self,
         email_from: str,
@@ -111,9 +137,10 @@ class GeminiService:
         email_body: str,
         tone: str,
         knowledge_base: Optional[str] = None,
-        training_examples: Optional[str] = None
+        training_examples: Optional[str] = None,
+        analytics_context: Optional[str] = None
     ) -> str:
-        """Build comprehensive prompt with context"""
+        """Build comprehensive prompt with all available context"""
         
         tone_instructions = {
             "professional": "профессиональным и деловым",
@@ -132,37 +159,46 @@ class GeminiService:
 
 """
         
-        # Add knowledge base if available
+        # Add knowledge base if available (static company info)
         if knowledge_base:
-            prompt += f"""ИНФОРМАЦИЯ О КОМПАНИИ И ПРОДУКТАХ:
+            prompt += f"""═══ БАЗА ЗНАНИЙ (СТАТИЧНАЯ ИНФОРМАЦИЯ) ═══
 {knowledge_base}
+
+"""
+        
+        # Add dynamic analytics data (real-time from DB)
+        if analytics_context:
+            prompt += f"""═══ ДИНАМИЧЕСКИЕ ДАННЫЕ (ИЗ ЗАГРУЖЕННЫХ ФАЙЛОВ) ═══
+{analytics_context}
 
 """
         
         # Add training examples if available
         if training_examples:
-            prompt += f"""ПРИМЕРЫ ПОХОЖИХ ОТВЕТОВ:
+            prompt += f"""═══ ПРИМЕРЫ ПОХОЖИХ ОТВЕТОВ ═══
 {training_examples}
 
 """
         
         # Add email details
-        prompt += f"""НОВОЕ ПИСЬМО ОТ КЛИЕНТА:
+        prompt += f"""═══ НОВОЕ ПИСЬМО ОТ КЛИЕНТА ═══
 От: {email_from}
 Тема: {email_subject}
 Текст:
 {email_body}
 
-ТРЕБОВАНИЯ К ОТВЕТУ:
+═══ ТРЕБОВАНИЯ К ОТВЕТУ ═══
 1. Отвечай на русском языке
-2. Используй информацию из базы знаний (если есть)
-3. Следуй стилю примеров ответов (если есть)
-4. Будь вежливым и профессиональным
-5. Отвечай конкретно на вопросы клиента
-6. Не придумывай информацию, которой нет в базе знаний
-7. Тон ответа: {tone_desc}
+2. Используй информацию из базы знаний для цен и условий
+3. Используй динамические данные для статистики (топ товары, выручка, клиенты)
+4. Если клиент спрашивает о продажах/статистике — отвечай конкретными цифрами
+5. Следуй стилю примеров ответов (если есть)
+6. Будь вежливым и профессиональным
+7. Отвечай конкретно на вопросы клиента
+8. НЕ придумывай информацию, которой нет в контексте
+9. Тон ответа: {tone_desc}
 
-СГЕНЕРИРУЙ ОТВЕТ:"""
+═══ СГЕНЕРИРУЙ ОТВЕТ ═══"""
         
         return prompt
     

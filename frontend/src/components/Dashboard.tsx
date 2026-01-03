@@ -36,6 +36,7 @@ export default function Dashboard() {
 
     // Upload state
     const [selectedType, setSelectedType] = useState<DataType>('sales');
+    const [uploadMode, setUploadMode] = useState<'append' | 'replace'>('append');
     const [file, setFile] = useState<File | null>(null);
     const [uploadLoading, setUploadLoading] = useState(false);
     const [uploadResult, setUploadResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -109,10 +110,11 @@ export default function Dashboard() {
         setUploadResult(null);
 
         try {
-            const response = await uploadApi.uploadExcel(file, selectedType);
+            const response = await uploadApi.uploadExcel(file, selectedType, uploadMode);
+            const skippedText = response.skipped > 0 ? ` (пропущено ${response.skipped} дубликатов)` : '';
             setUploadResult({
                 success: true,
-                message: `Успешно загружено ${response.imported} из ${response.total} записей`,
+                message: `Успешно загружено ${response.imported} из ${response.total} записей${skippedText}`,
             });
             setFile(null);
             loadDashboard(); // Refresh dashboard after upload
@@ -230,8 +232,8 @@ export default function Dashboard() {
                             key={type.id}
                             onClick={() => setSelectedType(type.id as DataType)}
                             className={`rounded border-2 p-3 text-left transition-all ${selectedType === type.id
-                                    ? 'border-white bg-[#2A2A2A]'
-                                    : 'border-[#2A2A2A] hover:border-[#404040]'
+                                ? 'border-white bg-[#2A2A2A]'
+                                : 'border-[#2A2A2A] hover:border-[#404040]'
                                 }`}
                         >
                             <span className="text-lg mr-2">{type.icon}</span>
@@ -247,7 +249,7 @@ export default function Dashboard() {
                     onDragLeave={handleDragLeave}
                     onClick={() => fileInputRef.current?.click()}
                     className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#2A2A2A]' :
-                            file ? 'border-white bg-[#2A2A2A]' : 'border-[#2A2A2A] hover:border-[#404040]'
+                        file ? 'border-white bg-[#2A2A2A]' : 'border-[#2A2A2A] hover:border-[#404040]'
                         }`}
                 >
                     <input
@@ -281,7 +283,7 @@ export default function Dashboard() {
                 )}
 
                 {/* Actions */}
-                <div className="mt-4 flex gap-3">
+                <div className="mt-4 flex items-center gap-4">
                     <button
                         onClick={handleUpload}
                         disabled={!file || uploadLoading}
@@ -289,7 +291,41 @@ export default function Dashboard() {
                     >
                         {uploadLoading ? 'Загрузка...' : 'Загрузить'}
                     </button>
+
+                    {/* Mode Selector */}
+                    <div className="flex items-center gap-3 text-sm">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="uploadMode"
+                                checked={uploadMode === 'append'}
+                                onChange={() => setUploadMode('append')}
+                                className="accent-white"
+                            />
+                            <span className={uploadMode === 'append' ? 'text-white' : 'text-[#808080]'}>
+                                Добавить
+                            </span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="radio"
+                                name="uploadMode"
+                                checked={uploadMode === 'replace'}
+                                onChange={() => setUploadMode('replace')}
+                                className="accent-white"
+                            />
+                            <span className={uploadMode === 'replace' ? 'text-white' : 'text-[#808080]'}>
+                                Заменить всё
+                            </span>
+                        </label>
+                    </div>
                 </div>
+
+                {uploadMode === 'replace' && (
+                    <p className="mt-2 text-xs text-[#808080]">
+                        ⚠️ Режим "Заменить" удалит все существующие данные перед загрузкой
+                    </p>
+                )}
             </div>
 
             <div className="h-[1px] bg-gradient-to-r from-[#2A2A2A] to-transparent" />
