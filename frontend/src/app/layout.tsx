@@ -12,7 +12,7 @@ const playfair = Playfair_Display({
 });
 
 const dmSans = DM_Sans({
-    subsets: ['latin', 'cyrillic'],
+    subsets: ['latin', 'latin-ext'],
     variable: '--font-body',
     display: 'swap',
 });
