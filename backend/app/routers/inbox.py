@@ -258,36 +258,38 @@ async def test_imap_only(config: EmailConfig):
 
 @router.post("/test-smtp-only")
 async def test_smtp_only(config: EmailConfig):
-    """Test SMTP connection only - for debugging"""
+    """Test SMTP connection only - trying PORT 587 (STARTTLS)"""
     import smtplib
     import ssl
     
     start_time = time.time()
-    socket.setdefaulttimeout(10)
+    socket.setdefaulttimeout(15)
     
     steps = []
     try:
-        steps.append("1. Starting SMTP test...")
+        steps.append("1. Starting SMTP test (PORT 587)...")
         steps.append(f"2. Email: {config.email}")
-        steps.append("3. Connecting to smtp.gmail.com:465 (SSL)...")
+        steps.append("3. Connecting to smtp.gmail.com:587 (TLS)...")
         
-        context = ssl.create_default_context()
-        server = smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context)
+        # Try connect without SSL first
+        server = smtplib.SMTP("smtp.gmail.com", 587)
         elapsed = time.time() - start_time
         steps.append(f"4. Connected in {elapsed:.2f}s")
         
-        steps.append("5. Logging in...")
+        steps.append("5. Starting TLS...")
+        context = ssl.create_default_context()
+        server.starttls(context=context)
+        
+        steps.append("6. Logging in...")
         server.login(config.email, config.app_password)
         elapsed = time.time() - start_time
-        steps.append(f"6. Login successful in {elapsed:.2f}s")
+        steps.append(f"7. Login successful in {elapsed:.2f}s")
         
         server.quit()
-        elapsed = time.time() - start_time
-        steps.append(f"7. Test completed in {elapsed:.2f}s")
         
         return {
             "success": True,
-            "message": "SMTP OK! Ready to send emails",
+            "message": "SMTP OK (Port 587)! Ready to send emails",
             "time_seconds": round(elapsed, 2),
             "steps": steps
         }
@@ -297,16 +299,7 @@ async def test_smtp_only(config: EmailConfig):
         steps.append(f"ERROR: Timeout after {elapsed:.2f}s")
         return {
             "success": False,
-            "error": "Connection timeout (10s)",
-            "time_seconds": round(elapsed, 2),
-            "steps": steps
-        }
-    except smtplib.SMTPAuthenticationError as e:
-        elapsed = time.time() - start_time
-        steps.append(f"ERROR: Auth failed - {str(e)}")
-        return {
-            "success": False,
-            "error": f"Authentication Error: {str(e)}",
+            "error": "Connection timeout (15s)",
             "time_seconds": round(elapsed, 2),
             "steps": steps
         }

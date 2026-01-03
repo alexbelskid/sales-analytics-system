@@ -20,7 +20,7 @@ class EmailConnector:
             "imap_server": "imap.gmail.com",
             "imap_port": 993,
             "smtp_server": "smtp.gmail.com",
-            "smtp_port": 465  # SSL instead of STARTTLS (Railway blocks 587)
+            "smtp_port": 587
         },
         "outlook": {
             "imap_server": "outlook.office365.com",
