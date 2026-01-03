@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import { Sparkles, BrainCircuit, Activity, BookOpen, Database } from "lucide-react";
+import { Zap, BrainCircuit, Activity, BookOpen, Database } from "lucide-react";
 
 interface AIStatus {
     monthly: {
@@ -45,8 +45,8 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                 {/* Gemini Status */}
                 <div>
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-purple-400" />
-                        Google Gemini API
+                        <Zap className="h-5 w-5 text-orange-500" />
+                        Groq AI (Llama 3)
                     </h3>
                     <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5">
                         <div className="flex items-center gap-3 mb-2">
@@ -54,7 +54,7 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                             <span className="font-medium text-green-400">Статус: Подключён</span>
                         </div>
                         <div className="text-sm text-[#808080] ml-5.5">
-                            Модель: <span className="text-gray-300">gemini-1.5-flash</span>
+                            Модель: <span className="text-gray-300">llama-3.3-70b</span>
                         </div>
                     </div>
                 </div>

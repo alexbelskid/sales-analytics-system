@@ -88,7 +88,7 @@ export default function SettingsPage() {
                 {/* Footer / System Info */}
                 <div className="pt-12 flex items-center justify-between text-[10px] text-[#404040] uppercase tracking-[0.2em]">
                     <span>Sales Analytics System v2.1.0</span>
-                    <span>AI Engine: Gemini 1.5 Flash</span>
+                    <span>AI Engine: Groq Llama 3.3</span>
                 </div>
             </div>
         </div>

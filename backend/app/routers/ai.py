@@ -1,5 +1,5 @@
 """
-AI Router - Google Gemini Integration
+AI Router - Groq Integration
 Handles AI-powered email response generation
 """
 
@@ -8,11 +8,12 @@ from pydantic import BaseModel
 from typing import Optional
 import logging
 
-from app.services.gemini_service import gemini_service
+from app.services.groq_service import GroqService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+groq_service = GroqService()
 
 
 class GenerateRequest(BaseModel):
@@ -28,7 +29,7 @@ class GenerateResponse(BaseModel):
     """Response model for AI generation"""
     success: bool
     response: str
-    confidence: float
+    confidence: float = 0.0
     model: Optional[str] = None
     error: Optional[str] = None
 
@@ -36,7 +37,7 @@ class GenerateResponse(BaseModel):
 @router.post("/generate-response", response_model=GenerateResponse)
 async def generate_ai_response(request: GenerateRequest):
     """
-    Generate AI-powered email response using Google Gemini
+    Generate AI-powered email response using Groq
     
     Args:
         request: Generation request with email details and context
@@ -46,30 +47,41 @@ async def generate_ai_response(request: GenerateRequest):
     """
     
     try:
-        # Check if Gemini is available
-        if not gemini_service.is_available():
+        status = groq_service.check_status()
+        if not status.get("available"):
             raise HTTPException(
                 status_code=503,
-                detail="Gemini API не настроен. Добавьте GOOGLE_GEMINI_API_KEY в настройках."
+                detail="Groq API не настроен. Добавьте GROQ_API_KEY в настройках."
             )
         
-        # Generate response
-        result = await gemini_service.generate_response(
+        # Pass all details to service which handles context fetching
+        response_text = await groq_service.generate_response(
             email_from=request.email_from,
             email_subject=request.email_subject,
             email_body=request.email_body,
             tone=request.tone,
             knowledge_base=request.context,
-            training_examples=None  # Will be added in Phase 2
+            training_examples=None,
+            include_analytics=True
         )
         
-        return GenerateResponse(**result)
+        return GenerateResponse(
+            success=True,
+            response=response_text,
+            confidence=0.9,
+            model=groq_service.model
+        )
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"AI generation error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return GenerateResponse(
+            success=False,
+            response="Error generating response",
+            error=str(e),
+            confidence=0.0
+        )
 
 
 @router.get("/status")
@@ -78,11 +90,6 @@ async def get_ai_status():
     Check AI service status
     
     Returns:
-        Status information about Gemini API
+        Status information about Groq API
     """
-    
-    return {
-        "available": gemini_service.is_available(),
-        "model": gemini_service.model_name if gemini_service.is_available() else None,
-        "api_key_configured": gemini_service.api_key is not None
-    }
+    return groq_service.check_status()

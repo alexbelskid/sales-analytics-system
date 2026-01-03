@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4-turbo-preview"
     google_gemini_api_key: str = ""
+    groq_api_key: str = ""
     
     # Gmail / SMTP
     gmail_client_id: str = ""
@@ -38,7 +39,6 @@ class Settings(BaseSettings):
         extra = "ignore"  # Ignore any extra env variables
 
 
-@lru_cache()
 def get_settings() -> Settings:
     return Settings()
 

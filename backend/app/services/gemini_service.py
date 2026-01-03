@@ -4,12 +4,12 @@ Handles AI-powered email response generation using Google Gemini API
 With dynamic data from uploaded sales/customers/products
 """
 
-import os
 import logging
 from typing import Optional, Dict, Any
 import google.generativeai as genai
 
 from app.database import supabase
+from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,10 @@ class GeminiService:
     """Service for interacting with Google Gemini API"""
     
     def __init__(self):
-        """Initialize Gemini client with API key from environment"""
-        self.api_key = os.getenv("GOOGLE_GEMINI_API_KEY")
-        self.model_name = "gemini-1.5-flash"  # Fast and cost-effective
+        """Initialize Gemini client with API key from config settings"""
+        settings = get_settings()
+        self.api_key = settings.google_gemini_api_key
+        self.model_name = "gemini-1.5-flash"  # Restore standard model
         self.client = None
         
         if self.api_key:
@@ -36,7 +37,9 @@ class GeminiService:
     
     def is_available(self) -> bool:
         """Check if Gemini client is initialized"""
-        return self.client is not None
+        available = self.client is not None
+        logger.debug(f"Gemini availability check: {available}")
+        return available
     
     async def generate_response(
         self,
@@ -51,12 +54,15 @@ class GeminiService:
         """Generate AI response with full context"""
         
         if not self.is_available():
+            logger.warning("Generation requested but Gemini is not available")
             return {
                 "success": False,
                 "response": "Gemini API не настроен.",
                 "confidence": 0.0,
                 "error": "API key not configured"
             }
+        
+        logger.info(f"Generating response for {email_from} with tone {tone}")
         
         try:
             # 1. Static Knowledge (Fetch from DB if not provided)
@@ -117,8 +123,34 @@ class GeminiService:
             }
             
         except Exception as e:
+            error_str = str(e)
             logger.error(f"Generation error: {e}")
-            return {"success": False, "error": str(e), "response": "Error generating response"}
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            if "429" in error_str or "Quota" in error_str:
+                return {
+                    "success": False, 
+                    "response": "⚠️ Лимит запросов исчерпан (Quota Exceeded). Попробуйте завтра или смените API ключ.",
+                    "error": "Quota Exceeded (429)",
+                    "confidence": 0.0
+                }
+            elif "404" in error_str:
+                return {
+                    "success": False,
+                    "response": f"❌ Модель {self.model_name} недоступна (404). Попробуйте другую модель.",
+                    "error": "Model Not Found (404)",
+                    "confidence": 0.0
+                }
+            elif "401" in error_str or "API key" in error_str:
+                return {
+                    "success": False,
+                    "response": "❌ Ошибка ключа API (401).",
+                    "error": "Unauthorized (401)",
+                    "confidence": 0.0
+                }
+            
+            return {"success": False, "error": str(e), "response": "Ошибка генерации. Проверьте консоль сервера.", "confidence": 0.0}
 
     def _format_knowledge(self, items):
         return "\n".join([f"- {k.get('title')}: {k.get('content')}" for k in items])
@@ -183,8 +215,8 @@ RESPONSE:"""
             response = await self.client.generate_content_async(prompt)
             return response.text
         except Exception as e:
-            logger.error(f"Gemini generation timeout/error: {e}")
-            return None
+            # Re-raise exception to be handled by generate_response
+            raise e
 
 
 # Global instance
