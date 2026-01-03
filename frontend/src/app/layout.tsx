@@ -1,15 +1,31 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Playfair_Display, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ['latin', 'cyrillic'] });
+const playfair = Playfair_Display({
+    subsets: ['latin', 'cyrillic'],
+    variable: '--font-display',
+    display: 'swap',
+});
+
+const dmSans = DM_Sans({
+    subsets: ['latin', 'cyrillic'],
+    variable: '--font-body',
+    display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+    subsets: ['latin'],
+    variable: '--font-mono',
+    display: 'swap',
+});
 
 export const metadata: Metadata = {
-    title: 'Sales Analytics - Аналитика продаж',
-    description: 'Система аналитики продаж, автоответов и прогнозирования',
+    title: 'SalesAI - Аналитика продаж',
+    description: 'Система аналитики продаж с AI-автоответами и прогнозированием',
 };
 
 export default function RootLayout({
@@ -18,9 +34,9 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="ru">
-            <body className={inter.className}>
-                <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        <html lang="ru" className="dark">
+            <body className={`${playfair.variable} ${dmSans.variable} ${jetbrainsMono.variable}`}>
+                <div className="flex h-screen bg-obsidian">
                     <Sidebar />
                     <div className="flex flex-1 flex-col overflow-hidden">
                         <Header />
