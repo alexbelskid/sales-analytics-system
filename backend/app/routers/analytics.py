@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Query, HTTPException
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import Optional, List
 from app.database import supabase
 from app.models.sales import DashboardMetrics, SalesTrend, TopCustomer, TopProduct
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -20,12 +22,11 @@ async def get_dashboard(
     - Количество продаж
     - Средний чек
     """
-    # Return demo data if Supabase not configured
     if supabase is None:
         return DashboardMetrics(
-            total_revenue=2450000,
-            total_sales=156,
-            average_check=15705,
+            total_revenue=0,
+            total_sales=0,
+            average_check=0,
             period_start=start_date,
             period_end=end_date
         )
@@ -57,70 +58,196 @@ async def get_dashboard(
             period_end=end_date
         )
     except Exception as e:
+        logger.error(f"Dashboard error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/top-customers", response_model=List[TopCustomer])
 async def get_top_customers(
-    limit: int = Query(default=10, ge=1, le=50, description="Количество записей")
+    limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
+    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней")
 ):
     """Топ клиентов по выручке"""
     if supabase is None:
-        # Demo data
-        return [
-            TopCustomer(customer_id="1", name="ООО Альфа", total=450000),
-            TopCustomer(customer_id="2", name="ИП Петров", total=380000),
-            TopCustomer(customer_id="3", name="ЗАО Бета", total=320000),
-        ]
+        return []
     
     try:
-        result = supabase.rpc("get_top_customers", {"limit_count": limit}).execute()
-        return [TopCustomer(**row) for row in result.data]
+        cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
+        
+        # Fetch sales with customer names
+        result = supabase.table("sales").select(
+            "total_amount, customers(id, name)"
+        ).gte("sale_date", cutoff_date).execute()
+        
+        # Aggregate by customer
+        client_totals = {}
+        for sale in result.data:
+            customer = sale.get("customers", {})
+            if not customer:
+                continue
+            c_id = customer.get("id", "")
+            c_name = customer.get("name", "Неизвестный")
+            
+            if c_name not in client_totals:
+                client_totals[c_name] = {"customer_id": c_id, "total": 0, "orders": 0}
+            client_totals[c_name]["total"] += float(sale.get("total_amount", 0))
+            client_totals[c_name]["orders"] += 1
+        
+        # Sort by total and limit
+        sorted_clients = sorted(
+            client_totals.items(),
+            key=lambda x: x[1]["total"],
+            reverse=True
+        )[:limit]
+        
+        return [
+            TopCustomer(
+                customer_id=data["customer_id"],
+                name=name,
+                total=round(data["total"], 2)
+            )
+            for name, data in sorted_clients
+        ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Top customers error: {e}")
+        return []
 
 
 @router.get("/top-products", response_model=List[TopProduct])
 async def get_top_products(
-    limit: int = Query(default=10, ge=1, le=50, description="Количество записей")
+    limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
+    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней")
 ):
     """Топ товаров по продажам"""
     if supabase is None:
-        # Demo data
-        return [
-            TopProduct(product_id="1", name="Товар А", total_quantity=245, total_amount=367500),
-            TopProduct(product_id="2", name="Товар Б", total_quantity=189, total_amount=283500),
-            TopProduct(product_id="3", name="Товар В", total_quantity=156, total_amount=234000),
-        ]
+        return []
     
     try:
-        result = supabase.rpc("get_top_products", {"limit_count": limit}).execute()
-        return [TopProduct(**row) for row in result.data]
+        cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
+        
+        # Fetch sale items with product names and sale dates
+        result = supabase.table("sale_items").select(
+            "quantity, amount, products(id, name), sales!inner(sale_date)"
+        ).gte("sales.sale_date", cutoff_date).execute()
+        
+        # Aggregate by product
+        product_totals = {}
+        for item in result.data:
+            product = item.get("products", {})
+            if not product:
+                continue
+            p_id = product.get("id", "")
+            p_name = product.get("name", "Неизвестный")
+            
+            if p_name not in product_totals:
+                product_totals[p_name] = {"product_id": p_id, "quantity": 0, "amount": 0}
+            product_totals[p_name]["quantity"] += float(item.get("quantity", 0))
+            product_totals[p_name]["amount"] += float(item.get("amount", 0))
+        
+        # Sort by amount (revenue) and limit
+        sorted_products = sorted(
+            product_totals.items(),
+            key=lambda x: x[1]["amount"],
+            reverse=True
+        )[:limit]
+        
+        return [
+            TopProduct(
+                product_id=data["product_id"],
+                name=name,
+                total_quantity=int(data["quantity"]),
+                total_amount=round(data["amount"], 2)
+            )
+            for name, data in sorted_products
+        ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Top products error: {e}")
+        return []
 
 
 @router.get("/sales-trend", response_model=List[SalesTrend])
 async def get_sales_trend(
-    period: str = Query(default="month", description="Период группировки")
+    period: str = Query(default="month", description="Период группировки: day, week, month"),
+    days: int = Query(default=180, ge=7, le=730, description="За последние N дней")
 ):
     """Динамика продаж (день/неделя/месяц)"""
     if supabase is None:
-        # Demo data
-        return [
-            SalesTrend(period="2024-01", amount=1850000, count=45),
-            SalesTrend(period="2024-02", amount=2100000, count=52),
-            SalesTrend(period="2024-03", amount=1950000, count=48),
-            SalesTrend(period="2024-04", amount=2300000, count=58),
-            SalesTrend(period="2024-05", amount=2150000, count=54),
-            SalesTrend(period="2024-06", amount=2450000, count=62),
-        ]
+        return []
     
     try:
-        result = supabase.rpc("get_sales_trend", {"period_type": period}).execute()
-        return [SalesTrend(**row) for row in result.data]
+        cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
+        
+        result = supabase.table("sales").select(
+            "sale_date, total_amount"
+        ).gte("sale_date", cutoff_date).order("sale_date").execute()
+        
+        # Group by period
+        period_totals = {}
+        for sale in result.data:
+            sale_date = sale.get("sale_date", "")
+            if not sale_date:
+                continue
+            
+            # Determine period key
+            try:
+                dt = datetime.fromisoformat(sale_date.replace("Z", ""))
+            except:
+                continue
+            
+            if period == "day":
+                period_key = dt.strftime("%Y-%m-%d")
+            elif period == "week":
+                # Monday of the week
+                period_key = (dt - timedelta(days=dt.weekday())).strftime("%Y-%m-%d")
+            else:  # month
+                period_key = dt.strftime("%Y-%m")
+            
+            if period_key not in period_totals:
+                period_totals[period_key] = {"amount": 0, "count": 0}
+            period_totals[period_key]["amount"] += float(sale.get("total_amount", 0))
+            period_totals[period_key]["count"] += 1
+        
+        # Sort by period and convert to list
+        sorted_periods = sorted(period_totals.items(), key=lambda x: x[0])
+        
+        return [
+            SalesTrend(
+                period=p,
+                amount=round(data["amount"], 2),
+                count=data["count"]
+            )
+            for p, data in sorted_periods
+        ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Sales trend error: {e}")
+        return []
+
+
+@router.post("/refresh-aggregation")
+async def refresh_aggregation():
+    """Принудительное обновление агрегации (для совместимости)"""
+    # В этой реализации агрегация происходит в реальном времени,
+    # поэтому здесь просто проверяем что данные доступны
+    if supabase is None:
+        return {"success": False, "message": "Database not configured"}
+    
+    try:
+        sales_count = len(supabase.table("sales").select("id").execute().data)
+        products_count = len(supabase.table("products").select("id").execute().data)
+        customers_count = len(supabase.table("customers").select("id").execute().data)
+        
+        return {
+            "success": True,
+            "message": "Данные обновлены",
+            "stats": {
+                "sales": sales_count,
+                "products": products_count,
+                "customers": customers_count
+            }
+        }
+    except Exception as e:
+        logger.error(f"Refresh error: {e}")
+        return {"success": False, "message": str(e)}
 
 
 @router.get("/customers")
