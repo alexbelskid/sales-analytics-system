@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { TrendingUp, TrendingDown, Upload as UploadIcon, FileSpreadsheet, Check, AlertCircle, Download, RefreshCw, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Upload as UploadIcon, FileSpreadsheet, Check, AlertCircle, Download, RefreshCw, Calendar, Plus } from 'lucide-react';
 import {
     LineChart,
     Line,
@@ -49,6 +49,8 @@ export default function Dashboard() {
     const [seasonality, setSeasonality] = useState<any>(null);
     const [training, setTraining] = useState(false);
 
+    const [showUploader, setShowUploader] = useState(false);
+
     useEffect(() => {
         loadDashboard();
         loadForecast();
@@ -79,11 +81,22 @@ export default function Dashboard() {
             const result = await forecastApi.predict(monthsAhead);
             setForecast(result.forecast);
         } catch (err) {
-            setForecast([
-                { date: '2024-07', predicted: 2650000, lower_bound: 2400000, upper_bound: 2900000 },
-                { date: '2024-08', predicted: 2800000, lower_bound: 2500000, upper_bound: 3100000 },
-                { date: '2024-09', predicted: 2950000, lower_bound: 2600000, upper_bound: 3300000 },
-            ]);
+            // Generative mock data for demo - 12 month outlook
+            const mockForecast = [];
+            const now = new Date();
+            const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+
+            for (let i = 1; i <= monthsAhead; i++) {
+                const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const monthLabel = `${months[date.getMonth()]} ${date.getFullYear() % 100}`;
+                mockForecast.push({
+                    date: monthLabel,
+                    predicted: 2500000 + Math.sin(i / 2) * 300000 + (Math.random() * 100000),
+                    lower_bound: 2200000 + Math.sin(i / 2) * 300000,
+                    upper_bound: 2900000 + Math.sin(i / 2) * 300000 + 200000,
+                });
+            }
+            setForecast(mockForecast);
         }
     }
 
@@ -118,6 +131,7 @@ export default function Dashboard() {
             });
             setFile(null);
             loadDashboard(); // Refresh dashboard after upload
+            setTimeout(() => setShowUploader(false), 2000);
         } catch (err: any) {
             setUploadResult({
                 success: false,
@@ -198,153 +212,167 @@ export default function Dashboard() {
     ];
 
     const dataTypes = [
-        { id: 'sales', name: 'Продажи', icon: '📊' },
-        { id: 'customers', name: 'Клиенты', icon: '👥' },
-        { id: 'products', name: 'Товары', icon: '📦' },
+        { id: 'sales', name: 'Продажи', icon: <FileSpreadsheet className="h-4 w-4" /> },
+        { id: 'customers', name: 'Клиенты', icon: <UploadIcon className="h-4 w-4" /> },
+        { id: 'products', name: 'Товары', icon: <RefreshCw className="h-4 w-4" /> },
     ];
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-[40px] font-semibold tracking-tight mb-2">Дашборд</h1>
                     <p className="text-sm text-[#808080]">Аналитика, загрузка данных и прогнозы в одном месте</p>
                 </div>
-                <select className="rounded bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 text-sm text-white focus:outline-none focus:border-white transition-colors">
-                    <option>Этот месяц</option>
-                    <option>Прошлый месяц</option>
-                    <option>Этот квартал</option>
-                    <option>Этот год</option>
-                </select>
+
+                <div className="flex items-center gap-3">
+                    <select className="rounded-[4px] bg-[#111] border border-[#2A2A2A] px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer">
+                        <option>Этот месяц</option>
+                        <option>Прошлый месяц</option>
+                        <option>Этот квартал</option>
+                        <option>Этот год</option>
+                    </select>
+
+                    <button
+                        onClick={() => setShowUploader(!showUploader)}
+                        className={`flex items-center gap-2 rounded-[4px] border border-[#2A2A2A] px-4 py-2.5 text-sm transition-all hover:bg-[#1A1A1A] ${showUploader ? 'bg-[#1A1A1A] border-[#404040]' : ''}`}
+                    >
+                        <UploadIcon className="h-4 w-4" />
+                        <span>Загрузить данные</span>
+                    </button>
+                </div>
             </div>
 
-            <div className="h-[1px] bg-gradient-to-r from-[#2A2A2A] to-transparent" />
-
-            {/* Upload Section */}
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
-                <h2 className="text-lg font-semibold mb-4">📊 Загрузить данные</h2>
-
-                {/* Data Type Selection */}
-                <div className="grid gap-3 md:grid-cols-3 mb-4">
-                    {dataTypes.map((type) => (
-                        <button
-                            key={type.id}
-                            onClick={() => setSelectedType(type.id as DataType)}
-                            className={`rounded border-2 p-3 text-left transition-all ${selectedType === type.id
-                                ? 'border-white bg-[#2A2A2A]'
-                                : 'border-[#2A2A2A] hover:border-[#404040]'
-                                }`}
-                        >
-                            <span className="text-lg mr-2">{type.icon}</span>
-                            <span className="text-sm font-medium">{type.name}</span>
+            {/* Collapsible Upload Section */}
+            {showUploader && (
+                <div className="bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg p-6 animate-in slide-in-from-top-4 duration-300">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-semibold">Загрузить данные</h2>
+                        <button onClick={() => setShowUploader(false)} className="text-[#404040] hover:text-white transition-colors">
+                            <Plus className="h-4 w-4 rotate-45" />
                         </button>
-                    ))}
-                </div>
+                    </div>
 
-                {/* Upload Zone */}
-                <div
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#2A2A2A]' :
-                        file ? 'border-white bg-[#2A2A2A]' : 'border-[#2A2A2A] hover:border-[#404040]'
-                        }`}
-                >
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        className="hidden"
-                        onChange={(e) => setFile(e.target.files?.[0] || null)}
-                    />
-                    <UploadIcon className="mx-auto mb-3 h-8 w-8 text-[#808080]" />
-                    {file ? (
-                        <div>
-                            <p className="font-medium text-white">{file.name}</p>
-                            <p className="text-sm text-[#808080]">{(file.size / 1024).toFixed(1)} KB</p>
-                        </div>
-                    ) : (
-                        <div>
-                            <p className="font-medium">Перетащите файл сюда</p>
-                            <p className="text-sm text-[#808080]">или нажмите для выбора (Excel, CSV)</p>
+                    <div className="grid gap-3 md:grid-cols-3 mb-4">
+                        {dataTypes.map((type) => (
+                            <button
+                                key={type.id}
+                                onClick={() => setSelectedType(type.id as DataType)}
+                                className={`flex items-center gap-3 rounded border p-3 text-left transition-all ${selectedType === type.id
+                                    ? 'border-white bg-[#1A1A1A]'
+                                    : 'border-[#2A2A2A] hover:border-[#333]'
+                                    }`}
+                            >
+                                <span className={`${selectedType === type.id ? 'text-white' : 'text-[#404040]'}`}>{type.icon}</span>
+                                <span className="text-sm font-medium">{type.name}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <div
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#1A1A1A]' :
+                            file ? 'border-white bg-[#1A1A1A]' : 'border-[#2A2A2A] hover:border-[#333]'
+                            }`}
+                    >
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            className="hidden"
+                            onChange={(e) => setFile(e.target.files?.[0] || null)}
+                        />
+                        <UploadIcon className="mx-auto mb-3 h-8 w-8 text-[#404040]" />
+                        {file ? (
+                            <div>
+                                <p className="font-medium text-white">{file.name}</p>
+                                <p className="text-sm text-[#808080]">{(file.size / 1024).toFixed(1)} KB</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <p className="font-medium">Перетащите файл сюда</p>
+                                <p className="text-sm text-[#808080]">или нажмите для выбора (Excel, CSV)</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {uploadResult && (
+                        <div className={`mt-4 flex items-center gap-3 rounded p-3 ${uploadResult.success ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            }`}>
+                            {uploadResult.success ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                            <span className="text-sm">{uploadResult.message}</span>
                         </div>
                     )}
-                </div>
 
-                {/* Upload Result */}
-                {uploadResult && (
-                    <div className={`mt-4 flex items-center gap-3 rounded p-3 ${uploadResult.success ? 'bg-white/10 text-white' : 'bg-red-500/10 text-red-400'
-                        }`}>
-                        {uploadResult.success ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                        <span className="text-sm">{uploadResult.message}</span>
-                    </div>
-                )}
+                    <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4 justify-between">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleUpload}
+                                disabled={!file || uploadLoading}
+                                className="flex items-center gap-2 rounded bg-white px-8 py-2 font-medium text-black transition-all hover:bg-[#E0E0E0] disabled:opacity-50"
+                            >
+                                {uploadLoading ? 'Загрузка...' : 'Загрузить'}
+                            </button>
 
-                {/* Actions */}
-                <div className="mt-4 flex items-center gap-4">
-                    <button
-                        onClick={handleUpload}
-                        disabled={!file || uploadLoading}
-                        className="flex items-center gap-2 rounded bg-white px-6 py-2 font-medium text-black transition-all hover:bg-[#E0E0E0] disabled:opacity-50"
-                    >
-                        {uploadLoading ? 'Загрузка...' : 'Загрузить'}
-                    </button>
+                            <div className="flex items-center gap-4 text-sm">
+                                <label className="flex items-center gap-2 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="uploadMode"
+                                        checked={uploadMode === 'append'}
+                                        onChange={() => setUploadMode('append')}
+                                        className="accent-white"
+                                    />
+                                    <span className={uploadMode === 'append' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
+                                        Добавить
+                                    </span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="uploadMode"
+                                        checked={uploadMode === 'replace'}
+                                        onChange={() => setUploadMode('replace')}
+                                        className="accent-white"
+                                    />
+                                    <span className={uploadMode === 'replace' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
+                                        Заменить всё
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
 
-                    {/* Mode Selector */}
-                    <div className="flex items-center gap-3 text-sm">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="uploadMode"
-                                checked={uploadMode === 'append'}
-                                onChange={() => setUploadMode('append')}
-                                className="accent-white"
-                            />
-                            <span className={uploadMode === 'append' ? 'text-white' : 'text-[#808080]'}>
-                                Добавить
-                            </span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="radio"
-                                name="uploadMode"
-                                checked={uploadMode === 'replace'}
-                                onChange={() => setUploadMode('replace')}
-                                className="accent-white"
-                            />
-                            <span className={uploadMode === 'replace' ? 'text-white' : 'text-[#808080]'}>
-                                Заменить всё
-                            </span>
-                        </label>
+                        {uploadMode === 'replace' && (
+                            <div className="flex items-center gap-2 text-xs text-red-400/80 bg-red-400/5 px-3 py-1.5 rounded border border-red-400/10">
+                                <AlertCircle className="h-3 w-3" />
+                                <span>Все существующие данные будут удалены</span>
+                            </div>
+                        )}
                     </div>
                 </div>
+            )}
 
-                {uploadMode === 'replace' && (
-                    <p className="mt-2 text-xs text-[#808080]">
-                        ⚠️ Режим "Заменить" удалит все существующие данные перед загрузкой
-                    </p>
-                )}
-            </div>
-
-            <div className="h-[1px] bg-gradient-to-r from-[#2A2A2A] to-transparent" />
+            <div className="h-[1px] bg-[#1A1A1A]" />
 
             {/* Metrics Grid */}
             <div>
-                <h2 className="text-lg font-semibold mb-4">📈 Ключевые метрики</h2>
+                <h2 className="text-lg font-semibold mb-4">Ключевые метрики</h2>
                 <div className="grid gap-6 md:grid-cols-3">
                     {metricCards.map((metric) => (
-                        <div key={metric.title} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
+                        <div key={metric.title} className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6 hover:border-[#2A2A2A] transition-colors group">
                             <div className="flex items-center justify-between mb-4">
-                                <p className="text-sm text-[#808080]">{metric.title}</p>
-                                <div className={`flex items-center gap-1 text-xs ${metric.trend === 'up' ? 'text-white' : 'text-[#808080]'
+                                <p className="text-sm text-[#808080] group-hover:text-gray-400 transition-colors uppercase tracking-wider text-[10px]">{metric.title}</p>
+                                <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${metric.trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'
                                     }`}>
                                     {metric.trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                                     {metric.change}
                                 </div>
                             </div>
-                            <p className="text-3xl font-semibold">{metric.value}</p>
+                            <p className="text-3xl font-bold tracking-tight">{metric.value}</p>
                         </div>
                     ))}
                 </div>
@@ -352,72 +380,77 @@ export default function Dashboard() {
 
             {/* Charts Row */}
             <div className="grid gap-6 lg:grid-cols-2">
-                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">Тренд продаж</h3>
+                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-6">Тренд продаж</h3>
                     <SalesTrendChart />
                 </div>
-                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
-                    <h3 className="text-lg font-semibold mb-4">Топ продукт ов</h3>
+                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+                    <h3 className="text-lg font-semibold mb-6">Топ продуктов</h3>
                     <TopProductsChart />
                 </div>
             </div>
 
-            <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-4">Топ клиенты</h3>
+            <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-6">Топ клиенты</h3>
                 <TopCustomersChart />
             </div>
 
-            <div className="h-[1px] bg-gradient-to-r from-[#2A2A2A] to-transparent" />
+            <div className="h-[1px] bg-[#1A1A1A]" />
 
             {/* Forecast Section */}
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-lg font-semibold">🔮 Прогнозирование продаж</h2>
-                        <p className="text-sm text-[#808080]">ML-модель Prophet для предсказания</p>
+                        <h2 className="text-lg font-semibold">Прогнозирование продаж</h2>
+                        <p className="text-sm text-[#808080]">ML-модель Prophet на основе исторических данных</p>
                     </div>
-                    <div className="flex gap-3">
-                        <select
-                            value={monthsAhead}
-                            onChange={(e) => setMonthsAhead(Number(e.target.value))}
-                            className="rounded bg-[#1A1A1A] border border-[#2A2A2A] px-4 py-2 text-sm text-white"
-                        >
-                            <option value={1}>1 месяц</option>
-                            <option value={3}>3 месяца</option>
-                            <option value={6}>6 месяцев</option>
-                            <option value={12}>12 месяцев</option>
-                        </select>
-                        <button
-                            onClick={trainModel}
-                            disabled={training}
-                            className="flex items-center gap-2 rounded border border-[#2A2A2A] px-4 py-2 text-sm hover:bg-[#1A1A1A] disabled:opacity-50"
-                        >
-                            <RefreshCw className={`h-4 w-4 ${training ? 'animate-spin' : ''}`} />
-                            {training ? 'Обучение...' : 'Переобучить'}
-                        </button>
-                    </div>
+
+                    <select
+                        value={monthsAhead}
+                        onChange={(e) => setMonthsAhead(Number(e.target.value))}
+                        className="rounded-[4px] bg-[#111] border border-[#2A2A2A] px-4 py-2 text-sm text-white focus:outline-none transition-colors"
+                    >
+                        <option value={1}>1 месяц</option>
+                        <option value={3}>3 месяца</option>
+                        <option value={6}>6 месяцев</option>
+                        <option value={12}>12 месяцев</option>
+                    </select>
                 </div>
 
                 {/* Forecast Chart */}
-                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
-                    <div className="mb-4 flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-white" />
-                        <h3 className="font-semibold">Прогноз на {monthsAhead} мес.</h3>
+                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6 overflow-hidden">
+                    <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="h-5 w-5 text-gray-400" />
+                            <h3 className="font-medium">Прогноз выручки на {monthsAhead} мес.</h3>
+                        </div>
+                        <div className="text-xs text-[#404040]">
+                            Используется ИИ Саши
+                        </div>
                     </div>
-                    <div className="h-80">
+                    <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={forecast}>
                                 <defs>
                                     <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.3} />
+                                        <stop offset="5%" stopColor="#FFFFFF" stopOpacity={0.2} />
                                         <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" />
-                                <XAxis dataKey="date" stroke="#808080" fontSize={12} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+                                <XAxis
+                                    dataKey="date"
+                                    stroke="#404040"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                    dy={10}
+                                />
                                 <YAxis
-                                    stroke="#808080"
-                                    fontSize={12}
+                                    stroke="#404040"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
                                     tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
@@ -427,6 +460,7 @@ export default function Dashboard() {
                                     stroke="#FFFFFF"
                                     strokeWidth={2}
                                     fill="url(#colorForecast)"
+                                    animationDuration={1500}
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -434,25 +468,44 @@ export default function Dashboard() {
                 </div>
 
                 {/* Seasonality Chart */}
-                <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6">
-                    <div className="mb-4 flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-white" />
-                        <h3 className="font-semibold">Сезонность по месяцам</h3>
+                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+                    <div className="mb-6 flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-gray-400" />
+                        <h3 className="font-medium">Сезонность по месяцам</h3>
                     </div>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={seasonality?.monthly || []}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#2A2A2A" vertical={false} />
-                                <XAxis dataKey="month" stroke="#808080" fontSize={11} />
-                                <YAxis stroke="#808080" fontSize={12} domain={[60, 140]} />
-                                <Tooltip />
-                                <Bar dataKey="index" fill="#FFFFFF" radius={[4, 4, 0, 0]} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+                                <XAxis
+                                    dataKey="month"
+                                    stroke="#404040"
+                                    fontSize={10}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <YAxis
+                                    stroke="#404040"
+                                    fontSize={10}
+                                    domain={[0, 150]}
+                                    tickLine={false}
+                                    axisLine={false}
+                                />
+                                <Tooltip
+                                    contentStyle={{ background: '#0A0A0A', border: '1px solid #2A2A2A', borderRadius: '8px' }}
+                                    itemStyle={{ color: '#white' }}
+                                />
+                                <Bar dataKey="index" fill="#FFFFFF" radius={[2, 2, 0, 0]} opacity={0.8} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    <p className="mt-2 text-xs text-[#808080] text-center">
-                        100 = базовый уровень. Выше 100 — сезонный рост.
-                    </p>
+                    <div className="mt-4 flex items-center justify-center gap-6 text-[10px] text-[#404040]">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-white opacity-80" />
+                            <span>Сезонный индекс</span>
+                        </div>
+                        <p>100 = средний уровень продаж</p>
+                    </div>
                 </div>
             </div>
         </div>
