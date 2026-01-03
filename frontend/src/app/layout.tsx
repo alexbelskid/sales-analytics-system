@@ -3,6 +3,7 @@ import './globals.css';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import { Toaster } from "@/components/ui/toaster";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
     title: 'SalesAI - Аналитика продаж',
@@ -27,6 +28,7 @@ export default function RootLayout({
                     </div>
                 </div>
                 <Toaster />
+                <SpeedInsights />
             </body>
         </html>
     );
