@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import analytics, upload, email, proposals, forecast, salary
-from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai
+from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training
 
 app = FastAPI(
     title="Sales Analytics API",
@@ -38,6 +38,10 @@ app.include_router(google_auth.router, prefix="/api/google", tags=["Google Auth"
 
 # AI System Router
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
+
+# Knowledge Base & Training
+app.include_router(knowledge.router, prefix="/api/knowledge", tags=["Knowledge Base"])
+app.include_router(training.router, prefix="/api/training", tags=["Training"])
 
 
 @app.get("/")
