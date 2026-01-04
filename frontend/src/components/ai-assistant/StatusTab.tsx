@@ -42,7 +42,7 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Gemini Status */}
+                {/* Groq AI Status */}
                 <div>
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                         <Zap className="h-5 w-5 text-orange-500" />
