@@ -50,12 +50,28 @@ export default function Dashboard() {
     const [training, setTraining] = useState(false);
 
     const [showUploader, setShowUploader] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         loadDashboard();
         loadForecast();
         loadSeasonality();
     }, []);
+
+    async function handleRefresh() {
+        setRefreshing(true);
+        try {
+            // Clear cache and reload all data
+            await analyticsApi.refresh();
+            await loadDashboard();
+            await loadForecast();
+            await loadSeasonality();
+        } catch (err) {
+            console.error('Refresh error:', err);
+        } finally {
+            setRefreshing(false);
+        }
+    }
 
     useEffect(() => {
         loadForecast();
@@ -240,6 +256,16 @@ export default function Dashboard() {
                     >
                         <UploadIcon className="h-4 w-4" />
                         <span>Загрузить данные</span>
+                    </button>
+
+                    <button
+                        onClick={handleRefresh}
+                        disabled={refreshing}
+                        className="flex items-center justify-center gap-2 rounded-[4px] border border-[#2A2A2A] px-4 py-3 sm:py-2.5 text-sm transition-all hover:bg-[#1A1A1A] min-h-[44px] disabled:opacity-50"
+                        title="Обновить все данные"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                        <span className="hidden sm:inline">{refreshing ? 'Обновление...' : 'Обновить'}</span>
                     </button>
                 </div>
             </div>

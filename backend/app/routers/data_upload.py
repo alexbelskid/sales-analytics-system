@@ -5,6 +5,7 @@ from uuid import uuid4
 from datetime import datetime
 from app.database import supabase
 from app.services.analytics_service import AnalyticsService
+from app.services.cache_service import cache
 
 router = APIRouter(prefix="/api/data", tags=["Data Integration"])
 
@@ -85,6 +86,9 @@ async def upload_sales(
                 print(f"Row skip error: {e}")
                 continue
                 
+        # Invalidate cache after upload
+        cache.invalidate_pattern("analytics:")
+        
         return {"success": True, "rows_added": rows_added, "rows_skipped": rows_skipped, "mode": mode}
     except Exception as e:
         raise HTTPException(500, f"Ошибка загрузки: {str(e)}")

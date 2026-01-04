@@ -3,10 +3,17 @@ from datetime import date, datetime, timedelta
 from typing import Optional, List
 from app.database import supabase
 from app.models.sales import DashboardMetrics, SalesTrend, TopCustomer, TopProduct
+from app.services.cache_service import cache
 import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Cache keys
+CACHE_DASHBOARD = "analytics:dashboard"
+CACHE_TOP_PRODUCTS = "analytics:top_products"
+CACHE_TOP_CUSTOMERS = "analytics:top_customers"
+CACHE_SALES_TREND = "analytics:sales_trend"
 
 
 @router.get("/dashboard", response_model=DashboardMetrics)
@@ -14,14 +21,18 @@ async def get_dashboard(
     start_date: Optional[date] = Query(None, description="Начало периода"),
     end_date: Optional[date] = Query(None, description="Конец периода"),
     customer_id: Optional[str] = Query(None, description="ID клиента"),
-    agent_id: Optional[str] = Query(None, description="ID агента")
+    agent_id: Optional[str] = Query(None, description="ID агента"),
+    force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
-    """
-    Основные метрики дашборда:
-    - Общая выручка
-    - Количество продаж
-    - Средний чек
-    """
+    """Основные метрики дашборда с кэшированием"""
+    
+    # Try cache first (only for requests without filters)
+    cache_key = CACHE_DASHBOARD
+    if not any([start_date, end_date, customer_id, agent_id]) and not force_refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return DashboardMetrics(**cached)
+    
     if supabase is None:
         return DashboardMetrics(
             total_revenue=0,
@@ -50,13 +61,19 @@ async def get_dashboard(
         total_sales = len(sales)
         avg_check = total_revenue / total_sales if total_sales > 0 else 0
         
-        return DashboardMetrics(
-            total_revenue=round(total_revenue, 2),
-            total_sales=total_sales,
-            average_check=round(avg_check, 2),
-            period_start=start_date,
-            period_end=end_date
-        )
+        response_data = {
+            "total_revenue": round(total_revenue, 2),
+            "total_sales": total_sales,
+            "average_check": round(avg_check, 2),
+            "period_start": start_date,
+            "period_end": end_date
+        }
+        
+        # Cache only unfiltered requests
+        if not any([start_date, end_date, customer_id, agent_id]):
+            cache.set(cache_key, response_data)
+        
+        return DashboardMetrics(**response_data)
     except Exception as e:
         logger.error(f"Dashboard error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -65,21 +82,27 @@ async def get_dashboard(
 @router.get("/top-customers", response_model=List[TopCustomer])
 async def get_top_customers(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
-    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней")
+    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней"),
+    force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
-    """Топ клиентов по выручке"""
+    """Топ клиентов по выручке с кэшированием"""
+    
+    cache_key = f"{CACHE_TOP_CUSTOMERS}:{limit}:{days}"
+    if not force_refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return [TopCustomer(**c) for c in cached]
+    
     if supabase is None:
         return []
     
     try:
         cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
         
-        # Fetch sales with customer names
         result = supabase.table("sales").select(
             "total_amount, customers(id, name)"
         ).gte("sale_date", cutoff_date).execute()
         
-        # Aggregate by customer
         client_totals = {}
         for sale in result.data:
             customer = sale.get("customers", {})
@@ -93,21 +116,19 @@ async def get_top_customers(
             client_totals[c_name]["total"] += float(sale.get("total_amount", 0))
             client_totals[c_name]["orders"] += 1
         
-        # Sort by total and limit
         sorted_clients = sorted(
             client_totals.items(),
             key=lambda x: x[1]["total"],
             reverse=True
         )[:limit]
         
-        return [
-            TopCustomer(
-                customer_id=data["customer_id"],
-                name=name,
-                total=round(data["total"], 2)
-            )
+        response_data = [
+            {"customer_id": data["customer_id"], "name": name, "total": round(data["total"], 2)}
             for name, data in sorted_clients
         ]
+        
+        cache.set(cache_key, response_data)
+        return [TopCustomer(**c) for c in response_data]
     except Exception as e:
         logger.error(f"Top customers error: {e}")
         return []
@@ -116,21 +137,27 @@ async def get_top_customers(
 @router.get("/top-products", response_model=List[TopProduct])
 async def get_top_products(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
-    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней")
+    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней"),
+    force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
-    """Топ товаров по продажам"""
+    """Топ товаров по продажам с кэшированием"""
+    
+    cache_key = f"{CACHE_TOP_PRODUCTS}:{limit}:{days}"
+    if not force_refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return [TopProduct(**p) for p in cached]
+    
     if supabase is None:
         return []
     
     try:
         cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
         
-        # Fetch sale items with product names and sale dates
         result = supabase.table("sale_items").select(
             "quantity, amount, products(id, name), sales!inner(sale_date)"
         ).gte("sales.sale_date", cutoff_date).execute()
         
-        # Aggregate by product
         product_totals = {}
         for item in result.data:
             product = item.get("products", {})
@@ -144,22 +171,24 @@ async def get_top_products(
             product_totals[p_name]["quantity"] += float(item.get("quantity", 0))
             product_totals[p_name]["amount"] += float(item.get("amount", 0))
         
-        # Sort by amount (revenue) and limit
         sorted_products = sorted(
             product_totals.items(),
             key=lambda x: x[1]["amount"],
             reverse=True
         )[:limit]
         
-        return [
-            TopProduct(
-                product_id=data["product_id"],
-                name=name,
-                total_quantity=int(data["quantity"]),
-                total_amount=round(data["amount"], 2)
-            )
+        response_data = [
+            {
+                "product_id": data["product_id"],
+                "name": name,
+                "total_quantity": int(data["quantity"]),
+                "total_amount": round(data["amount"], 2)
+            }
             for name, data in sorted_products
         ]
+        
+        cache.set(cache_key, response_data)
+        return [TopProduct(**p) for p in response_data]
     except Exception as e:
         logger.error(f"Top products error: {e}")
         return []
@@ -168,9 +197,17 @@ async def get_top_products(
 @router.get("/sales-trend", response_model=List[SalesTrend])
 async def get_sales_trend(
     period: str = Query(default="month", description="Период группировки: day, week, month"),
-    days: int = Query(default=180, ge=7, le=730, description="За последние N дней")
+    days: int = Query(default=180, ge=7, le=730, description="За последние N дней"),
+    force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
-    """Динамика продаж (день/неделя/месяц)"""
+    """Динамика продаж с кэшированием"""
+    
+    cache_key = f"{CACHE_SALES_TREND}:{period}:{days}"
+    if not force_refresh:
+        cached = cache.get(cache_key)
+        if cached:
+            return [SalesTrend(**t) for t in cached]
+    
     if supabase is None:
         return []
     
@@ -181,14 +218,12 @@ async def get_sales_trend(
             "sale_date, total_amount"
         ).gte("sale_date", cutoff_date).order("sale_date").execute()
         
-        # Group by period
         period_totals = {}
         for sale in result.data:
             sale_date = sale.get("sale_date", "")
             if not sale_date:
                 continue
             
-            # Determine period key
             try:
                 dt = datetime.fromisoformat(sale_date.replace("Z", ""))
             except:
@@ -197,9 +232,8 @@ async def get_sales_trend(
             if period == "day":
                 period_key = dt.strftime("%Y-%m-%d")
             elif period == "week":
-                # Monday of the week
                 period_key = (dt - timedelta(days=dt.weekday())).strftime("%Y-%m-%d")
-            else:  # month
+            else:
                 period_key = dt.strftime("%Y-%m")
             
             if period_key not in period_totals:
@@ -207,47 +241,39 @@ async def get_sales_trend(
             period_totals[period_key]["amount"] += float(sale.get("total_amount", 0))
             period_totals[period_key]["count"] += 1
         
-        # Sort by period and convert to list
         sorted_periods = sorted(period_totals.items(), key=lambda x: x[0])
         
-        return [
-            SalesTrend(
-                period=p,
-                amount=round(data["amount"], 2),
-                count=data["count"]
-            )
+        response_data = [
+            {"period": p, "amount": round(data["amount"], 2), "count": data["count"]}
             for p, data in sorted_periods
         ]
+        
+        cache.set(cache_key, response_data)
+        return [SalesTrend(**t) for t in response_data]
     except Exception as e:
         logger.error(f"Sales trend error: {e}")
         return []
 
 
-@router.post("/refresh-aggregation")
-async def refresh_aggregation():
-    """Принудительное обновление агрегации (для совместимости)"""
-    # В этой реализации агрегация происходит в реальном времени,
-    # поэтому здесь просто проверяем что данные доступны
-    if supabase is None:
-        return {"success": False, "message": "Database not configured"}
+@router.post("/refresh")
+async def refresh_analytics():
+    """Принудительное обновление всей аналитики — сброс кэша"""
     
-    try:
-        sales_count = len(supabase.table("sales").select("id").execute().data)
-        products_count = len(supabase.table("products").select("id").execute().data)
-        customers_count = len(supabase.table("customers").select("id").execute().data)
-        
-        return {
-            "success": True,
-            "message": "Данные обновлены",
-            "stats": {
-                "sales": sales_count,
-                "products": products_count,
-                "customers": customers_count
-            }
-        }
-    except Exception as e:
-        logger.error(f"Refresh error: {e}")
-        return {"success": False, "message": str(e)}
+    # Clear all analytics cache
+    cleared = cache.invalidate_pattern("analytics:")
+    
+    return {
+        "success": True,
+        "message": "Кэш очищен. Данные будут загружены заново при следующем запросе.",
+        "cleared_entries": cleared,
+        "cache_stats": cache.get_stats()
+    }
+
+
+@router.get("/cache-stats")
+async def get_cache_stats():
+    """Статистика кэша"""
+    return cache.get_stats()
 
 
 @router.get("/customers")

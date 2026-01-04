@@ -40,30 +40,38 @@ async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}): Promis
 
 // Analytics API
 export const analyticsApi = {
-    getDashboard: (params?: { start_date?: string; end_date?: string; customer_id?: string }) =>
+    getDashboard: (params?: { start_date?: string; end_date?: string; customer_id?: string; force_refresh?: boolean }) =>
         fetchAPI<{
             total_revenue: number;
             total_sales: number;
             average_check: number;
         }>('/api/analytics/dashboard', { params }),
 
-    getTopCustomers: (limit = 10) =>
+    getTopCustomers: (limit = 10, forceRefresh = false) =>
         fetchAPI<Array<{ customer_id: string; name: string; total: number }>>(
             '/api/analytics/top-customers',
-            { params: { limit } }
+            { params: { limit, force_refresh: forceRefresh } }
         ),
 
-    getTopProducts: (limit = 10) =>
+    getTopProducts: (limit = 10, forceRefresh = false) =>
         fetchAPI<Array<{ product_id: string; name: string; total_quantity: number; total_amount: number }>>(
             '/api/analytics/top-products',
-            { params: { limit } }
+            { params: { limit, force_refresh: forceRefresh } }
         ),
 
-    getSalesTrend: (period: 'day' | 'week' | 'month' = 'month') =>
+    getSalesTrend: (period: 'day' | 'week' | 'month' = 'month', forceRefresh = false) =>
         fetchAPI<Array<{ period: string; amount: number; count: number }>>(
             '/api/analytics/sales-trend',
-            { params: { period } }
+            { params: { period, force_refresh: forceRefresh } }
         ),
+
+    refresh: () =>
+        fetchAPI<{ success: boolean; message: string; cleared_entries: number }>('/api/analytics/refresh', {
+            method: 'POST'
+        }),
+
+    getCacheStats: () =>
+        fetchAPI<{ total_entries: number; valid_entries: number; keys: string[] }>('/api/analytics/cache-stats'),
 
     getCustomers: () =>
         fetchAPI<Array<{ id: string; name: string; email: string }>>('/api/analytics/customers'),
