@@ -89,18 +89,18 @@ export default function SalaryPage() {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold">Расчёт зарплат</h1>
                     <p className="text-muted-foreground">
                         Оклад + % от продаж + бонусы - штрафы
                     </p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                     <select
                         value={month}
                         onChange={(e) => setMonth(Number(e.target.value))}
-                        className="rounded-lg border border-input bg-background px-4 py-2"
+                        className="rounded-lg border border-input bg-background px-3 py-2 text-sm min-h-[44px]"
                     >
                         {monthNames.map((name, i) => (
                             <option key={i} value={i + 1}>
@@ -111,9 +111,9 @@ export default function SalaryPage() {
                     <select
                         value={year}
                         onChange={(e) => setYear(Number(e.target.value))}
-                        className="rounded-lg border border-input bg-background px-4 py-2"
+                        className="rounded-lg border border-input bg-background px-3 py-2 text-sm min-h-[44px]"
                     >
-                        {[2023, 2024, 2025].map((y) => (
+                        {[2024, 2025, 2026].map((y) => (
                             <option key={y} value={y}>
                                 {y}
                             </option>
@@ -121,10 +121,11 @@ export default function SalaryPage() {
                     </select>
                     <button
                         onClick={exportExcel}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary/90"
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary/90 min-h-[44px] whitespace-nowrap"
                     >
                         <Download className="h-4 w-4" />
-                        Экспорт Excel
+                        <span className="hidden sm:inline">Экспорт Excel</span>
+                        <span className="sm:hidden">Excel</span>
                     </button>
                 </div>
             </div>

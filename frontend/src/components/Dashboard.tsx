@@ -308,47 +308,47 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    <div className="mt-4 flex flex-col md:flex-row md:items-center gap-4 justify-between">
-                        <div className="flex items-center gap-4">
+                    <div className="mt-4 flex flex-col gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                             <button
                                 onClick={handleUpload}
                                 disabled={!file || uploadLoading}
-                                className="flex items-center gap-2 rounded bg-white px-8 py-2 font-medium text-black transition-all hover:bg-[#E0E0E0] disabled:opacity-50"
+                                className="flex items-center justify-center gap-2 rounded bg-white px-6 py-3 font-medium text-black transition-all hover:bg-[#E0E0E0] disabled:opacity-50 min-h-[44px]"
                             >
                                 {uploadLoading ? 'Загрузка...' : 'Загрузить'}
                             </button>
 
-                            <div className="flex items-center gap-4 text-sm">
-                                <label className="flex items-center gap-2 cursor-pointer group">
+                            <div className="flex items-center gap-6 text-sm">
+                                <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
                                     <input
                                         type="radio"
                                         name="uploadMode"
                                         checked={uploadMode === 'append'}
                                         onChange={() => setUploadMode('append')}
-                                        className="accent-white"
+                                        className="accent-white w-4 h-4"
                                     />
                                     <span className={uploadMode === 'append' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
                                         Добавить
                                     </span>
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer group">
+                                <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
                                     <input
                                         type="radio"
                                         name="uploadMode"
                                         checked={uploadMode === 'replace'}
                                         onChange={() => setUploadMode('replace')}
-                                        className="accent-white"
+                                        className="accent-white w-4 h-4"
                                     />
                                     <span className={uploadMode === 'replace' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
-                                        Заменить всё
+                                        Заменить
                                     </span>
                                 </label>
                             </div>
                         </div>
 
                         {uploadMode === 'replace' && (
-                            <div className="flex items-center gap-2 text-xs text-red-400/80 bg-red-400/5 px-3 py-1.5 rounded border border-red-400/10">
-                                <AlertCircle className="h-3 w-3" />
+                            <div className="flex items-center gap-2 text-xs text-red-400/80 bg-red-400/5 px-3 py-2 rounded border border-red-400/10">
+                                <AlertCircle className="h-3 w-3 flex-shrink-0" />
                                 <span>Все существующие данные будут удалены</span>
                             </div>
                         )}
