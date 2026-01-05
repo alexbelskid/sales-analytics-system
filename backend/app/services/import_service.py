@@ -63,11 +63,8 @@ class ImportService:
                         sale = {
                             'sale_date': row_data['sale_date'].isoformat(),
                             'customer_id': customer_id,
-                            'product_id': product_id,
                             'store_id': store_id,
-                            'quantity': row_data['quantity'],
-                            'price': row_data['price'],
-                            'amount': row_data['amount'],
+                            'total_amount': row_data['amount'],
                             'year': row_data['year'],
                             'month': row_data['month'],
                             'week': row_data['week'],
@@ -266,7 +263,7 @@ class ImportService:
         try:
             # Get customer totals from sales
             customers_result = supabase.table('sales').select(
-                'customer_id, amount, sale_date'
+                'customer_id, total_amount, sale_date'
             ).execute()
             
             customer_stats: Dict[str, Dict] = {}
@@ -274,7 +271,7 @@ class ImportService:
                 cid = sale['customer_id']
                 if cid not in customer_stats:
                     customer_stats[cid] = {'total': 0, 'count': 0, 'last_date': None}
-                customer_stats[cid]['total'] += float(sale['amount'])
+                customer_stats[cid]['total'] += float(sale.get('total_amount', 0) or 0)
                 customer_stats[cid]['count'] += 1
                 sale_date = sale['sale_date']
                 if not customer_stats[cid]['last_date'] or sale_date > customer_stats[cid]['last_date']:
