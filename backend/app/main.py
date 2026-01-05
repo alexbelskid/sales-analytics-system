@@ -52,6 +52,14 @@ app.include_router(training.router, prefix="/api/training", tags=["Training"])
 # Data Integration (CSV upload + analytics summary)
 app.include_router(data_upload.router)
 
+# Excel Import Router
+from app.routers import import_router
+app.include_router(import_router.router)
+
+# Extended Analytics Router
+from app.routers import extended_analytics
+app.include_router(extended_analytics.router)
+
 
 @app.get("/", tags=["Health"])
 async def root():

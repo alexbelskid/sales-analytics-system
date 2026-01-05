@@ -80,6 +80,108 @@ export const analyticsApi = {
         fetchAPI<Array<{ id: string; name: string; price: number }>>('/api/analytics/products'),
 };
 
+// Import API (Excel)
+export const importApi = {
+    uploadExcel: async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_BASE}/api/import/upload-excel`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Ошибка загрузки');
+        }
+
+        return response.json() as Promise<{
+            success: boolean;
+            import_id: string;
+            filename: string;
+            file_size: number;
+        }>;
+    },
+
+    getStatus: (importId: string) =>
+        fetchAPI<{
+            id: string;
+            filename: string;
+            status: 'pending' | 'processing' | 'completed' | 'failed';
+            total_rows: number;
+            imported_rows: number;
+            failed_rows: number;
+            progress_percent: number;
+            error_log?: string;
+        }>(`/api/import/status/${importId}`),
+
+    getHistory: () =>
+        fetchAPI<{
+            imports: Array<{
+                id: string;
+                filename: string;
+                status: string;
+                total_rows: number;
+                imported_rows: number;
+                started_at: string;
+            }>
+        }>('/api/import/history'),
+};
+
+// Extended Analytics API
+export const extAnalyticsApi = {
+    getTopProducts: (params?: { limit?: number; year?: number; month?: number; store_id?: string }) =>
+        fetchAPI<Array<{
+            product_id: string;
+            name: string;
+            category: string;
+            total_quantity: number;
+            total_revenue: number;
+            sales_count: number;
+        }>>('/api/ext-analytics/top-products', { params }),
+
+    getTopCustomers: (params?: { limit?: number; year?: number; month?: number }) =>
+        fetchAPI<Array<{
+            customer_id: string;
+            name: string;
+            total_purchases: number;
+            orders_count: number;
+            average_order: number;
+        }>>('/api/ext-analytics/top-customers', { params }),
+
+    getSalesTrend: (params?: { period?: 'day' | 'week' | 'month'; year?: number }) =>
+        fetchAPI<Array<{
+            period: string;
+            amount: number;
+            count: number;
+            average: number;
+        }>>('/api/ext-analytics/sales-trend', { params }),
+
+    getSummary: (params?: { year?: number; month?: number }) =>
+        fetchAPI<{
+            total_revenue: number;
+            total_sales: number;
+            average_check: number;
+            unique_customers: number;
+            unique_products: number;
+            top_product: { name: string; total_revenue: number } | null;
+            top_customer: { name: string; total_purchases: number } | null;
+        }>('/api/ext-analytics/summary', { params }),
+
+    getSalesByStores: (params?: { year?: number; month?: number }) =>
+        fetchAPI<Array<{
+            store_id: string;
+            name: string;
+            region: string;
+            total_revenue: number;
+            sales_count: number;
+        }>>('/api/ext-analytics/sales-by-stores', { params }),
+
+    getAvailableYears: () =>
+        fetchAPI<{ years: number[] }>('/api/ext-analytics/available-years'),
+};
+
 // Upload API
 export const uploadApi = {
     uploadExcel: async (
