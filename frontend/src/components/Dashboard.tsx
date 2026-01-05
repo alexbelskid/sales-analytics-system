@@ -20,6 +20,7 @@ import { formatCurrency, formatNumber } from '@/lib/utils';
 import SalesTrendChart from '@/components/charts/SalesTrendChart';
 import TopCustomersChart from '@/components/charts/TopCustomersChart';
 import TopProductsChart from '@/components/charts/TopProductsChart';
+import { ExcelImport } from '@/components/ExcelImport';
 
 interface DashboardMetrics {
     total_revenue: number;
@@ -51,6 +52,7 @@ export default function Dashboard() {
 
     const [showUploader, setShowUploader] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [importTab, setImportTab] = useState<'csv' | 'excel'>('excel');
 
     useEffect(() => {
         loadDashboard();
@@ -280,105 +282,142 @@ export default function Dashboard() {
                         </button>
                     </div>
 
-                    <div className="grid gap-3 md:grid-cols-3 mb-4">
-                        {dataTypes.map((type) => (
-                            <button
-                                key={type.id}
-                                onClick={() => setSelectedType(type.id as DataType)}
-                                className={`flex items-center gap-3 rounded border p-3 text-left transition-all ${selectedType === type.id
-                                    ? 'border-white bg-[#1A1A1A]'
-                                    : 'border-[#2A2A2A] hover:border-[#333]'
-                                    }`}
-                            >
-                                <span className={`${selectedType === type.id ? 'text-white' : 'text-[#404040]'}`}>{type.icon}</span>
-                                <span className="text-sm font-medium">{type.name}</span>
-                            </button>
-                        ))}
+                    {/* Tab selector */}
+                    <div className="flex gap-2 mb-4">
+                        <button
+                            onClick={() => setImportTab('excel')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${importTab === 'excel'
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-[#1A1A1A] text-[#808080] hover:text-white'
+                                }`}
+                        >
+                            <FileSpreadsheet className="h-4 w-4" />
+                            Excel (64МБ)
+                        </button>
+                        <button
+                            onClick={() => setImportTab('csv')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${importTab === 'csv'
+                                    ? 'bg-white text-black'
+                                    : 'bg-[#1A1A1A] text-[#808080] hover:text-white'
+                                }`}
+                        >
+                            <UploadIcon className="h-4 w-4" />
+                            CSV
+                        </button>
                     </div>
 
-                    <div
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#1A1A1A]' :
-                            file ? 'border-white bg-[#1A1A1A]' : 'border-[#2A2A2A] hover:border-[#333]'
-                            }`}
-                    >
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".xlsx,.xls,.csv"
-                            className="hidden"
-                            onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        />
-                        <UploadIcon className="mx-auto mb-3 h-8 w-8 text-[#404040]" />
-                        {file ? (
-                            <div>
-                                <p className="font-medium text-white">{file.name}</p>
-                                <p className="text-sm text-[#808080]">{(file.size / 1024).toFixed(1)} KB</p>
-                            </div>
-                        ) : (
-                            <div>
-                                <p className="font-medium">Перетащите файл сюда</p>
-                                <p className="text-sm text-[#808080]">или нажмите для выбора (Excel, CSV)</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {uploadResult && (
-                        <div className={`mt-4 flex items-center gap-3 rounded p-3 ${uploadResult.success ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                            }`}>
-                            {uploadResult.success ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
-                            <span className="text-sm">{uploadResult.message}</span>
-                        </div>
+                    {/* Excel Import */}
+                    {importTab === 'excel' && (
+                        <ExcelImport onComplete={() => {
+                            handleRefresh();
+                            setShowUploader(false);
+                        }} />
                     )}
 
-                    <div className="mt-4 flex flex-col gap-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                            <button
-                                onClick={handleUpload}
-                                disabled={!file || uploadLoading}
-                                className="flex items-center justify-center gap-2 rounded bg-white px-6 py-3 font-medium text-black transition-all hover:bg-[#E0E0E0] disabled:opacity-50 min-h-[44px]"
+                    {/* CSV Import */}
+                    {importTab === 'csv' && (
+                        <>
+                            <div className="grid gap-3 md:grid-cols-3 mb-4">
+                                {dataTypes.map((type) => (
+                                    <button
+                                        key={type.id}
+                                        onClick={() => setSelectedType(type.id as DataType)}
+                                        className={`flex items-center gap-3 rounded border p-3 text-left transition-all ${selectedType === type.id
+                                            ? 'border-white bg-[#1A1A1A]'
+                                            : 'border-[#2A2A2A] hover:border-[#333]'
+                                            }`}
+                                    >
+                                        <span className={`${selectedType === type.id ? 'text-white' : 'text-[#404040]'}`}>{type.icon}</span>
+                                        <span className="text-sm font-medium">{type.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onClick={() => fileInputRef.current?.click()}
+                                className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#1A1A1A]' :
+                                    file ? 'border-white bg-[#1A1A1A]' : 'border-[#2A2A2A] hover:border-[#333]'
+                                    }`}
                             >
-                                {uploadLoading ? 'Загрузка...' : 'Загрузить'}
-                            </button>
-
-                            <div className="flex items-center gap-6 text-sm">
-                                <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
-                                    <input
-                                        type="radio"
-                                        name="uploadMode"
-                                        checked={uploadMode === 'append'}
-                                        onChange={() => setUploadMode('append')}
-                                        className="accent-white w-4 h-4"
-                                    />
-                                    <span className={uploadMode === 'append' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
-                                        Добавить
-                                    </span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
-                                    <input
-                                        type="radio"
-                                        name="uploadMode"
-                                        checked={uploadMode === 'replace'}
-                                        onChange={() => setUploadMode('replace')}
-                                        className="accent-white w-4 h-4"
-                                    />
-                                    <span className={uploadMode === 'replace' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
-                                        Заменить
-                                    </span>
-                                </label>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".xlsx,.xls,.csv"
+                                    className="hidden"
+                                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                />
+                                <UploadIcon className="mx-auto mb-3 h-8 w-8 text-[#404040]" />
+                                {file ? (
+                                    <div>
+                                        <p className="font-medium text-white">{file.name}</p>
+                                        <p className="text-sm text-[#808080]">{(file.size / 1024).toFixed(1)} KB</p>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <p className="font-medium">Перетащите файл сюда</p>
+                                        <p className="text-sm text-[#808080]">или нажмите для выбора (Excel, CSV)</p>
+                                    </div>
+                                )}
                             </div>
-                        </div>
 
-                        {uploadMode === 'replace' && (
-                            <div className="flex items-center gap-2 text-xs text-red-400/80 bg-red-400/5 px-3 py-2 rounded border border-red-400/10">
-                                <AlertCircle className="h-3 w-3 flex-shrink-0" />
-                                <span>Все существующие данные будут удалены</span>
+                            {uploadResult && (
+                                <div className={`mt-4 flex items-center gap-3 rounded p-3 ${uploadResult.success ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    }`}>
+                                    {uploadResult.success ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                                    <span className="text-sm">{uploadResult.message}</span>
+                                </div>
+                            )}
+
+                            <div className="mt-4 flex flex-col gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <button
+                                        onClick={handleUpload}
+                                        disabled={!file || uploadLoading}
+                                        className="flex items-center justify-center gap-2 rounded bg-white px-6 py-3 font-medium text-black transition-all hover:bg-[#E0E0E0] disabled:opacity-50 min-h-[44px]"
+                                    >
+                                        {uploadLoading ? 'Загрузка...' : 'Загрузить'}
+                                    </button>
+
+                                    <div className="flex items-center gap-6 text-sm">
+                                        <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
+                                            <input
+                                                type="radio"
+                                                name="uploadMode"
+                                                checked={uploadMode === 'append'}
+                                                onChange={() => setUploadMode('append')}
+                                                className="accent-white w-4 h-4"
+                                            />
+                                            <span className={uploadMode === 'append' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
+                                                Добавить
+                                            </span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
+                                            <input
+                                                type="radio"
+                                                name="uploadMode"
+                                                checked={uploadMode === 'replace'}
+                                                onChange={() => setUploadMode('replace')}
+                                                className="accent-white w-4 h-4"
+                                            />
+                                            <span className={uploadMode === 'replace' ? 'text-white' : 'text-[#808080] group-hover:text-gray-300'}>
+                                                Заменить
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                {uploadMode === 'replace' && (
+                                    <div className="flex items-center gap-2 text-xs text-red-400/80 bg-red-400/5 px-3 py-2 rounded border border-red-400/10">
+                                        <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                                        <span>Все существующие данные будут удалены</span>
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
+                        </>
+                    )}
                 </div>
             )}
 
