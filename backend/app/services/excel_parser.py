@@ -55,21 +55,21 @@ class ExcelParser:
             self._use_pandas = False
             return self.total_rows
         except Exception as e:
-            logger.warning(f"openpyxl failed, trying pandas: {e}")
-            # Fallback to pandas
-            try:
-                # Read just first few rows to estimate
-                df_sample = pd.read_excel(self.file_path, nrows=0)
-                # Read full file in chunks to count
-                total = 0
-                for chunk in pd.read_excel(self.file_path, chunksize=10000):
-                    total += len(chunk)
-                self.total_rows = total
-                self._use_pandas = True
-                return self.total_rows
-            except Exception as e2:
-                logger.error(f"Error counting rows: {e2}")
-                return 0
+            logger.warning(f"openpyxl failed for counting, trying pandas: {e}")
+            # Fallback to pandas with multiple engines
+            for engine in ['calamine', 'xlrd', 'openpyxl', None]:
+                try:
+                    logger.info(f"Counting rows with engine: {engine or 'default'}")
+                    df = pd.read_excel(self.file_path, header=0, engine=engine)
+                    self.total_rows = len(df)
+                    self._use_pandas = True
+                    logger.info(f"Counted {self.total_rows} rows with {engine or 'default'}")
+                    return self.total_rows
+                except Exception as e2:
+                    logger.warning(f"Engine {engine} failed for counting: {e2}")
+                    continue
+            logger.error("All engines failed to count rows")
+            return 0
     
     def parse_chunks(self) -> Generator[List[Dict[str, Any]], None, None]:
         """Parse Excel file in chunks to save memory"""
