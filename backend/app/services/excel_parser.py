@@ -91,53 +91,64 @@ class ExcelParser:
             return True
     
     def _parse_with_pandas(self) -> Generator[List[Dict[str, Any]], None, None]:
-        """Parse using pandas for maximum compatibility"""
+        """Parse using pandas for maximum compatibility - tries multiple engines"""
         logger.info("Using pandas parser for Excel file")
         
-        try:
-            # Read entire file (pandas doesn't support chunksize for Excel)
-            logger.info("Reading Excel file with pandas...")
-            df = pd.read_excel(self.file_path, header=0)
-            self.total_rows = len(df)
-            logger.info(f"Loaded {self.total_rows} rows")
-            
-            # Process in chunks manually
-            chunk_num = 0
-            parsed_chunk: List[Dict[str, Any]] = []
-            
-            for idx, row in df.iterrows():
-                try:
-                    parsed = self._parse_pandas_row(row, idx + 2)  # +2 for 1-indexed + header
-                    if parsed:
-                        parsed_chunk.append(parsed)
-                        self.processed_rows += 1
-                    else:
-                        self.failed_rows += 1
-                except Exception as e:
+        # Try different engines in order of preference
+        engines_to_try = ['calamine', 'xlrd', 'openpyxl', None]
+        df = None
+        used_engine = None
+        
+        for engine in engines_to_try:
+            try:
+                logger.info(f"Trying engine: {engine or 'default'}...")
+                df = pd.read_excel(self.file_path, header=0, engine=engine)
+                used_engine = engine
+                logger.info(f"Success with engine: {engine or 'default'}")
+                break
+            except Exception as e:
+                logger.warning(f"Engine {engine} failed: {e}")
+                continue
+        
+        if df is None:
+            raise Exception("All Excel engines failed to read the file")
+        
+        self.total_rows = len(df)
+        logger.info(f"Loaded {self.total_rows} rows using {used_engine or 'default'} engine")
+        
+        # Process in chunks manually
+        chunk_num = 0
+        parsed_chunk: List[Dict[str, Any]] = []
+        
+        for idx, row in df.iterrows():
+            try:
+                parsed = self._parse_pandas_row(row, idx + 2)  # +2 for 1-indexed + header
+                if parsed:
+                    parsed_chunk.append(parsed)
+                    self.processed_rows += 1
+                else:
                     self.failed_rows += 1
-                    if len(self.errors) < 100:
-                        self.errors.append(f"Row {idx + 2}: {str(e)}")
-                
-                # Yield chunk when full
-                if len(parsed_chunk) >= self.chunk_size:
-                    chunk_num += 1
-                    logger.info(f"Chunk {chunk_num}: {self.processed_rows} success, {self.failed_rows} failed")
-                    yield parsed_chunk
-                    parsed_chunk = []
-                
-                # Log progress
-                if (idx + 1) % 10000 == 0:
-                    logger.info(f"Progress: {idx + 1}/{self.total_rows} rows")
+            except Exception as e:
+                self.failed_rows += 1
+                if len(self.errors) < 100:
+                    self.errors.append(f"Row {idx + 2}: {str(e)}")
             
-            # Yield remaining
-            if parsed_chunk:
+            # Yield chunk when full
+            if len(parsed_chunk) >= self.chunk_size:
+                chunk_num += 1
+                logger.info(f"Chunk {chunk_num}: {self.processed_rows} success, {self.failed_rows} failed")
                 yield parsed_chunk
+                parsed_chunk = []
             
-            logger.info(f"Pandas parsing complete: {self.processed_rows} success, {self.failed_rows} failed")
-            
-        except Exception as e:
-            logger.error(f"Pandas Excel parsing error: {e}")
-            raise
+            # Log progress
+            if (idx + 1) % 10000 == 0:
+                logger.info(f"Progress: {idx + 1}/{self.total_rows} rows")
+        
+        # Yield remaining
+        if parsed_chunk:
+            yield parsed_chunk
+        
+        logger.info(f"Pandas parsing complete: {self.processed_rows} success, {self.failed_rows} failed")
     
     def _parse_pandas_row(self, row: pd.Series, row_num: int) -> Optional[Dict[str, Any]]:
         """Parse a pandas row into structured data"""
