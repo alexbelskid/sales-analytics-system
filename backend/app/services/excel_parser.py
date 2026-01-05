@@ -94,38 +94,39 @@ class ExcelParser:
         """Parse using pandas for maximum compatibility - tries multiple engines"""
         logger.info(f"Using pandas parser for Excel file: {self.file_path}")
         
-        # Determine file extension
-        is_xlsx = str(self.file_path).lower().endswith('.xlsx')
-        
-        # Try engines in order (openpyxl first for xlsx, xlrd for xls)
-        if is_xlsx:
-            engines_to_try = ['openpyxl', 'calamine', None]
-        else:
-            engines_to_try = ['xlrd', 'openpyxl', 'calamine', None]
-        
-        df = None
-        used_engine = None
-        all_errors = []
-        
-        for engine in engines_to_try:
-            try:
-                logger.info(f"Trying engine: {engine or 'default'}...")
-                df = pd.read_excel(self.file_path, header=0, engine=engine)
-                used_engine = engine
-                logger.info(f"SUCCESS with engine: {engine or 'default'}, rows: {len(df)}")
-                break
-            except Exception as e:
-                error_msg = f"Engine {engine}: {str(e)[:200]}"
-                all_errors.append(error_msg)
-                logger.error(error_msg)
-                continue
+        # First try calamine directly (handles corrupted xlsx)
+        df = self._try_calamine_direct()
         
         if df is None:
-            error_detail = " | ".join(all_errors)
-            raise Exception(f"All Excel engines failed: {error_detail}")
+            # Determine file extension
+            is_xlsx = str(self.file_path).lower().endswith('.xlsx')
+            
+            # Try engines in order (openpyxl first for xlsx, xlrd for xls)
+            if is_xlsx:
+                engines_to_try = ['openpyxl', None]
+            else:
+                engines_to_try = ['xlrd', 'openpyxl', None]
+            
+            all_errors = []
+            
+            for engine in engines_to_try:
+                try:
+                    logger.info(f"Trying engine: {engine or 'default'}...")
+                    df = pd.read_excel(self.file_path, header=0, engine=engine)
+                    logger.info(f"SUCCESS with engine: {engine or 'default'}, rows: {len(df)}")
+                    break
+                except Exception as e:
+                    error_msg = f"Engine {engine}: {str(e)[:200]}"
+                    all_errors.append(error_msg)
+                    logger.error(error_msg)
+                    continue
+            
+            if df is None:
+                error_detail = " | ".join(all_errors)
+                raise Exception(f"All Excel engines failed: {error_detail}")
         
         self.total_rows = len(df)
-        logger.info(f"Loaded {self.total_rows} rows using {used_engine or 'default'} engine")
+        logger.info(f"Loaded {self.total_rows} rows")
         
         # Process in chunks manually
         chunk_num = 0
@@ -160,6 +161,39 @@ class ExcelParser:
             yield parsed_chunk
         
         logger.info(f"Pandas parsing complete: {self.processed_rows} success, {self.failed_rows} failed")
+    
+    def _try_calamine_direct(self) -> Optional[pd.DataFrame]:
+        """Try reading with calamine directly for corrupted xlsx files"""
+        try:
+            from python_calamine import CalamineWorkbook
+            logger.info("Trying calamine direct read...")
+            
+            workbook = CalamineWorkbook.from_path(self.file_path)
+            sheet_names = workbook.sheet_names
+            if not sheet_names:
+                logger.warning("Calamine: no sheets found")
+                return None
+            
+            # Read first sheet
+            data = workbook.get_sheet_by_name(sheet_names[0]).to_python()
+            if not data or len(data) < 2:
+                logger.warning("Calamine: no data found")
+                return None
+            
+            # First row is header
+            headers = [str(h) if h else f"col_{i}" for i, h in enumerate(data[0])]
+            rows = data[1:]
+            
+            df = pd.DataFrame(rows, columns=headers)
+            logger.info(f"Calamine SUCCESS: {len(df)} rows, {len(headers)} columns")
+            return df
+            
+        except ImportError:
+            logger.warning("Calamine not available")
+            return None
+        except Exception as e:
+            logger.warning(f"Calamine direct read failed: {e}")
+            return None
     
     def _parse_pandas_row(self, row: pd.Series, row_num: int) -> Optional[Dict[str, Any]]:
         """Parse a pandas row into structured data"""
