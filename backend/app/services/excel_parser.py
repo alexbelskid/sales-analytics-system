@@ -92,26 +92,37 @@ class ExcelParser:
     
     def _parse_with_pandas(self) -> Generator[List[Dict[str, Any]], None, None]:
         """Parse using pandas for maximum compatibility - tries multiple engines"""
-        logger.info("Using pandas parser for Excel file")
+        logger.info(f"Using pandas parser for Excel file: {self.file_path}")
         
-        # Try different engines in order of preference
-        engines_to_try = ['calamine', 'xlrd', 'openpyxl', None]
+        # Determine file extension
+        is_xlsx = str(self.file_path).lower().endswith('.xlsx')
+        
+        # Try engines in order (openpyxl first for xlsx, xlrd for xls)
+        if is_xlsx:
+            engines_to_try = ['openpyxl', 'calamine', None]
+        else:
+            engines_to_try = ['xlrd', 'openpyxl', 'calamine', None]
+        
         df = None
         used_engine = None
+        all_errors = []
         
         for engine in engines_to_try:
             try:
                 logger.info(f"Trying engine: {engine or 'default'}...")
                 df = pd.read_excel(self.file_path, header=0, engine=engine)
                 used_engine = engine
-                logger.info(f"Success with engine: {engine or 'default'}")
+                logger.info(f"SUCCESS with engine: {engine or 'default'}, rows: {len(df)}")
                 break
             except Exception as e:
-                logger.warning(f"Engine {engine} failed: {e}")
+                error_msg = f"Engine {engine}: {str(e)[:200]}"
+                all_errors.append(error_msg)
+                logger.error(error_msg)
                 continue
         
         if df is None:
-            raise Exception("All Excel engines failed to read the file")
+            error_detail = " | ".join(all_errors)
+            raise Exception(f"All Excel engines failed: {error_detail}")
         
         self.total_rows = len(df)
         logger.info(f"Loaded {self.total_rows} rows using {used_engine or 'default'} engine")
