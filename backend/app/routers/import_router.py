@@ -100,8 +100,13 @@ async def run_import_background(
     try:
         from app.services.excel_parser import ExcelParser
         from app.services.import_service import ImportService
-        from app.database import supabase
+        from app.database import get_supabase_admin
         from datetime import datetime
+        
+        # Use admin client to bypass RLS
+        supabase = get_supabase_admin()
+        if not supabase:
+            raise Exception("Database not configured")
         
         logger.info(f"Starting background import: {import_id}")
         

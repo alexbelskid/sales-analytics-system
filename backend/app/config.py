@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # Supabase
     supabase_url: str = ""
     supabase_key: str = ""
+    supabase_service_key: str = ""  # Service role key for bypassing RLS
     database_url: str = ""
     
     # AI APIs
