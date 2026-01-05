@@ -60,6 +60,10 @@ app.include_router(import_router.router)
 from app.routers import extended_analytics
 app.include_router(extended_analytics.router)
 
+# Files Management Router
+from app.routers import files_router
+app.include_router(files_router.router)
+
 
 @app.get("/", tags=["Health"])
 async def root():
