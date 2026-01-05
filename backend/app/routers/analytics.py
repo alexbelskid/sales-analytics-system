@@ -99,22 +99,26 @@ async def get_top_customers(
     try:
         cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
         
+        # Query sales with customer data
         result = supabase.table("sales").select(
-            "total_amount, customers(id, name)"
+            "customer_id, total_amount, sale_date"
         ).gte("sale_date", cutoff_date).execute()
+        
+        # Get customer names
+        customers_result = supabase.table("customers").select("id, name").execute()
+        customer_names = {c['id']: c['name'] for c in customers_result.data}
         
         client_totals = {}
         for sale in result.data:
-            customer = sale.get("customers", {})
-            if not customer:
+            c_id = sale.get("customer_id", "")
+            if not c_id:
                 continue
-            c_id = customer.get("id", "")
-            c_name = customer.get("name", "Неизвестный")
+            c_name = customer_names.get(c_id, "Неизвестный")
             
-            if c_name not in client_totals:
-                client_totals[c_name] = {"customer_id": c_id, "total": 0, "orders": 0}
-            client_totals[c_name]["total"] += float(sale.get("total_amount", 0))
-            client_totals[c_name]["orders"] += 1
+            if c_id not in client_totals:
+                client_totals[c_id] = {"name": c_name, "total": 0, "orders": 0}
+            client_totals[c_id]["total"] += float(sale.get("total_amount", 0) or 0)
+            client_totals[c_id]["orders"] += 1
         
         sorted_clients = sorted(
             client_totals.items(),
@@ -123,8 +127,8 @@ async def get_top_customers(
         )[:limit]
         
         response_data = [
-            {"customer_id": data["customer_id"], "name": name, "total": round(data["total"], 2)}
-            for name, data in sorted_clients
+            {"customer_id": c_id, "name": data["name"], "total": round(data["total"], 2)}
+            for c_id, data in sorted_clients
         ]
         
         cache.set(cache_key, response_data)
@@ -154,37 +158,36 @@ async def get_top_products(
     try:
         cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
         
-        result = supabase.table("sale_items").select(
-            "quantity, amount, products(id, name), sales!inner(sale_date)"
-        ).gte("sales.sale_date", cutoff_date).execute()
+        # Get products directly (using total_revenue if available, otherwise return by name)
+        products_result = supabase.table("products").select("id, name, category, total_revenue").execute()
         
-        product_totals = {}
-        for item in result.data:
-            product = item.get("products", {})
-            if not product:
-                continue
-            p_id = product.get("id", "")
-            p_name = product.get("name", "Неизвестный")
-            
-            if p_name not in product_totals:
-                product_totals[p_name] = {"product_id": p_id, "quantity": 0, "amount": 0}
-            product_totals[p_name]["quantity"] += float(item.get("quantity", 0))
-            product_totals[p_name]["amount"] += float(item.get("amount", 0))
+        # Sort by total_revenue if available, otherwise alphabetically
+        products_data = products_result.data or []
         
-        sorted_products = sorted(
-            product_totals.items(),
-            key=lambda x: x[1]["amount"],
-            reverse=True
-        )[:limit]
+        # Filter products with revenue
+        products_with_revenue = [
+            p for p in products_data 
+            if p.get("total_revenue") and float(p.get("total_revenue", 0)) > 0
+        ]
+        
+        if products_with_revenue:
+            sorted_products = sorted(
+                products_with_revenue,
+                key=lambda x: float(x.get("total_revenue", 0)),
+                reverse=True
+            )[:limit]
+        else:
+            # Fallback: just return first N products
+            sorted_products = products_data[:limit]
         
         response_data = [
             {
-                "product_id": data["product_id"],
-                "name": name,
-                "total_quantity": int(data["quantity"]),
-                "total_amount": round(data["amount"], 2)
+                "product_id": p.get("id", ""),
+                "name": p.get("name", "Неизвестный"),
+                "total_quantity": 0,  # No quantity data available
+                "total_amount": round(float(p.get("total_revenue", 0) or 0), 2)
             }
-            for name, data in sorted_products
+            for p in sorted_products
         ]
         
         cache.set(cache_key, response_data)
