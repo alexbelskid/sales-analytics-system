@@ -1,14 +1,14 @@
 """
 Excel Parser Service
 Memory-efficient parser for large Excel files (64MB+)
-Uses openpyxl in read_only mode with chunked processing
+Supports both .xlsx (openpyxl) and .xls (xlrd via pandas) formats
 """
 
-from openpyxl import load_workbook
 from datetime import datetime, date
-from typing import Generator, Dict, Any, List, Optional, Tuple
+from typing import Generator, Dict, Any, List, Optional
 import re
 import logging
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ class ExcelParser:
     """Memory-efficient Excel parser for large files"""
     
     # Column mapping based on Excel structure analysis
+    # You may need to adjust these based on your actual Excel columns
     COLUMN_MAP = {
         'date': 1,           # B: Дата (формат: ДД.ММ.ГГГГ)
         'store_code': 3,     # D: Код точки (Y001T4)
@@ -40,25 +41,166 @@ class ExcelParser:
         self.processed_rows = 0
         self.failed_rows = 0
         self.errors: List[str] = []
+        self._use_pandas = False
     
     def count_rows(self) -> int:
         """Count total rows in Excel file"""
         try:
+            # Try openpyxl first
+            from openpyxl import load_workbook
             wb = load_workbook(self.file_path, read_only=True, data_only=True)
             ws = wb.active
             self.total_rows = ws.max_row - 1  # Exclude header
             wb.close()
+            self._use_pandas = False
             return self.total_rows
         except Exception as e:
-            logger.error(f"Error counting rows: {e}")
-            return 0
+            logger.warning(f"openpyxl failed, trying pandas: {e}")
+            # Fallback to pandas
+            try:
+                # Read just first few rows to estimate
+                df_sample = pd.read_excel(self.file_path, nrows=0)
+                # Read full file in chunks to count
+                total = 0
+                for chunk in pd.read_excel(self.file_path, chunksize=10000):
+                    total += len(chunk)
+                self.total_rows = total
+                self._use_pandas = True
+                return self.total_rows
+            except Exception as e2:
+                logger.error(f"Error counting rows: {e2}")
+                return 0
     
     def parse_chunks(self) -> Generator[List[Dict[str, Any]], None, None]:
-        """
-        Parse Excel file in chunks to save memory
-        Yields batches of parsed rows
-        """
+        """Parse Excel file in chunks to save memory"""
+        
+        if self._use_pandas or self._should_use_pandas():
+            yield from self._parse_with_pandas()
+        else:
+            yield from self._parse_with_openpyxl()
+    
+    def _should_use_pandas(self) -> bool:
+        """Check if we should use pandas instead of openpyxl"""
         try:
+            from openpyxl import load_workbook
+            wb = load_workbook(self.file_path, read_only=True, data_only=True)
+            wb.close()
+            return False
+        except Exception as e:
+            logger.warning(f"openpyxl not compatible, using pandas: {e}")
+            return True
+    
+    def _parse_with_pandas(self) -> Generator[List[Dict[str, Any]], None, None]:
+        """Parse using pandas for maximum compatibility"""
+        logger.info("Using pandas parser for Excel file")
+        
+        try:
+            # Read in chunks
+            chunk_num = 0
+            for df_chunk in pd.read_excel(self.file_path, chunksize=self.chunk_size, header=0):
+                chunk_num += 1
+                parsed_chunk: List[Dict[str, Any]] = []
+                
+                for idx, row in df_chunk.iterrows():
+                    try:
+                        parsed = self._parse_pandas_row(row, idx + 2)  # +2 for 1-indexed + header
+                        if parsed:
+                            parsed_chunk.append(parsed)
+                            self.processed_rows += 1
+                        else:
+                            self.failed_rows += 1
+                    except Exception as e:
+                        self.failed_rows += 1
+                        if len(self.errors) < 100:
+                            self.errors.append(f"Row {idx + 2}: {str(e)}")
+                
+                if parsed_chunk:
+                    yield parsed_chunk
+                
+                logger.info(f"Chunk {chunk_num}: {self.processed_rows} success, {self.failed_rows} failed")
+            
+            logger.info(f"Pandas parsing complete: {self.processed_rows} success, {self.failed_rows} failed")
+            
+        except Exception as e:
+            logger.error(f"Pandas Excel parsing error: {e}")
+            raise
+    
+    def _parse_pandas_row(self, row: pd.Series, row_num: int) -> Optional[Dict[str, Any]]:
+        """Parse a pandas row into structured data"""
+        
+        # Get values by column index
+        cols = row.values
+        
+        date_val = self._safe_get(cols, self.COLUMN_MAP['date'])
+        customer = self._safe_get(cols, self.COLUMN_MAP['customer'])
+        product = self._safe_get(cols, self.COLUMN_MAP['product'])
+        quantity = self._safe_get(cols, self.COLUMN_MAP['quantity'])
+        amount = self._safe_get(cols, self.COLUMN_MAP['amount'])
+        
+        # Validate required fields
+        if pd.isna(customer) or pd.isna(product):
+            return None
+        
+        customer = str(customer)
+        product = str(product)
+        
+        if not customer.strip() or not product.strip():
+            return None
+        
+        # Parse date
+        sale_date = self._parse_date(date_val)
+        if not sale_date:
+            return None
+        
+        # Parse numbers
+        qty = self._parse_number(quantity)
+        amt = self._parse_number(amount)
+        
+        if amt is None or amt <= 0:
+            return None
+        
+        # Calculate price per unit
+        price = amt / qty if qty and qty > 0 else amt
+        
+        return {
+            'row_num': row_num,
+            'sale_date': sale_date,
+            'customer_name': self._normalize_name(customer),
+            'customer_raw': customer,
+            'product_name': self._normalize_name(product),
+            'product_raw': product,
+            'category': str(self._safe_get(cols, self.COLUMN_MAP['category']) or 'Без категории'),
+            'store_code': self._safe_get(cols, self.COLUMN_MAP['store_code']),
+            'store_name': self._safe_get(cols, self.COLUMN_MAP['store_name']),
+            'region': self._safe_get(cols, self.COLUMN_MAP['region']),
+            'channel': self._safe_get(cols, self.COLUMN_MAP['channel']),
+            'quantity': qty or 1,
+            'price': round(price, 2),
+            'amount': round(amt, 2),
+            'year': sale_date.year,
+            'month': sale_date.month,
+            'week': sale_date.isocalendar()[1],
+            'day_of_week': sale_date.weekday()
+        }
+    
+    def _safe_get(self, arr, idx: int) -> Any:
+        """Safely get value from array"""
+        try:
+            if idx < len(arr):
+                val = arr[idx]
+                if pd.isna(val):
+                    return None
+                return val
+            return None
+        except:
+            return None
+    
+    def _parse_with_openpyxl(self) -> Generator[List[Dict[str, Any]], None, None]:
+        """Parse using openpyxl (original method)"""
+        logger.info("Using openpyxl parser for Excel file")
+        
+        try:
+            from openpyxl import load_workbook
             wb = load_workbook(self.file_path, read_only=True, data_only=True)
             ws = wb.active
             
@@ -77,7 +219,7 @@ class ExcelParser:
                         self.failed_rows += 1
                 except Exception as e:
                     self.failed_rows += 1
-                    if len(self.errors) < 100:  # Limit error log
+                    if len(self.errors) < 100:
                         self.errors.append(f"Row {row_num}: {str(e)}")
                 
                 # Yield chunk when full
@@ -98,7 +240,7 @@ class ExcelParser:
             logger.info(f"Parsing complete: {self.processed_rows} success, {self.failed_rows} failed")
             
         except Exception as e:
-            logger.error(f"Excel parsing error: {e}")
+            logger.error(f"openpyxl parsing error: {e}")
             raise
     
     def _parse_row(self, row: tuple, row_num: int) -> Optional[Dict[str, Any]]:
@@ -166,6 +308,13 @@ class ExcelParser:
         if value is None:
             return None
         
+        # Handle pandas Timestamp
+        if hasattr(value, 'date'):
+            try:
+                return value.date()
+            except:
+                pass
+        
         # Already a date/datetime
         if isinstance(value, datetime):
             return value.date()
@@ -176,12 +325,21 @@ class ExcelParser:
         if isinstance(value, str):
             value = value.strip()
             
-            # Try DD.MM.YYYY
-            for fmt in ['%d.%m.%Y', '%d.%m.%y', '%Y-%m-%d', '%d/%m/%Y']:
+            # Try various formats
+            for fmt in ['%d.%m.%Y', '%d.%m.%y', '%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']:
                 try:
                     return datetime.strptime(value, fmt).date()
                 except:
                     continue
+        
+        # Try parsing as number (Excel serial date)
+        if isinstance(value, (int, float)):
+            try:
+                # Excel date starts from 1899-12-30
+                from datetime import timedelta
+                return (datetime(1899, 12, 30) + timedelta(days=int(value))).date()
+            except:
+                pass
         
         return None
     
@@ -191,6 +349,8 @@ class ExcelParser:
             return None
         
         if isinstance(value, (int, float)):
+            if pd.isna(value):
+                return None
             return float(value)
         
         if isinstance(value, str):
