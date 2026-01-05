@@ -430,7 +430,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">Прогнозирование продаж</h2>
-                        <p className="text-sm text-[#808080]">ML-модель Prophet на основе исторических данных</p>
+                        <p className="text-sm text-[#808080]">Прогноз на основе исторических данных</p>
                     </div>
 
                     <select
@@ -451,9 +451,6 @@ export default function Dashboard() {
                         <div className="flex items-center gap-2">
                             <TrendingUp className="h-5 w-5 text-gray-400" />
                             <h3 className="font-medium">Прогноз выручки на {monthsAhead} мес.</h3>
-                        </div>
-                        <div className="text-xs text-[#404040]">
-                            Используется ИИ Саши
                         </div>
                     </div>
                     <div className="h-80 w-full">
