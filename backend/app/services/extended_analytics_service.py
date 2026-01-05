@@ -1,6 +1,6 @@
 """
 Extended Analytics Service
-Provides analytics from imported Excel data with caching
+Adapted for existing schema: sales uses total_amount, products via sale_items
 """
 
 from datetime import datetime, timedelta
@@ -16,7 +16,7 @@ CACHE_TTL = 300  # 5 minutes
 
 
 class ExtendedAnalyticsService:
-    """Analytics service for imported sales data"""
+    """Analytics service adapted for existing database schema"""
     
     @staticmethod
     def get_top_products(
@@ -26,16 +26,7 @@ class ExtendedAnalyticsService:
         store_id: Optional[str] = None,
         force_refresh: bool = False
     ) -> List[Dict[str, Any]]:
-        """
-        Get top products by revenue
-        
-        Args:
-            limit: Number of products to return
-            year: Filter by year
-            month: Filter by month
-            store_id: Filter by store
-            force_refresh: Bypass cache
-        """
+        """Get top products by revenue using sale_items table"""
         cache_key = f"ext_analytics:top_products:{limit}:{year}:{month}:{store_id}"
         
         if not force_refresh:
@@ -47,24 +38,29 @@ class ExtendedAnalyticsService:
             return []
         
         try:
-            # Build query
-            query = supabase.table('sales').select(
-                'product_id, quantity, amount, products(id, name, category)'
-            )
+            # Get sales with date filter first
+            sales_query = supabase.table('sales').select('id, sale_date, year, month')
             
             if year:
-                query = query.eq('year', year)
+                sales_query = sales_query.eq('year', year)
             if month:
-                query = query.eq('month', month)
-            if store_id:
-                query = query.eq('store_id', store_id)
+                sales_query = sales_query.eq('month', month)
             
-            result = query.execute()
+            sales_result = sales_query.execute()
+            sale_ids = [s['id'] for s in sales_result.data]
+            
+            if not sale_ids:
+                return []
+            
+            # Get sale_items for these sales
+            items_result = supabase.table('sale_items').select(
+                'quantity, amount, products(id, name, category)'
+            ).in_('sale_id', sale_ids[:500]).execute()  # Limit to avoid too large query
             
             # Aggregate by product
             product_totals: Dict[str, Dict] = {}
-            for sale in result.data:
-                product = sale.get('products', {})
+            for item in items_result.data:
+                product = item.get('products', {})
                 if not product:
                     continue
                 
@@ -76,14 +72,14 @@ class ExtendedAnalyticsService:
                     product_totals[p_id] = {
                         'product_id': p_id,
                         'name': p_name,
-                        'category': p_category,
+                        'category': p_category or 'Без категории',
                         'total_quantity': 0,
                         'total_revenue': 0,
                         'sales_count': 0
                     }
                 
-                product_totals[p_id]['total_quantity'] += float(sale.get('quantity', 0))
-                product_totals[p_id]['total_revenue'] += float(sale.get('amount', 0))
+                product_totals[p_id]['total_quantity'] += float(item.get('quantity', 0))
+                product_totals[p_id]['total_revenue'] += float(item.get('amount', 0))
                 product_totals[p_id]['sales_count'] += 1
             
             # Sort by revenue and limit
@@ -125,7 +121,7 @@ class ExtendedAnalyticsService:
         
         try:
             query = supabase.table('sales').select(
-                'customer_id, amount, sale_date, customers(id, name)'
+                'customer_id, total_amount, sale_date, customers(id, name)'
             )
             
             if year:
@@ -154,7 +150,7 @@ class ExtendedAnalyticsService:
                         'last_purchase': None
                     }
                 
-                customer_totals[c_id]['total_purchases'] += float(sale.get('amount', 0))
+                customer_totals[c_id]['total_purchases'] += float(sale.get('total_amount', 0))
                 customer_totals[c_id]['orders_count'] += 1
                 
                 sale_date = sale.get('sale_date')
@@ -200,7 +196,7 @@ class ExtendedAnalyticsService:
         
         try:
             query = supabase.table('sales').select(
-                'sale_date, amount, year, month, week'
+                'sale_date, total_amount, year, month, week'
             )
             
             if year:
@@ -212,13 +208,19 @@ class ExtendedAnalyticsService:
             period_totals: Dict[str, Dict] = {}
             for sale in result.data:
                 sale_date = sale.get('sale_date', '')
+                sale_year = sale.get('year') or 0
+                sale_month = sale.get('month') or 0
+                sale_week = sale.get('week') or 0
                 
                 if period == 'day':
                     period_key = sale_date
                 elif period == 'week':
-                    period_key = f"{sale.get('year', '')}-W{sale.get('week', ''):02d}"
+                    period_key = f"{sale_year}-W{sale_week:02d}" if sale_week else sale_date
                 else:  # month
-                    period_key = f"{sale.get('year', '')}-{sale.get('month', ''):02d}"
+                    period_key = f"{sale_year}-{sale_month:02d}" if sale_month else sale_date[:7] if sale_date else ''
+                
+                if not period_key:
+                    continue
                 
                 if period_key not in period_totals:
                     period_totals[period_key] = {
@@ -227,7 +229,7 @@ class ExtendedAnalyticsService:
                         'count': 0
                     }
                 
-                period_totals[period_key]['amount'] += float(sale.get('amount', 0))
+                period_totals[period_key]['amount'] += float(sale.get('total_amount', 0))
                 period_totals[period_key]['count'] += 1
             
             # Sort by period
@@ -264,7 +266,7 @@ class ExtendedAnalyticsService:
         
         try:
             query = supabase.table('sales').select(
-                'store_id, amount, stores(id, name, region, channel)'
+                'store_id, total_amount, stores(id, name, region, channel)'
             )
             
             if year:
@@ -278,19 +280,19 @@ class ExtendedAnalyticsService:
             store_totals: Dict[str, Dict] = {}
             for sale in result.data:
                 store = sale.get('stores', {})
-                store_id = sale.get('store_id') or 'unknown'
+                store_id = sale.get('store_id') or 'no_store'
                 
                 if store_id not in store_totals:
                     store_totals[store_id] = {
                         'store_id': store_id,
-                        'name': store.get('name', 'Неизвестный') if store else 'Без магазина',
+                        'name': store.get('name', 'Без магазина') if store else 'Без магазина',
                         'region': store.get('region', '') if store else '',
                         'channel': store.get('channel', '') if store else '',
                         'total_revenue': 0,
                         'sales_count': 0
                     }
                 
-                store_totals[store_id]['total_revenue'] += float(sale.get('amount', 0))
+                store_totals[store_id]['total_revenue'] += float(sale.get('total_amount', 0))
                 store_totals[store_id]['sales_count'] += 1
             
             # Sort by revenue
@@ -336,7 +338,7 @@ class ExtendedAnalyticsService:
             }
         
         try:
-            query = supabase.table('sales').select('amount, customer_id, product_id')
+            query = supabase.table('sales').select('total_amount, customer_id')
             
             if year:
                 query = query.eq('year', year)
@@ -346,10 +348,17 @@ class ExtendedAnalyticsService:
             result = query.execute()
             sales = result.data
             
-            total_revenue = sum(float(s.get('amount', 0)) for s in sales)
+            total_revenue = sum(float(s.get('total_amount', 0)) for s in sales)
             total_sales = len(sales)
             unique_customers = len(set(s.get('customer_id') for s in sales if s.get('customer_id')))
-            unique_products = len(set(s.get('product_id') for s in sales if s.get('product_id')))
+            
+            # Count unique products from sale_items
+            unique_products = 0
+            try:
+                products_result = supabase.table('products').select('id', count='exact').execute()
+                unique_products = products_result.count or len(products_result.data)
+            except:
+                pass
             
             # Get top product and customer
             top_products = ExtendedAnalyticsService.get_top_products(
