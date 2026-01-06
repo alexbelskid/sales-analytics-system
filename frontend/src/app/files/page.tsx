@@ -96,18 +96,26 @@ export default function FilesPage() {
         }
     };
 
-    const deleteAllData = async () => {
-        if (!confirm('⚠️ УДАЛИТЬ ВСЕ ДАННЫЕ ПРОДАЖ?\\n\\nЭто действие нельзя отменить!')) return;
-        if (!confirm('Вы уверены? Все данные будут удалены безвозвратно.')) return;
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
+    const confirmDeleteAll = () => {
+        setShowDeleteModal(true);
+    };
+
+    const executeDeleteAll = async () => {
+        setIsDeleting(true);
         try {
-            const res = await fetch(`${API_BASE}/api/files/all-sales`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, { method: 'DELETE' });
             const data = await res.json();
-            alert(`Удалено ${data.deleted_count} записей`);
+            setShowDeleteModal(false);
+            alert(`✅ Удалено ${data.deleted_sales} записей`);
             fetchFiles();
         } catch (err) {
             console.error('Delete all failed:', err);
-            alert('Ошибка при удалении');
+            alert('❌ Ошибка при удалении');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -164,7 +172,7 @@ export default function FilesPage() {
                             Сбросить застрявшие
                         </button>
                         <button
-                            onClick={deleteAllData}
+                            onClick={confirmDeleteAll}
                             className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition"
                         >
                             <Trash2 size={16} />
@@ -341,6 +349,54 @@ export default function FilesPage() {
                             >
                                 Закрыть
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Delete Confirmation Modal */}
+                {showDeleteModal && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+                        <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4 border border-red-500/50">
+                            <div className="flex items-center gap-3 mb-4">
+                                <AlertTriangle className="text-red-500" size={32} />
+                                <h3 className="text-xl font-bold text-red-400">Удаление данных</h3>
+                            </div>
+
+                            <div className="text-gray-300 mb-6 space-y-2">
+                                <p>⚠️ Вы собираетесь удалить <strong>ВСЕ</strong> данные продаж!</p>
+                                <p className="text-sm text-gray-400">Это действие необратимо. Будут удалены:</p>
+                                <ul className="text-sm text-gray-400 list-disc ml-4">
+                                    <li>Все записи в таблице sales</li>
+                                    <li>Вся история импортов</li>
+                                </ul>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    disabled={isDeleting}
+                                    className="flex-1 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition disabled:opacity-50"
+                                >
+                                    Отмена
+                                </button>
+                                <button
+                                    onClick={executeDeleteAll}
+                                    disabled={isDeleting}
+                                    className="flex-1 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <RefreshCw size={16} className="animate-spin" />
+                                            Удаление...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 size={16} />
+                                            Удалить всё
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}

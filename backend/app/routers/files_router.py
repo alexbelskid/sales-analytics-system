@@ -71,6 +71,80 @@ async def list_files(
         raise HTTPException(500, str(e))
 
 
+# IMPORTANT: Static routes MUST come before dynamic /{file_id} routes
+@router.delete("/delete-all-data")
+async def delete_all_sales_data():
+    """
+    Delete ALL sales data from the database.
+    Use with caution! This also clears import history.
+    """
+    from app.database import get_supabase_admin
+    
+    db = get_supabase_admin()
+    if db is None:
+        raise HTTPException(500, "Database not connected")
+    
+    deleted_sales = 0
+    deleted_imports = 0
+    
+    try:
+        # Delete sales in batches
+        while True:
+            try:
+                batch = db.table("sales").select("id").limit(500).execute()
+                if not batch.data or len(batch.data) == 0:
+                    break
+                
+                ids = [r["id"] for r in batch.data]
+                db.table("sales").delete().in_("id", ids).execute()
+                deleted_sales += len(ids)
+                logger.info(f"Deleted {deleted_sales} sales records...")
+            except Exception as e:
+                logger.warning(f"Sales batch error: {e}")
+                break
+        
+        # Delete import_history in batches  
+        while True:
+            try:
+                batch = db.table("import_history").select("id").limit(100).execute()
+                if not batch.data or len(batch.data) == 0:
+                    break
+                
+                ids = [r["id"] for r in batch.data]
+                db.table("import_history").delete().in_("id", ids).execute()
+                deleted_imports += len(ids)
+            except Exception as e:
+                logger.warning(f"Import history batch error: {e}")
+                break
+        
+        # Clear analytics cache
+        try:
+            from app.services.cache_service import cache
+            cache.invalidate_pattern("analytics:")
+        except:
+            pass
+        
+        logger.info(f"Delete all complete: {deleted_sales} sales, {deleted_imports} imports")
+        
+        return {
+            "success": True,
+            "message": "All data deleted",
+            "deleted_sales": deleted_sales,
+            "deleted_imports": deleted_imports
+        }
+    
+    except Exception as e:
+        logger.error(f"Delete all error: {e}")
+        # Return partial result even on error
+        return {
+            "success": deleted_sales > 0 or deleted_imports > 0,
+            "message": f"Partial delete: {deleted_sales} sales, {deleted_imports} imports",
+            "deleted_sales": deleted_sales,
+            "deleted_imports": deleted_imports,
+            "error": str(e)
+        }
+
+
 @router.get("/{file_id}")
 async def get_file_details(file_id: str):
     """
