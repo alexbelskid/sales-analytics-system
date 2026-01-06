@@ -81,6 +81,36 @@ export default function FilesPage() {
         }
     };
 
+    const resetStuck = async () => {
+        try {
+            const res = await fetch(`${API_BASE}/api/files/reset-stuck`, { method: 'POST' });
+            const data = await res.json();
+            if (data.reset_count > 0) {
+                alert(`Сброшено ${data.reset_count} застрявших импортов`);
+            } else {
+                alert('Нет застрявших импортов');
+            }
+            fetchFiles();
+        } catch (err) {
+            console.error('Reset stuck failed:', err);
+        }
+    };
+
+    const deleteAllData = async () => {
+        if (!confirm('⚠️ УДАЛИТЬ ВСЕ ДАННЫЕ ПРОДАЖ?\\n\\nЭто действие нельзя отменить!')) return;
+        if (!confirm('Вы уверены? Все данные будут удалены безвозвратно.')) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/files/all-sales`, { method: 'DELETE' });
+            const data = await res.json();
+            alert(`Удалено ${data.deleted_count} записей`);
+            fetchFiles();
+        } catch (err) {
+            console.error('Delete all failed:', err);
+            alert('Ошибка при удалении');
+        }
+    };
+
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '—';
         return new Date(dateStr).toLocaleString('ru-RU', {
@@ -125,7 +155,21 @@ export default function FilesPage() {
                         <p className="text-gray-400 mt-1">История импортов и загруженные данные</p>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 flex-wrap">
+                        <button
+                            onClick={resetStuck}
+                            className="flex items-center gap-2 px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg transition"
+                        >
+                            <AlertTriangle size={16} />
+                            Сбросить застрявшие
+                        </button>
+                        <button
+                            onClick={deleteAllData}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition"
+                        >
+                            <Trash2 size={16} />
+                            Удалить ВСЕ данные
+                        </button>
                         <button
                             onClick={clearCache}
                             className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"

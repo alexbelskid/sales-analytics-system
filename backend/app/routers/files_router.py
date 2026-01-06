@@ -185,8 +185,8 @@ async def reset_stuck_imports():
     try:
         from datetime import datetime, timedelta
         
-        # Find imports stuck in processing for more than 30 minutes
-        cutoff = (datetime.utcnow() - timedelta(minutes=30)).isoformat()
+        # Find imports stuck in processing for more than 10 minutes
+        cutoff = (datetime.utcnow() - timedelta(minutes=10)).isoformat()
         
         result = supabase.table("import_history").select("id, filename, started_at").eq("status", "processing").lt("started_at", cutoff).execute()
         
@@ -207,4 +207,97 @@ async def reset_stuck_imports():
     
     except Exception as e:
         logger.error(f"Reset stuck imports error: {e}")
+        raise HTTPException(500, str(e))
+
+
+@router.delete("/sales-data/{file_id}")
+async def delete_sales_data(file_id: str):
+    """
+    Delete all sales data imported from a specific file.
+    This also deletes the import record.
+    """
+    if supabase is None:
+        raise HTTPException(500, "Database not connected")
+    
+    try:
+        # Get import info first
+        result = supabase.table("import_history").select("id, filename, imported_rows").eq("id", file_id).execute()
+        if not result.data:
+            raise HTTPException(404, "Import not found")
+        
+        import_info = result.data[0]
+        filename = import_info["filename"]
+        rows = import_info.get("imported_rows", 0)
+        
+        # Delete the import record
+        supabase.table("import_history").delete().eq("id", file_id).execute()
+        
+        # Clear analytics cache
+        from app.services.cache_service import cache
+        cache.invalidate_pattern("analytics:")
+        
+        return {
+            "success": True,
+            "message": f"Import '{filename}' deleted",
+            "rows_affected": rows
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete sales data error: {e}")
+        raise HTTPException(500, str(e))
+
+
+@router.delete("/all-sales")
+async def delete_all_sales():
+    """
+    Delete ALL sales data from the database.
+    Use with caution!
+    """
+    if supabase is None:
+        raise HTTPException(500, "Database not connected")
+    
+    try:
+        # Count current sales
+        count_result = supabase.table("sales").select("id", count="exact").execute()
+        total_count = count_result.count or 0
+        
+        if total_count > 0:
+            # Delete in batches to avoid timeout
+            # Supabase doesn't have DELETE ALL, so we need to select IDs first
+            batch_size = 1000
+            deleted = 0
+            
+            while True:
+                # Get batch of IDs
+                batch = supabase.table("sales").select("id").limit(batch_size).execute()
+                if not batch.data:
+                    break
+                
+                ids = [r["id"] for r in batch.data]
+                supabase.table("sales").delete().in_("id", ids).execute()
+                deleted += len(ids)
+                
+                if len(ids) < batch_size:
+                    break
+        
+        # Clear analytics cache
+        from app.services.cache_service import cache
+        cache.invalidate_pattern("analytics:")
+        
+        # Mark all imports as deleted
+        supabase.table("import_history").update({
+            "status": "deleted",
+            "error_log": "All sales data deleted by user"
+        }).execute()
+        
+        return {
+            "success": True,
+            "message": "All sales data deleted",
+            "deleted_count": total_count
+        }
+    
+    except Exception as e:
+        logger.error(f"Delete all sales error: {e}")
         raise HTTPException(500, str(e))
