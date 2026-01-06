@@ -144,18 +144,62 @@ async def get_top_customers(
         except Exception as rpc_error:
             logger.warning(f"RPC not available for top-customers: {rpc_error}")
         
-        # Fallback: Get top customers from customers table with order count
-        # This is faster than loading all sales
-        customers_result = supabase.table("customers").select("id, name").limit(100).execute()
+        # Fallback: Aggregate from sales table, then lookup customer names
+        try:
+            cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
+            
+            # Step 1: Get sales aggregated by customer_id
+            result = supabase.table("sales").select(
+                "customer_id, amount"
+            ).gte("sale_date", cutoff_date).execute()
+            
+            if result.data:
+                # Aggregate by customer_id
+                customer_totals = {}
+                for row in result.data:
+                    cid = row.get('customer_id')
+                    if not cid:
+                        continue
+                    amount = float(row.get('amount') or 0)
+                    if cid not in customer_totals:
+                        customer_totals[cid] = 0
+                    customer_totals[cid] += amount
+                
+                # Sort by total and get top N customer_ids
+                sorted_customers = sorted(
+                    customer_totals.items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:limit]
+                
+                if sorted_customers:
+                    # Step 2: Lookup customer names
+                    customer_ids = [str(cid) for cid, _ in sorted_customers]
+                    customers_result = supabase.table("customers").select("id, name").in_("id", customer_ids).execute()
+                    
+                    # Build name lookup
+                    name_lookup = {c['id']: c['name'] for c in (customers_result.data or [])}
+                    
+                    response_data = [
+                        {
+                            "customer_id": str(cid), 
+                            "name": name_lookup.get(cid, 'Неизвестный'), 
+                            "total": round(total, 2)
+                        }
+                        for cid, total in sorted_customers
+                    ]
+                    
+                    cache.set(cache_key, response_data)
+                    return [TopCustomer(**c) for c in response_data]
+        except Exception as fallback_error:
+            logger.warning(f"Fallback aggregation failed: {fallback_error}")
         
-        if not customers_result.data:
-            return []
-        
+        # Final fallback: return customers with total=0
+        customers_result = supabase.table("customers").select("id, name, total_purchases").order("total_purchases", desc=True).limit(limit).execute()
         response_data = [
-            {"customer_id": c['id'], "name": c['name'], "total": 0}
-            for c in customers_result.data[:limit]
+            {"customer_id": c['id'], "name": c['name'], "total": float(c.get('total_purchases') or 0)}
+            for c in (customers_result.data or [])[:limit]
         ]
-        
         cache.set(cache_key, response_data)
         return [TopCustomer(**c) for c in response_data]
     except Exception as e:
@@ -183,38 +227,87 @@ async def get_top_products(
     try:
         cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
         
-        # Get products directly (using total_revenue if available, otherwise return by name)
-        products_result = supabase.table("products").select("id, name, category, total_revenue").execute()
+        # Try RPC function first for efficient aggregation
+        try:
+            result = supabase.rpc('get_top_products_by_sales', {
+                'p_limit': limit,
+                'p_days': days
+            }).execute()
+            
+            if result.data:
+                response_data = [
+                    {
+                        "product_id": str(r.get("product_id", "")),
+                        "name": r.get("product_name", "Неизвестный"),
+                        "total_quantity": int(r.get("orders_count", 0) or 0),
+                        "total_amount": round(float(r.get("total_revenue", 0) or 0), 2)
+                    }
+                    for r in result.data
+                ]
+                cache.set(cache_key, response_data)
+                return [TopProduct(**p) for p in response_data]
+        except Exception as rpc_error:
+            logger.warning(f"RPC not available for top-products: {rpc_error}")
         
-        # Sort by total_revenue if available, otherwise alphabetically
-        products_data = products_result.data or []
+        # Fallback: Aggregate from sales table, then lookup product names
+        try:
+            result = supabase.table("sales").select(
+                "product_id, quantity, amount"
+            ).gte("sale_date", cutoff_date).execute()
+            
+            if result.data:
+                product_totals = {}
+                for row in result.data:
+                    pid = row.get('product_id')
+                    if not pid:
+                        continue
+                    qty = float(row.get('quantity') or 0)
+                    amount = float(row.get('amount') or 0)
+                    
+                    if pid not in product_totals:
+                        product_totals[pid] = {'quantity': 0, 'amount': 0}
+                    product_totals[pid]['quantity'] += qty
+                    product_totals[pid]['amount'] += amount
+                
+                sorted_products = sorted(
+                    product_totals.items(),
+                    key=lambda x: x[1]['amount'],
+                    reverse=True
+                )[:limit]
+                
+                if sorted_products:
+                    # Lookup product names
+                    product_ids = [str(pid) for pid, _ in sorted_products]
+                    products_result = supabase.table("products").select("id, name").in_("id", product_ids).execute()
+                    
+                    name_lookup = {p['id']: p['name'] for p in (products_result.data or [])}
+                    
+                    response_data = [
+                        {
+                            "product_id": str(pid),
+                            "name": name_lookup.get(pid, 'Неизвестный'),
+                            "total_quantity": int(data['quantity']),
+                            "total_amount": round(data['amount'], 2)
+                        }
+                        for pid, data in sorted_products
+                    ]
+                    
+                    cache.set(cache_key, response_data)
+                    return [TopProduct(**p) for p in response_data]
+        except Exception as fallback_error:
+            logger.warning(f"Products fallback failed: {fallback_error}")
         
-        # Filter products with revenue
-        products_with_revenue = [
-            p for p in products_data 
-            if p.get("total_revenue") and float(p.get("total_revenue", 0)) > 0
-        ]
-        
-        if products_with_revenue:
-            sorted_products = sorted(
-                products_with_revenue,
-                key=lambda x: float(x.get("total_revenue", 0)),
-                reverse=True
-            )[:limit]
-        else:
-            # Fallback: just return first N products
-            sorted_products = products_data[:limit]
-        
+        # Final fallback: products table with pre-calculated totals
+        products_result = supabase.table("products").select("id, name, total_revenue, total_quantity").order("total_revenue", desc=True).limit(limit).execute()
         response_data = [
             {
                 "product_id": p.get("id", ""),
                 "name": p.get("name", "Неизвестный"),
-                "total_quantity": 0,  # No quantity data available
-                "total_amount": round(float(p.get("total_revenue", 0) or 0), 2)
+                "total_quantity": int(p.get("total_quantity") or 0),
+                "total_amount": float(p.get("total_revenue") or 0)
             }
-            for p in sorted_products
+            for p in (products_result.data or [])[:limit]
         ]
-        
         cache.set(cache_key, response_data)
         return [TopProduct(**p) for p in response_data]
     except Exception as e:
