@@ -73,7 +73,6 @@ async def list_files(
 
 # IMPORTANT: Static routes MUST come before dynamic /{file_id} routes
 @router.delete("/delete-all-data")
-@router.delete("/delete-all-data")
 async def delete_all_sales_data():
     """
     Delete ALL sales data from the database.
