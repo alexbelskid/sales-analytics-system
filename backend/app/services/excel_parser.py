@@ -16,22 +16,28 @@ logger = logging.getLogger(__name__)
 class ExcelParser:
     """Memory-efficient Excel parser for large files"""
     
-    # Column mapping based on ACTUAL Excel structure (0-indexed)
-    # CORRECTED based on diagnose_excel.py analysis of 'sales testt.xlsx'
-    COLUMN_MAP = {
-        'date': 3,           # D: Дата (формат: ДД.ММ.ГГГГ) - WAS WRONG at 1!
-        'store_code': 4,     # E: БСО (document number, closest to store code)
-        'region': 5,         # F: Регион - WAS WRONG at 4!
-        'channel': 6,        # G: Канал сбыта - WAS WRONG at 5!
-        'store_name': 9,     # J: Адрес (using address as store name)
-        'customer': 8,       # I: Контрагент (юр.лицо) ✅ correct
-        'address': 9,        # J: Адрес ✅ correct
-        'category': 11,      # L: Группа товара ✅ correct
-        'product_type': 12,  # M: Вид товара ✅ correct
-        'product': 13,       # N: Номенклатура (название товара) ✅ correct
-        'barcode': 14,       # O: Штрихкод ✅ correct
-        'quantity': 16,      # Q: Количество ✅ correct
-        'amount': 17,        # R: Сумма с НДС ✅ correct
+    # Header patterns for AUTO-DETECTION (case-insensitive)
+    # Each key maps to list of possible header names (will use first match)
+    HEADER_PATTERNS = {
+        'date': ['дата', 'date'],
+        'store_code': ['бсо', 'код точки', 'store_code'],
+        'region': ['регион', 'region'],
+        'channel': ['канал сбыта', 'канал', 'channel'],
+        'store_name': ['адрес', 'address', 'город/точка', 'город'],
+        'customer': ['контрагент', 'головной контрагент', 'customer', 'клиент'],
+        'category': ['группа', 'группа товара', 'category'],
+        'product_type': ['вид товара', 'product_type'],
+        'product': ['номенклатура', 'товар', 'product', 'наименование'],
+        'barcode': ['штрихкод', 'barcode', 'штрих-код'],
+        'quantity': ['количество', 'кол-во', 'qty', 'quantity'],
+        'amount': ['сумма с ндс', 'сумма', 'amount', 'total', 'итого'],
+    }
+    
+    # Fallback indices (used only if auto-detection fails)
+    FALLBACK_MAP = {
+        'date': 3, 'store_code': 4, 'region': 5, 'channel': 6,
+        'store_name': 9, 'customer': 8, 'category': 11, 'product_type': 12,
+        'product': 13, 'barcode': 14, 'quantity': 16, 'amount': 17,
     }
     
     def __init__(self, file_path: str, chunk_size: int = 5000):
@@ -42,6 +48,7 @@ class ExcelParser:
         self.failed_rows = 0
         self.errors: List[str] = []
         self._use_pandas = False
+        self._column_map = {}  # Will be populated by auto-detection
     
     def count_rows(self) -> int:
         """Count total rows in Excel file"""
@@ -78,6 +85,42 @@ class ExcelParser:
             yield from self._parse_with_pandas()
         else:
             yield from self._parse_with_openpyxl()
+    
+    def _detect_columns(self, headers: List[str]) -> None:
+        """Auto-detect column indices from headers"""
+        self._column_map = {}
+        
+        # Normalize headers to lowercase for matching
+        normalized_headers = [str(h).lower().strip() if h else '' for h in headers]
+        
+        logger.info(f"Detecting columns from headers: {normalized_headers[:20]}")
+        
+        for field, patterns in self.HEADER_PATTERNS.items():
+            found = False
+            for pattern in patterns:
+                pattern_lower = pattern.lower()
+                for idx, header in enumerate(normalized_headers):
+                    if pattern_lower in header or header in pattern_lower:
+                        self._column_map[field] = idx
+                        logger.info(f"  {field}: matched '{pattern}' at column {idx} ('{headers[idx]}')")
+                        found = True
+                        break
+                if found:
+                    break
+            
+            # Use fallback if not found
+            if not found and field in self.FALLBACK_MAP:
+                fallback_idx = self.FALLBACK_MAP[field]
+                if fallback_idx < len(headers):
+                    self._column_map[field] = fallback_idx
+                    logger.warning(f"  {field}: using FALLBACK index {fallback_idx}")
+        
+        # Verify critical columns
+        required = ['customer', 'product', 'amount']
+        missing = [f for f in required if f not in self._column_map]
+        if missing:
+            logger.error(f"CRITICAL: Missing required columns: {missing}")
+            raise ValueError(f"Excel file missing required columns: {missing}. Headers found: {headers[:15]}")
     
     def _should_use_pandas(self) -> bool:
         """Check if we should use pandas instead of openpyxl"""
@@ -127,6 +170,9 @@ class ExcelParser:
         
         self.total_rows = len(df)
         logger.info(f"Loaded {self.total_rows} rows")
+        
+        # AUTO-DETECT COLUMNS from headers
+        self._detect_columns(df.columns.tolist())
         
         # Process in chunks manually
         chunk_num = 0
@@ -201,11 +247,14 @@ class ExcelParser:
         # Get values by column index
         cols = row.values
         
-        date_val = self._safe_get(cols, self.COLUMN_MAP['date'])
-        customer = self._safe_get(cols, self.COLUMN_MAP['customer'])
-        product = self._safe_get(cols, self.COLUMN_MAP['product'])
-        quantity = self._safe_get(cols, self.COLUMN_MAP['quantity'])
-        amount = self._safe_get(cols, self.COLUMN_MAP['amount'])
+        # Use auto-detected column map with safe fallbacks
+        cmap = self._column_map
+        
+        date_val = self._safe_get(cols, cmap.get('date', -1))
+        customer = self._safe_get(cols, cmap.get('customer', -1))
+        product = self._safe_get(cols, cmap.get('product', -1))
+        quantity = self._safe_get(cols, cmap.get('quantity', -1))
+        amount = self._safe_get(cols, cmap.get('amount', -1))
         
         # Validate required fields
         if pd.isna(customer) or pd.isna(product):
@@ -239,11 +288,11 @@ class ExcelParser:
             'customer_raw': customer,
             'product_name': self._normalize_name(product),
             'product_raw': product,
-            'category': str(self._safe_get(cols, self.COLUMN_MAP['category']) or 'Без категории'),
-            'store_code': self._safe_get(cols, self.COLUMN_MAP['store_code']),
-            'store_name': self._safe_get(cols, self.COLUMN_MAP['store_name']),
-            'region': self._safe_get(cols, self.COLUMN_MAP['region']),
-            'channel': self._safe_get(cols, self.COLUMN_MAP['channel']),
+            'category': str(self._safe_get(cols, cmap.get('category', -1)) or 'Без категории'),
+            'store_code': self._safe_get(cols, cmap.get('store_code', -1)),
+            'store_name': self._safe_get(cols, cmap.get('store_name', -1)),
+            'region': self._safe_get(cols, cmap.get('region', -1)),
+            'channel': self._safe_get(cols, cmap.get('channel', -1)),
             'quantity': qty or 1,
             'price': round(price, 2),
             'amount': round(amt, 2),
@@ -273,6 +322,11 @@ class ExcelParser:
             from openpyxl import load_workbook
             wb = load_workbook(self.file_path, read_only=True, data_only=True)
             ws = wb.active
+            
+            # Get headers from first row for auto-detection
+            header_row = next(ws.iter_rows(min_row=1, max_row=1, values_only=True))
+            headers = [str(h) if h else f'col_{i}' for i, h in enumerate(header_row)]
+            self._detect_columns(headers)
             
             chunk: List[Dict[str, Any]] = []
             row_num = 0
@@ -316,12 +370,14 @@ class ExcelParser:
     def _parse_row(self, row: tuple, row_num: int) -> Optional[Dict[str, Any]]:
         """Parse a single row into structured data"""
         
-        # Get values using column map
-        date_val = self._get_cell(row, self.COLUMN_MAP['date'])
-        customer = self._get_cell(row, self.COLUMN_MAP['customer'])
-        product = self._get_cell(row, self.COLUMN_MAP['product'])
-        quantity = self._get_cell(row, self.COLUMN_MAP['quantity'])
-        amount = self._get_cell(row, self.COLUMN_MAP['amount'])
+        # Use auto-detected column map
+        cmap = self._column_map
+        
+        date_val = self._get_cell(row, cmap.get('date', -1))
+        customer = self._get_cell(row, cmap.get('customer', -1))
+        product = self._get_cell(row, cmap.get('product', -1))
+        quantity = self._get_cell(row, cmap.get('quantity', -1))
+        amount = self._get_cell(row, cmap.get('amount', -1))
         
         # Validate required fields
         if not customer or not product:
@@ -349,11 +405,11 @@ class ExcelParser:
             'customer_raw': str(customer),
             'product_name': self._normalize_name(str(product)),
             'product_raw': str(product),
-            'category': self._get_cell(row, self.COLUMN_MAP['category']) or 'Без категории',
-            'store_code': self._get_cell(row, self.COLUMN_MAP['store_code']),
-            'store_name': self._get_cell(row, self.COLUMN_MAP['store_name']),
-            'region': self._get_cell(row, self.COLUMN_MAP['region']),
-            'channel': self._get_cell(row, self.COLUMN_MAP['channel']),
+            'category': self._get_cell(row, cmap.get('category', -1)) or 'Без категории',
+            'store_code': self._get_cell(row, cmap.get('store_code', -1)),
+            'store_name': self._get_cell(row, cmap.get('store_name', -1)),
+            'region': self._get_cell(row, cmap.get('region', -1)),
+            'channel': self._get_cell(row, cmap.get('channel', -1)),
             'quantity': qty or 1,
             'price': round(price, 2),
             'amount': round(amt, 2),
