@@ -16,22 +16,22 @@ logger = logging.getLogger(__name__)
 class ExcelParser:
     """Memory-efficient Excel parser for large files"""
     
-    # Column mapping based on Excel structure analysis
-    # You may need to adjust these based on your actual Excel columns
+    # Column mapping based on ACTUAL Excel structure (0-indexed)
+    # CORRECTED based on diagnose_excel.py analysis of 'sales testt.xlsx'
     COLUMN_MAP = {
-        'date': 1,           # B: Дата (формат: ДД.ММ.ГГГГ)
-        'store_code': 3,     # D: Код точки (Y001T4)
-        'region': 4,         # E: Регион
-        'channel': 5,        # F: Канал сбыта
-        'store_name': 6,     # G: Город/Точка
-        'customer': 8,       # I: Контрагент (юр.лицо)
-        'address': 9,        # J: Адрес
-        'category': 11,      # L: Группа товара
-        'product_type': 12,  # M: Вид товара
-        'product': 13,       # N: Номенклатура (название товара)
-        'barcode': 14,       # O: Штрихкод
-        'quantity': 16,      # Q: Количество
-        'amount': 17,        # R: Сумма с НДС
+        'date': 3,           # D: Дата (формат: ДД.ММ.ГГГГ) - WAS WRONG at 1!
+        'store_code': 4,     # E: БСО (document number, closest to store code)
+        'region': 5,         # F: Регион - WAS WRONG at 4!
+        'channel': 6,        # G: Канал сбыта - WAS WRONG at 5!
+        'store_name': 9,     # J: Адрес (using address as store name)
+        'customer': 8,       # I: Контрагент (юр.лицо) ✅ correct
+        'address': 9,        # J: Адрес ✅ correct
+        'category': 11,      # L: Группа товара ✅ correct
+        'product_type': 12,  # M: Вид товара ✅ correct
+        'product': 13,       # N: Номенклатура (название товара) ✅ correct
+        'barcode': 14,       # O: Штрихкод ✅ correct
+        'quantity': 16,      # Q: Количество ✅ correct
+        'amount': 17,        # R: Сумма с НДС ✅ correct
     }
     
     def __init__(self, file_path: str, chunk_size: int = 5000):
