@@ -249,6 +249,7 @@ class ForecastService:
         Returns:
             Данные о месячной и дневной сезонности
         """
+        # Get all sales (date and amount)
         result = supabase.table("sales").select("sale_date, total_amount").execute()
         
         if not result.data:
@@ -257,20 +258,41 @@ class ForecastService:
         df = pd.DataFrame(result.data)
         df['ds'] = pd.to_datetime(df['sale_date'])
         df['y'] = df['total_amount'].astype(float)
-        df['month'] = df['ds'].dt.month
-        df['weekday'] = df['ds'].dt.dayofweek
         
-        # Месячная сезонность
-        monthly = df.groupby('month')['y'].mean()
-        overall_mean = df['y'].mean()
-        monthly_seasonality = (monthly / overall_mean * 100).round(1)
+        # 1. Monthly Seasonality
+        # Group by Year-Month first to get monthly totals
+        df['ym'] = df['ds'].dt.to_period('M')
+        monthly_totals = df.groupby('ym')['y'].sum().reset_index()
+        monthly_totals['month'] = monthly_totals['ym'].dt.month
+        
+        # Average total sales for each month (1-12) across all available years
+        avg_sales_by_month = monthly_totals.groupby('month')['y'].mean()
+        
+        # Overall average monthly sales
+        overall_avg_monthly = monthly_totals['y'].mean()
+        
+        # Calculate index
+        if overall_avg_monthly > 0:
+            monthly_seasonality = (avg_sales_by_month / overall_avg_monthly * 100).round(1)
+        else:
+            monthly_seasonality = pd.Series([100]*12, index=range(1, 13))
         
         month_names = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 
                        'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
         
-        # Недельная сезонность
-        weekly = df.groupby('weekday')['y'].mean()
-        weekly_seasonality = (weekly / overall_mean * 100).round(1)
+        # 2. Weekly Seasonality
+        # Group by specific date to get daily totals
+        daily_totals = df.groupby('ds')['y'].sum().reset_index()
+        daily_totals['weekday'] = daily_totals['ds'].dt.dayofweek
+        
+        # Average total sales for each weekday (0-6)
+        avg_sales_by_weekday = daily_totals.groupby('weekday')['y'].mean()
+        overall_avg_daily = daily_totals['y'].mean()
+        
+        if overall_avg_daily > 0:
+            weekly_seasonality = (avg_sales_by_weekday / overall_avg_daily * 100).round(1)
+        else:
+            weekly_seasonality = pd.Series([100]*7, index=range(7))
         
         day_names = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
         

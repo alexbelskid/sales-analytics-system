@@ -191,8 +191,10 @@ async def run_import_background(
                     sales_batch.append({
                         'sale_date': row_data['sale_date'].isoformat(),
                         'customer_id': customer_id,
+                        'product_id': product_id,
                         'store_id': store_id,
                         'total_amount': row_data['amount'],
+                        'quantity': row_data['quantity'],
                         'year': row_data['year'],
                         'month': row_data['month'],
                         'week': row_data['week'],

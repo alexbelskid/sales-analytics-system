@@ -150,7 +150,7 @@ async def get_top_customers(
             
             # Step 1: Get sales aggregated by customer_id
             result = supabase.table("sales").select(
-                "customer_id, amount"
+                "customer_id, total_amount"
             ).gte("sale_date", cutoff_date).execute()
             
             if result.data:
@@ -160,7 +160,7 @@ async def get_top_customers(
                     cid = row.get('customer_id')
                     if not cid:
                         continue
-                    amount = float(row.get('amount') or 0)
+                    amount = float(row.get('total_amount') or 0)
                     if cid not in customer_totals:
                         customer_totals[cid] = 0
                     customer_totals[cid] += amount
@@ -252,7 +252,7 @@ async def get_top_products(
         # Fallback: Aggregate from sales table, then lookup product names
         try:
             result = supabase.table("sales").select(
-                "product_id, quantity, amount"
+                "product_id, quantity, total_amount"
             ).gte("sale_date", cutoff_date).execute()
             
             if result.data:
@@ -262,7 +262,7 @@ async def get_top_products(
                     if not pid:
                         continue
                     qty = float(row.get('quantity') or 0)
-                    amount = float(row.get('amount') or 0)
+                    amount = float(row.get('total_amount') or 0)
                     
                     if pid not in product_totals:
                         product_totals[pid] = {'quantity': 0, 'amount': 0}
