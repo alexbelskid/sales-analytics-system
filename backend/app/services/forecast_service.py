@@ -22,6 +22,14 @@ class ForecastService:
         self.model = None
         self.last_trained = None
         self.training_data = None
+        
+    def reset(self):
+        """Сброс состояния модели (очистка кэша)"""
+        self.model = None
+        self.last_trained = None
+        self.training_data = None
+        import logging
+        logging.getLogger(__name__).info("Forecast model reset")
     
     async def train(
         self,

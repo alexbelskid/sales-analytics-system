@@ -73,6 +73,7 @@ async def list_files(
 
 # IMPORTANT: Static routes MUST come before dynamic /{file_id} routes
 @router.delete("/delete-all-data")
+@router.delete("/delete-all-data")
 async def delete_all_sales_data():
     """
     Delete ALL sales data from the database.
@@ -88,59 +89,71 @@ async def delete_all_sales_data():
     deleted_imports = 0
     
     try:
-        # Delete sales in batches
-        while True:
-            try:
-                batch = db.table("sales").select("id").limit(500).execute()
-                if not batch.data or len(batch.data) == 0:
+        # Try RPC first for efficiency
+        rpc_error = None
+        try:
+            db.rpc('reset_analytics_data').execute()
+            logger.info("Executed reset_analytics_data RPC")
+            deleted_sales = -1 # Indicates full reset via RPC
+        except Exception as e:
+            logger.warning(f"RPC reset failed ({e}), falling back to batch delete")
+            rpc_error = e
+            
+            # Fallback: Delete sales in batches
+            while True:
+                try:
+                    batch = db.table("sales").select("id").limit(1000).execute()
+                    if not batch.data:
+                        break
+                    
+                    ids = [r["id"] for r in batch.data]
+                    db.table("sales").delete().in_("id", ids).execute()
+                    deleted_sales += len(ids)
+                except Exception as batch_err:
+                    logger.error(f"Batch delete error: {batch_err}")
                     break
-                
-                ids = [r["id"] for r in batch.data]
-                db.table("sales").delete().in_("id", ids).execute()
-                deleted_sales += len(ids)
-                logger.info(f"Deleted {deleted_sales} sales records...")
-            except Exception as e:
-                logger.warning(f"Sales batch error: {e}")
-                break
+            
+            # Fallback: Delete import_history
+            db.table("import_history").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
         
-        # Delete import_history in batches  
-        while True:
-            try:
-                batch = db.table("import_history").select("id").limit(100).execute()
-                if not batch.data or len(batch.data) == 0:
-                    break
-                
-                ids = [r["id"] for r in batch.data]
-                db.table("import_history").delete().in_("id", ids).execute()
-                deleted_imports += len(ids)
-            except Exception as e:
-                logger.warning(f"Import history batch error: {e}")
-                break
-        
-        # Clear analytics cache
+        # 1. Clear In-Memory Cache (Dashboard)
         try:
             from app.services.cache_service import cache
-            cache.invalidate_pattern("analytics:")
-        except:
-            pass
-        
-        logger.info(f"Delete all complete: {deleted_sales} sales, {deleted_imports} imports")
-        
+            # Clear ALL analytics keys
+            cleared = cache.invalidate_pattern("analytics:")
+            # Also clear any other keys if needed, or just clear() the whole cache
+            cache.clear() 
+            logger.info(f"Cache cleared: {cleared} entries")
+        except Exception as e:
+            logger.error(f"Cache clear error: {e}")
+            
+        # 2. Reset Forecast Model (Prophet)
+        try:
+            from app.routers.forecast import forecast_service
+            forecast_service.reset()
+            logger.info("Forecast service reset")
+        except Exception as e:
+            logger.error(f"Forecast reset error: {e}")
+
+        # 3. Clear Knowledge Base (RAG) manually if RPC didn't
+        if rpc_error:
+            try:
+                db.table("knowledge_base").delete().in_("category", ["sales_insight", "auto_generated"]).execute()
+            except:
+                pass
+
         return {
             "success": True,
-            "message": "All data deleted",
-            "deleted_sales": deleted_sales,
-            "deleted_imports": deleted_imports
+            "message": "All analytics data deleted and caches cleared",
+            "type": "rpc" if deleted_sales == -1 else "batch",
+            "details": "Dashboard and AI context have been reset"
         }
     
     except Exception as e:
         logger.error(f"Delete all error: {e}")
-        # Return partial result even on error
         return {
-            "success": deleted_sales > 0 or deleted_imports > 0,
-            "message": f"Partial delete: {deleted_sales} sales, {deleted_imports} imports",
-            "deleted_sales": deleted_sales,
-            "deleted_imports": deleted_imports,
+            "success": False,
+            "message": f"Delete failed: {str(e)}",
             "error": str(e)
         }
 
