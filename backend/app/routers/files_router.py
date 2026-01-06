@@ -171,3 +171,40 @@ async def clear_analytics_cache():
         "cleared_entries": cleared,
         "message": "Analytics cache cleared"
     }
+
+
+@router.post("/reset-stuck")
+async def reset_stuck_imports():
+    """
+    Mark stuck 'processing' imports as failed
+    (useful after server restart when background tasks are lost)
+    """
+    if supabase is None:
+        raise HTTPException(500, "Database not connected")
+    
+    try:
+        from datetime import datetime, timedelta
+        
+        # Find imports stuck in processing for more than 30 minutes
+        cutoff = (datetime.utcnow() - timedelta(minutes=30)).isoformat()
+        
+        result = supabase.table("import_history").select("id, filename, started_at").eq("status", "processing").lt("started_at", cutoff).execute()
+        
+        stuck_imports = result.data or []
+        
+        # Mark them as failed
+        for imp in stuck_imports:
+            supabase.table("import_history").update({
+                "status": "failed",
+                "error_log": "Import stuck - server may have restarted during processing"
+            }).eq("id", imp["id"]).execute()
+        
+        return {
+            "success": True,
+            "reset_count": len(stuck_imports),
+            "imports": [{"id": i["id"], "filename": i["filename"]} for i in stuck_imports]
+        }
+    
+    except Exception as e:
+        logger.error(f"Reset stuck imports error: {e}")
+        raise HTTPException(500, str(e))
