@@ -54,7 +54,7 @@ export default function TopCustomersChart() {
             return (
                 <div className="rounded-lg border bg-background p-3 shadow-lg">
                     <p className="text-sm font-medium">{label}</p>
-                    <p className="text-sm text-green-500">
+                    <p className="text-sm text-rose-800">
                         {formatCurrency(payload[0].value)}
                     </p>
                 </div>
@@ -86,8 +86,8 @@ export default function TopCustomersChart() {
                     <Tooltip content={<CustomTooltip />} />
                     <Bar
                         dataKey="total"
-                        fill="hsl(142, 76%, 36%)"
-                        radius={[0, 4, 4, 0]}
+                        fill="hsl(348, 70%, 36%)"
+                        radius={[0, 8, 8, 0]}
                     />
                 </BarChart>
             </ResponsiveContainer>

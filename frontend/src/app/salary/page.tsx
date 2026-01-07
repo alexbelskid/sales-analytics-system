@@ -100,7 +100,7 @@ export default function SalaryPage() {
                     <select
                         value={month}
                         onChange={(e) => setMonth(Number(e.target.value))}
-                        className="rounded-lg border border-input bg-background px-3 py-2 text-sm min-h-[44px]"
+                        className="rounded-full border border-input bg-background px-5 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
                     >
                         {monthNames.map((name, i) => (
                             <option key={i} value={i + 1}>
@@ -111,7 +111,7 @@ export default function SalaryPage() {
                     <select
                         value={year}
                         onChange={(e) => setYear(Number(e.target.value))}
-                        className="rounded-lg border border-input bg-background px-3 py-2 text-sm min-h-[44px]"
+                        className="rounded-full border border-input bg-background px-5 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
                     >
                         {[2024, 2025, 2026].map((y) => (
                             <option key={y} value={y}>
@@ -121,7 +121,7 @@ export default function SalaryPage() {
                     </select>
                     <button
                         onClick={exportExcel}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-white hover:bg-primary/90 min-h-[44px] whitespace-nowrap"
+                        className="flex items-center gap-2 rounded-full bg-rose-800 hover:bg-rose-700 px-5 py-2.5 font-medium text-white min-h-[44px] whitespace-nowrap transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
                     >
                         <Download className="h-4 w-4" />
                         <span className="hidden sm:inline">Экспорт Excel</span>
@@ -182,10 +182,10 @@ export default function SalaryPage() {
                                     <td className="px-4 py-3 text-right text-muted-foreground">
                                         {salary.commission_rate}%
                                     </td>
-                                    <td className="px-4 py-3 text-right text-green-500">
+                                    <td className="px-4 py-3 text-right text-rose-800">
                                         +{formatCurrency(salary.commission)}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-green-500">
+                                    <td className="px-4 py-3 text-right text-rose-800">
                                         {salary.bonus > 0 ? `+${formatCurrency(salary.bonus)}` : '—'}
                                     </td>
                                     <td className="px-4 py-3 text-right text-red-500">
@@ -207,10 +207,10 @@ export default function SalaryPage() {
                                     {formatCurrency(totalSales)}
                                 </td>
                                 <td className="px-4 py-3"></td>
-                                <td className="px-4 py-3 text-right font-medium text-green-500">
+                                <td className="px-4 py-3 text-right font-medium text-rose-800">
                                     +{formatCurrency(salaries.reduce((s, x) => s + x.commission, 0))}
                                 </td>
-                                <td className="px-4 py-3 text-right font-medium text-green-500">
+                                <td className="px-4 py-3 text-right font-medium text-rose-800">
                                     +{formatCurrency(salaries.reduce((s, x) => s + x.bonus, 0))}
                                 </td>
                                 <td className="px-4 py-3 text-right font-medium text-red-500">

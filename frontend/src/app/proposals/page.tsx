@@ -101,7 +101,7 @@ export default function ProposalsPage() {
         downloadBlob(blob, `KP_${customer.name.replace(/\s/g, '_')}.pdf`);
     }
 
-    const inputClasses = "rounded-lg border border-[#2A2A2A] bg-[#1A1A1A] px-3 py-2 text-sm text-white placeholder:text-[#404040] focus:outline-none focus:border-[#404040] transition-colors";
+    const inputClasses = "rounded-full border border-[#2A2A2A] bg-[#1A1A1A] px-5 py-2.5 text-sm text-white placeholder:text-[#404040] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300";
 
     return (
         <div className="space-y-6">
@@ -219,7 +219,7 @@ export default function ProposalsPage() {
                         <button
                             onClick={generate}
                             disabled={!customer.name || items.length === 0 || loading}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-white py-2.5 font-medium text-black hover:bg-[#E0E0E0] disabled:opacity-50 transition-colors"
+                            className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-800 hover:bg-rose-700 py-3 font-medium text-white disabled:opacity-50 transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
                         >
                             <Sparkles className="h-4 w-4" />
                             {loading ? 'Генерация...' : 'Сгенерировать текст'}
@@ -236,14 +236,14 @@ export default function ProposalsPage() {
                         <h3 className="font-semibold">Экспорт</h3>
                         <button
                             onClick={exportDocx}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#2A2A2A] py-2.5 font-medium text-white hover:bg-[#2A2A2A] transition-colors"
+                            className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2A2A2A] py-2.5 font-medium text-white hover:bg-[#2A2A2A] transition-all duration-300"
                         >
                             <Download className="h-4 w-4" />
                             Скачать DOCX
                         </button>
                         <button
                             onClick={exportPdf}
-                            className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#2A2A2A] py-2.5 font-medium text-white hover:bg-[#2A2A2A] transition-colors"
+                            className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2A2A2A] py-2.5 font-medium text-white hover:bg-[#2A2A2A] transition-all duration-300"
                         >
                             <Download className="h-4 w-4" />
                             Скачать PDF

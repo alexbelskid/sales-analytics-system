@@ -256,7 +256,7 @@ export default function AIAssistantPage() {
                                     setShowTrainingModal(true);
                                 }
                             }}
-                            className="bg-white text-black hover:bg-[#E0E0E0] rounded-[4px] px-6 sm:px-8 h-12 font-medium w-full sm:w-auto transition-transform active:scale-95 min-h-[44px]"
+                            className="bg-rose-800 text-white hover:bg-rose-700 rounded-full px-6 sm:px-8 h-12 font-medium w-full sm:w-auto transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25 min-h-[44px]"
                         >
                             <Plus className="mr-2 h-5 w-5" />
                             {activeTab === 'knowledge' ? 'Добавить информацию' : 'Добавить пример'}
