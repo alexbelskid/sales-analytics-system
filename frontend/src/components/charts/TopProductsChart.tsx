@@ -69,8 +69,8 @@ export default function TopProductsChart() {
             const item = payload[0].payload;
             return (
                 <div className="rounded-lg border border-[#2A2A2A] bg-[#0A0A0A] p-3 shadow-lg">
-                    <p className="text-sm font-medium text-white">{label}</p>
-                    <p className="text-sm text-white">
+                    <p className="text-sm font-medium text-[#E5E5DC]">{label}</p>
+                    <p className="text-sm text-[#E5E5DC]">
                         Сумма: {formatCurrency(item.total_amount)}
                     </p>
                     <p className="text-sm text-[#808080]">

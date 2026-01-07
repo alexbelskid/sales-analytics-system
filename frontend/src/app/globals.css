@@ -7,27 +7,28 @@
     /* Brutal Minimalism - Black/White/Grey Only */
     --background: 0 0% 4%;
     /* #0A0A0A */
-    --foreground: 0 0% 100%;
-    /* #FFFFFF */
+    --foreground: 40 10% 90%;
+    /* #E5E5DC - Light beige */
     --card: 0 0% 10%;
     /* #1A1A1A */
-    --card-foreground: 0 0% 100%;
+    --card-foreground: 40 10% 90%;
+    /* #E5E5DC */
     --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    /* White primary */
+    --popover-foreground: 40 10% 90%;
+    --primary: 40 10% 90%;
+    /* Beige primary */
     --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 16%;
     /* #2A2A2A */
-    --secondary-foreground: 0 0% 100%;
+    --secondary-foreground: 40 10% 90%;
     --muted: 0 0% 16%;
     --muted-foreground: 0 0% 50%;
     /* #808080 */
     --accent: 348 70% 36%;
     /* Burgundy accent #9B1B30 */
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 40 10% 90%;
     --destructive: 0 80% 55%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 40 10% 90%;
     --border: 0 0% 16%;
     /* #2A2A2A */
     --input: 0 0% 16%;
