@@ -229,8 +229,14 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
         # Delete import record
         supabase.table("import_history").delete().eq("id", file_id).execute()
         
-        # Optionally delete related sales data (if we had import_id in sales)
-        # For now, just delete the import record
+        # Clear cache so dashboard updates immediately
+        try:
+            from app.services.cache_service import cache
+            cache.invalidate_pattern("analytics:")
+            cache.clear()
+            logger.info("Cache cleared after file deletion")
+        except Exception as e:
+            logger.error(f"Cache clear error: {e}")
         
         return {
             "success": True,
