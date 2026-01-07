@@ -53,9 +53,9 @@ export default function TopCustomersChart() {
     // Generate red gradient colors based on value
     const getRedColor = (value: number, maxValue: number) => {
         const intensity = value / maxValue;
-        // Darker red (higher intensity) for higher values
-        const lightness = 25 + (intensity * 25); // 25% to 50%
-        return `hsl(348, 80%, ${lightness}%)`;
+        // Smoother gradient from light red to dark red
+        const lightness = 60 - (intensity * 35); // 60% (light) to 25% (dark)
+        return `hsl(348, 85%, ${lightness}%)`;
     };
 
     const maxTotal = Math.max(...data.map(d => d.total), 1);
