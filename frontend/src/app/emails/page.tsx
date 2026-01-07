@@ -91,7 +91,7 @@ export default function EmailsPage() {
                                 placeholder="client@example.com"
                                 value={sender}
                                 onChange={(e) => setSender(e.target.value)}
-                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-full h-12 px-5 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300 min-h-[44px]"
+                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300 min-h-[44px]"
                             />
                         </div>
                         <div>
@@ -100,7 +100,7 @@ export default function EmailsPage() {
                                 placeholder="Запрос коммерческого предложения"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
-                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-full h-12 px-5 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
+                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
                             />
                         </div>
                     </div>
@@ -122,11 +122,11 @@ export default function EmailsPage() {
                         <select
                             value={tone}
                             onChange={(e) => setTone(e.target.value)}
-                            className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-full h-12 px-5 focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 appearance-none cursor-pointer"
+                            className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl h-12 px-4 focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 appearance-none cursor-pointer"
                             style={{
                                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                                 backgroundRepeat: 'no-repeat',
-                                backgroundPosition: 'right 20px center',
+                                backgroundPosition: 'right 16px center',
                             }}
                         >
                             {TONES.map((t) => (

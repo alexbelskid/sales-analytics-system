@@ -100,7 +100,7 @@ export default function SalaryPage() {
                     <select
                         value={month}
                         onChange={(e) => setMonth(Number(e.target.value))}
-                        className="rounded-full border border-input bg-background px-5 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
+                        className="rounded-xl border border-input bg-background px-4 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
                     >
                         {monthNames.map((name, i) => (
                             <option key={i} value={i + 1}>
@@ -111,7 +111,7 @@ export default function SalaryPage() {
                     <select
                         value={year}
                         onChange={(e) => setYear(Number(e.target.value))}
-                        className="rounded-full border border-input bg-background px-5 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
+                        className="rounded-xl border border-input bg-background px-4 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
                     >
                         {[2024, 2025, 2026].map((y) => (
                             <option key={y} value={y}>

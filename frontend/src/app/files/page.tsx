@@ -200,7 +200,7 @@ export default function FilesPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-gray-800 border border-gray-700 rounded-full px-5 py-2.5 text-sm transition-all duration-300 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                        className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm transition-all duration-300 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                     >
                         <option value="">Все статусы</option>
                         <option value="completed">Завершённые</option>

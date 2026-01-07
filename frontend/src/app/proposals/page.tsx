@@ -101,7 +101,7 @@ export default function ProposalsPage() {
         downloadBlob(blob, `KP_${customer.name.replace(/\s/g, '_')}.pdf`);
     }
 
-    const inputClasses = "rounded-full border border-[#2A2A2A] bg-[#1A1A1A] px-5 py-2.5 text-sm text-white placeholder:text-[#404040] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300";
+    const inputClasses = "rounded-xl border border-[#2A2A2A] bg-[#1A1A1A] px-4 py-2.5 text-sm text-white placeholder:text-[#404040] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300";
 
     return (
         <div className="space-y-6">
@@ -164,21 +164,21 @@ export default function ProposalsPage() {
                                         placeholder="Кол-во"
                                         value={item.quantity}
                                         onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
-                                        className={`w-20 ${inputClasses}`}
+                                        className={`w-24 ${inputClasses}`}
                                     />
                                     <input
                                         type="number"
                                         placeholder="Цена"
                                         value={item.price}
                                         onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
-                                        className={`w-28 ${inputClasses}`}
+                                        className={`w-32 ${inputClasses}`}
                                     />
                                     <input
                                         type="number"
                                         placeholder="%"
                                         value={item.discount}
                                         onChange={(e) => updateItem(item.id, 'discount', Number(e.target.value))}
-                                        className={`w-16 ${inputClasses}`}
+                                        className={`w-20 ${inputClasses}`}
                                     />
                                     <button
                                         onClick={() => removeItem(item.id)}

@@ -245,7 +245,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <select className="rounded-full bg-[#111] border border-[#2A2A2A] px-5 py-3 sm:py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer min-h-[44px]">
+                    <select className="rounded-xl bg-[#111] border border-[#2A2A2A] px-4 py-3 sm:py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer min-h-[44px]">
                         <option>Этот месяц</option>
                         <option>Прошлый месяц</option>
                         <option>Этот квартал</option>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                     <select
                         value={monthsAhead}
                         onChange={(e) => setMonthsAhead(Number(e.target.value))}
-                        className="rounded-full bg-[#111] border border-[#2A2A2A] px-5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
+                        className="rounded-xl bg-[#111] border border-[#2A2A2A] px-4 py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300"
                     >
                         <option value={1}>1 месяц</option>
                         <option value={3}>3 месяца</option>
