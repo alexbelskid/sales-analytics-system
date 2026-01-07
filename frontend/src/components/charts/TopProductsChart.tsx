@@ -54,6 +54,16 @@ export default function TopProductsChart() {
         }
     }
 
+    // Generate red gradient colors based on value
+    const getRedColor = (value: number, maxValue: number) => {
+        const intensity = value / maxValue;
+        // Darker red (higher intensity) for higher values
+        const lightness = 25 + (intensity * 25); // 25% to 50%
+        return `hsl(348, 80%, ${lightness}%)`;
+    };
+
+    const maxAmount = Math.max(...data.map(d => d.total_amount), 1);
+
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             const item = payload[0].payload;
@@ -113,9 +123,9 @@ export default function TopProductsChart() {
                         width={100}
                     />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="total_amount" radius={[0, 4, 4, 0]}>
+                    <Bar dataKey="total_amount" radius={[0, 8, 8, 0]}>
                         {data.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell key={`cell-${index}`} fill={getRedColor(entry.total_amount, maxAmount)} />
                         ))}
                     </Bar>
                 </BarChart>

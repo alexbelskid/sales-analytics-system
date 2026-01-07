@@ -9,6 +9,7 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
+    Cell,
 } from 'recharts';
 import { analyticsApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
@@ -49,6 +50,16 @@ export default function TopCustomersChart() {
         }
     }
 
+    // Generate red gradient colors based on value
+    const getRedColor = (value: number, maxValue: number) => {
+        const intensity = value / maxValue;
+        // Darker red (higher intensity) for higher values
+        const lightness = 25 + (intensity * 25); // 25% to 50%
+        return `hsl(348, 80%, ${lightness}%)`;
+    };
+
+    const maxTotal = Math.max(...data.map(d => d.total), 1);
+
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
@@ -86,9 +97,12 @@ export default function TopCustomersChart() {
                     <Tooltip content={<CustomTooltip />} />
                     <Bar
                         dataKey="total"
-                        fill="hsl(348, 70%, 36%)"
                         radius={[0, 8, 8, 0]}
-                    />
+                    >
+                        {data.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={getRedColor(entry.total, maxTotal)} />
+                        ))}
+                    </Bar>
                 </BarChart>
             </ResponsiveContainer>
         </div>
