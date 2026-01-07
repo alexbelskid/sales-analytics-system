@@ -23,16 +23,17 @@
     --muted: 0 0% 16%;
     --muted-foreground: 0 0% 50%;
     /* #808080 */
-    --accent: 0 0% 100%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 0 0% 100%;
-    --destructive-foreground: 0 0% 0%;
+    --accent: 348 70% 36%;
+    /* Burgundy accent #9B1B30 */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 80% 55%;
+    --destructive-foreground: 0 0% 100%;
     --border: 0 0% 16%;
     /* #2A2A2A */
     --input: 0 0% 16%;
-    --ring: 0 0% 100%;
-    --radius: 0.25rem;
-    /* 4px - minimal */
+    --ring: 348 70% 36%;
+    --radius: 0.75rem;
+    /* 12px - rounded */
   }
 }
 
@@ -60,16 +61,68 @@
 
 @layer components {
   .metric-card {
-    @apply bg-card border border-border rounded p-6 transition-colors hover:border-white/20;
+    @apply bg-card border border-border rounded-xl p-6 transition-all duration-300 ease-out hover:border-white/20 hover:scale-[1.01];
+  }
+
+  /* Global button styles */
+  button {
+    @apply rounded-full transition-all duration-300 ease-out;
+  }
+
+  button:hover {
+    @apply transform scale-[1.02];
+  }
+
+  button:active {
+    @apply transform scale-[0.98];
+  }
+
+  /* Accent button variant */
+  .btn-accent {
+    @apply bg-[hsl(348, 70%, 36%)] hover:bg-[hsl(348, 70%, 42%)] text-white;
   }
 }
 
 @layer utilities {
 
-  /* Minimal animations only */
+  /* Smooth transitions */
   @media (prefers-reduced-motion: no-preference) {
     .transition-smooth {
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  /* Smooth fade-in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Smooth scale animation */
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }
