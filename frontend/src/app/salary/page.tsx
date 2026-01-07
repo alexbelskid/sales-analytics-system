@@ -182,10 +182,10 @@ export default function SalaryPage() {
                                     <td className="px-4 py-3 text-right text-muted-foreground">
                                         {salary.commission_rate}%
                                     </td>
-                                    <td className="px-4 py-3 text-right text-rose-800">
+                                    <td className="px-4 py-3 text-right text-white font-medium">
                                         +{formatCurrency(salary.commission)}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-rose-800">
+                                    <td className="px-4 py-3 text-right text-white font-medium">
                                         {salary.bonus > 0 ? `+${formatCurrency(salary.bonus)}` : '—'}
                                     </td>
                                     <td className="px-4 py-3 text-right text-red-500">
@@ -207,10 +207,10 @@ export default function SalaryPage() {
                                     {formatCurrency(totalSales)}
                                 </td>
                                 <td className="px-4 py-3"></td>
-                                <td className="px-4 py-3 text-right font-medium text-rose-800">
+                                <td className="px-4 py-3 text-right font-medium text-white">
                                     +{formatCurrency(salaries.reduce((s, x) => s + x.commission, 0))}
                                 </td>
-                                <td className="px-4 py-3 text-right font-medium text-rose-800">
+                                <td className="px-4 py-3 text-right font-medium text-white">
                                     +{formatCurrency(salaries.reduce((s, x) => s + x.bonus, 0))}
                                 </td>
                                 <td className="px-4 py-3 text-right font-medium text-red-500">

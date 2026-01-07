@@ -65,7 +65,7 @@ export default function TopCustomersChart() {
             return (
                 <div className="rounded-lg border bg-background p-3 shadow-lg">
                     <p className="text-sm font-medium">{label}</p>
-                    <p className="text-sm text-rose-800">
+                    <p className="text-sm text-white font-medium">
                         {formatCurrency(payload[0].value)}
                     </p>
                 </div>
