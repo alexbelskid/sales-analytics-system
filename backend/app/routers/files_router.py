@@ -53,7 +53,7 @@ async def list_files(
             files.append({
                 "id": f["id"],
                 "filename": f["filename"],
-                "uploaded_at": f.get("started_at"),
+                "uploaded_at": f.get("uploaded_at"),
                 "status": f["status"],
                 "file_size_mb": round((f.get("file_size", 0) or 0) / 1024 / 1024, 2),
                 "total_rows": f.get("total_rows", 0),
