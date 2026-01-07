@@ -187,7 +187,7 @@ export default function FilesPage() {
                         </button>
                         <button
                             onClick={fetchFiles}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-700 hover:bg-rose-600 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-rose-700/25"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-800 hover:bg-rose-700 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
                         >
                             <RefreshCw size={16} />
                             Обновить
@@ -200,7 +200,7 @@ export default function FilesPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-gray-800 border border-gray-700 rounded-full px-5 py-2.5 text-sm transition-all duration-300 hover:border-rose-700 focus:border-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-700/25"
+                        className="bg-gray-800 border border-gray-700 rounded-full px-5 py-2.5 text-sm transition-all duration-300 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                     >
                         <option value="">Все статусы</option>
                         <option value="completed">Завершённые</option>
@@ -284,7 +284,7 @@ export default function FilesPage() {
                                             <div className="flex items-center justify-center gap-2">
                                                 <button
                                                     onClick={() => setSelectedFile(file)}
-                                                    className="p-2.5 hover:bg-rose-700/20 rounded-full transition-all duration-300 hover:scale-110"
+                                                    className="p-2.5 hover:bg-rose-800/20 rounded-full transition-all duration-300 hover:scale-110"
                                                     title="Подробнее"
                                                 >
                                                     <Eye size={16} className="text-gray-400 hover:text-rose-400 transition-colors duration-300" />
@@ -308,7 +308,7 @@ export default function FilesPage() {
                 {/* Details Modal */}
                 {selectedFile && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
-                        <div className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full mx-4 animate-scale-in shadow-2xl shadow-rose-700/10">
+                        <div className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full mx-4 animate-scale-in shadow-2xl shadow-rose-800/10">
                             <h3 className="text-xl font-bold mb-4">Детали импорта</h3>
 
                             <div className="space-y-3 text-sm">
@@ -345,7 +345,7 @@ export default function FilesPage() {
 
                             <button
                                 onClick={() => setSelectedFile(null)}
-                                className="mt-6 w-full py-3 bg-rose-700 hover:bg-rose-600 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-rose-700/25 font-medium"
+                                className="mt-6 w-full py-3 bg-rose-800 hover:bg-rose-700 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25 font-medium"
                             >
                                 Закрыть
                             </button>
