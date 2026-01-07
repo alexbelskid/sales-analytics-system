@@ -1,5 +1,9 @@
 DROP FUNCTION IF EXISTS get_top_customers_by_revenue(INT);
+DROP FUNCTION IF EXISTS get_top_customers_by_revenue(INT, INT);
 DROP FUNCTION IF EXISTS get_top_products_by_sales(INT);
+DROP FUNCTION IF EXISTS get_top_products_by_sales(INT, INT);
+DROP FUNCTION IF EXISTS get_sales_trend_monthly(INT);
+DROP FUNCTION IF EXISTS get_dashboard_metrics(DATE, DATE, UUID);
 DROP FUNCTION IF EXISTS reset_analytics_data();
 
 DROP TABLE IF EXISTS sales CASCADE;
@@ -9,6 +13,7 @@ DROP TABLE IF EXISTS products CASCADE;
 DROP TABLE IF EXISTS stores CASCADE;
 DROP TABLE IF EXISTS knowledge_base CASCADE;
 
+-- 1. TABLES
 CREATE TABLE customers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -78,8 +83,6 @@ CREATE INDEX idx_sales_customer ON sales(customer_id);
 CREATE INDEX idx_sales_product ON sales(product_id);
 CREATE INDEX idx_sales_store ON sales(store_id);
 CREATE INDEX idx_sales_year_month ON sales(year, month);
-CREATE INDEX idx_sales_customer_date ON sales(customer_id, sale_date);
-CREATE INDEX idx_sales_product_date ON sales(product_id, sale_date);
 
 CREATE TABLE import_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -109,7 +112,38 @@ CREATE TABLE knowledge_base (
 
 CREATE INDEX idx_knowledge_category ON knowledge_base(category);
 
-CREATE OR REPLACE FUNCTION get_top_customers_by_revenue(limit_count INT DEFAULT 10)
+
+-- 2. READ FUNCTIONS (ANALYTICS)
+
+-- Dashboard Metrics
+CREATE OR REPLACE FUNCTION get_dashboard_metrics(
+    p_start_date DATE DEFAULT NULL,
+    p_end_date DATE DEFAULT NULL,
+    p_customer_id UUID DEFAULT NULL
+)
+RETURNS TABLE (
+    total_revenue NUMERIC,
+    total_sales BIGINT,
+    average_check NUMERIC
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COALESCE(SUM(total_amount), 0)::NUMERIC as total_revenue,
+        COUNT(*)::BIGINT as total_sales,
+        CASE WHEN COUNT(*) > 0 THEN COALESCE(SUM(total_amount), 0)::NUMERIC / COUNT(*) ELSE 0 END as average_check
+    FROM sales
+    WHERE (p_start_date IS NULL OR sale_date >= p_start_date)
+      AND (p_end_date IS NULL OR sale_date <= p_end_date)
+      AND (p_customer_id IS NULL OR customer_id = p_customer_id);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Top Customers (Updated signature to match Python)
+CREATE OR REPLACE FUNCTION get_top_customers_by_revenue(
+    p_limit INT DEFAULT 10,
+    p_days INT DEFAULT 36500  -- Default 100 years to include everything
+)
 RETURNS TABLE (
     customer_id UUID,
     customer_name TEXT,
@@ -123,13 +157,18 @@ BEGIN
         COALESCE(SUM(s.total_amount), 0)::NUMERIC as revenue
     FROM customers c
     LEFT JOIN sales s ON c.id = s.customer_id
+    WHERE s.sale_date >= (CURRENT_DATE - (p_days || ' days')::INTERVAL)
     GROUP BY c.id, c.name
     ORDER BY revenue DESC
-    LIMIT limit_count;
+    LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION get_top_products_by_sales(limit_count INT DEFAULT 10)
+-- Top Products (Updated signature)
+CREATE OR REPLACE FUNCTION get_top_products_by_sales(
+    p_limit INT DEFAULT 10,
+    p_days INT DEFAULT 36500
+)
 RETURNS TABLE (
     product_id UUID,
     product_name TEXT,
@@ -145,12 +184,34 @@ BEGIN
         COALESCE(SUM(s.total_amount), 0)::NUMERIC
     FROM products p
     LEFT JOIN sales s ON p.id = s.product_id
+    WHERE s.sale_date >= (CURRENT_DATE - (p_days || ' days')::INTERVAL)
     GROUP BY p.id, p.name
     ORDER BY total_revenue DESC
-    LIMIT limit_count;
+    LIMIT p_limit;
 END;
 $$ LANGUAGE plpgsql;
 
+-- Sales Trend (Missing function)
+CREATE OR REPLACE FUNCTION get_sales_trend_monthly(p_months INT DEFAULT 120)
+RETURNS TABLE (
+    period TEXT,
+    total_revenue NUMERIC,
+    orders_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        TO_CHAR(sale_date, 'YYYY-MM') as period,
+        COALESCE(SUM(total_amount), 0)::NUMERIC as total_revenue,
+        COUNT(*)::BIGINT as orders_count
+    FROM sales
+    WHERE sale_date >= (CURRENT_DATE - (p_months || ' months')::INTERVAL)
+    GROUP BY period
+    ORDER BY period ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Reset Data
 CREATE OR REPLACE FUNCTION reset_analytics_data()
 RETURNS JSON AS $$
 DECLARE

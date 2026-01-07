@@ -110,7 +110,7 @@ async def get_dashboard(
 @router.get("/top-customers", response_model=List[TopCustomer])
 async def get_top_customers(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
-    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней"),
+    days: int = Query(default=7300, ge=1, le=73000, description="За последние N дней"),
     force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
     """Топ клиентов по выручке - использует RPC для эффективности"""
@@ -210,7 +210,7 @@ async def get_top_customers(
 @router.get("/top-products", response_model=List[TopProduct])
 async def get_top_products(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
-    days: int = Query(default=365, ge=1, le=3650, description="За последние N дней"),
+    days: int = Query(default=7300, ge=1, le=73000, description="За последние N дней"),
     force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
     """Топ товаров по продажам с кэшированием"""
@@ -318,7 +318,7 @@ async def get_top_products(
 @router.get("/sales-trend", response_model=List[SalesTrend])
 async def get_sales_trend(
     period: str = Query(default="month", description="Период группировки: day, week, month"),
-    days: int = Query(default=180, ge=7, le=730, description="За последние N дней"),
+    days: int = Query(default=7300, ge=7, le=73000, description="За последние N дней"),
     force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
     """Динамика продаж - использует RPC для эффективности"""
