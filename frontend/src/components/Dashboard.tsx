@@ -85,9 +85,9 @@ export default function Dashboard() {
             setMetrics(data);
         } catch (err) {
             setMetrics({
-                total_revenue: 2450000,
-                total_sales: 156,
-                average_check: 15705
+                total_revenue: 0,
+                total_sales: 0,
+                average_check: 0
             });
         } finally {
             setLoading(false);

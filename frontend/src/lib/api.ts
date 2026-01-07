@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
 
 interface FetchOptions extends RequestInit {
     params?: Record<string, string | number | boolean | undefined>;
