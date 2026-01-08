@@ -30,7 +30,7 @@ const KnowledgeTab = memo(({ items, categories, onEdit, onDelete }: KnowledgeTab
                         <h3 className="text-sm font-medium text-[#808080] uppercase tracking-wider mb-4">{cat.label}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {catItems.map(item => (
-                                <div key={item.id} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5 group hover:border-white/20 transition-colors">
+                                <div key={item.id} className="ui-card">
                                     <div className="flex justify-between items-start mb-3">
                                         <h4 className="font-medium text-white">{item.title}</h4>
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

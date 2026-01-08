@@ -42,8 +42,8 @@ const TrainingTab = memo(({
                 onDragLeave={onDragLeave}
                 onClick={onUploadClick}
                 className={`border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer ${isDragging
-                        ? 'border-white bg-[#1A1A1A]'
-                        : 'border-[#2A2A2A] hover:border-[#404040]'
+                    ? 'border-white bg-[#1A1A1A]'
+                    : 'border-[#2A2A2A] hover:border-[#404040]'
                     }`}
             >
                 <div className="flex flex-col items-center">
@@ -58,7 +58,7 @@ const TrainingTab = memo(({
                 <h3 className="text-sm font-medium text-[#808080] uppercase tracking-wider mb-4">Существующие примеры ({items.length})</h3>
                 <div className="grid grid-cols-1 gap-4">
                     {items.map(example => (
-                        <div key={example.id} className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5 group hover:border-white/20 transition-colors">
+                        <div key={example.id} className="ui-card">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">

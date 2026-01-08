@@ -428,7 +428,7 @@ export default function Dashboard() {
                 <h2 className="text-lg font-semibold mb-4">Ключевые метрики</h2>
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {metricCards.map((metric) => (
-                        <div key={metric.title} className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6 hover:border-[#2A2A2A] transition-colors group">
+                        <div key={metric.title} className="ui-card">
                             <div className="flex items-center justify-between mb-4">
                                 <p className="text-sm text-[#808080] group-hover:text-gray-400 transition-colors uppercase tracking-wider text-[10px]">{metric.title}</p>
                                 {metric.change !== null && (
@@ -446,18 +446,18 @@ export default function Dashboard() {
             </div>
 
             {/* Charts Row */}
-            <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 sm:p-6">
+            <div className="grid gap-6 sm:grid-cols-2">
+                <div className="ui-card">
                     <h3 className="text-lg font-semibold mb-6">Тренд продаж</h3>
                     <SalesTrendChart />
                 </div>
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 sm:p-6">
+                <div className="ui-card">
                     <h3 className="text-lg font-semibold mb-6">Топ продуктов</h3>
                     <TopProductsChart />
                 </div>
             </div>
 
-            <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-4 sm:p-6">
+            <div className="ui-card">
                 <h3 className="text-lg font-semibold mb-6">Топ клиенты</h3>
                 <TopCustomersChart />
             </div>
@@ -485,7 +485,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Forecast Chart */}
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6 overflow-hidden">
+                <div className="ui-card overflow-hidden">
                     <div className="mb-6 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <TrendingUp className="h-5 w-5 text-gray-400" />

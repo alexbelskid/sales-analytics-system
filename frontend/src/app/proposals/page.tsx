@@ -112,13 +112,13 @@ export default function ProposalsPage() {
                 </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="flex flex-col lg:flex-row gap-6">
                 {/* Form */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="flex-1 space-y-6">
                     {/* Customer */}
                     <div className="ui-card">
                         <h3 className="font-semibold mb-4">Клиент</h3>
-                        <div className="grid gap-4 md:grid-cols-2">
+                        <div className="grid gap-4 sm:grid-cols-2">
                             <input
                                 type="text"
                                 placeholder="ФИО контактного лица"
@@ -150,39 +150,43 @@ export default function ProposalsPage() {
 
                         <div className="space-y-3">
                             {items.map((item, index) => (
-                                <div key={item.id} className="flex gap-2 items-center">
-                                    <span className="text-sm text-[#808080] w-6">{index + 1}.</span>
-                                    <input
-                                        type="text"
-                                        placeholder="Наименование"
-                                        value={item.product_name}
-                                        onChange={(e) => updateItem(item.id, 'product_name', e.target.value)}
-                                        className={`flex-1 ${inputClasses}`}
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Кол-во"
-                                        value={item.quantity}
-                                        onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
-                                        className={`w-24 ${inputClasses}`}
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="Цена"
-                                        value={item.price}
-                                        onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
-                                        className={`w-32 ${inputClasses}`}
-                                    />
-                                    <input
-                                        type="number"
-                                        placeholder="%"
-                                        value={item.discount}
-                                        onChange={(e) => updateItem(item.id, 'discount', Number(e.target.value))}
-                                        className={`w-20 ${inputClasses}`}
-                                    />
+                                <div key={item.id} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                    <span className="text-sm text-[#808080] w-6 hidden sm:inline">{index + 1}.</span>
+                                    <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full">
+                                        <input
+                                            type="text"
+                                            placeholder="Наименование"
+                                            value={item.product_name}
+                                            onChange={(e) => updateItem(item.id, 'product_name', e.target.value)}
+                                            className={`flex-1 ${inputClasses}`}
+                                        />
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="number"
+                                                placeholder="Кол-во"
+                                                value={item.quantity}
+                                                onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
+                                                className={`w-24 ${inputClasses}`}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="Цена"
+                                                value={item.price}
+                                                onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
+                                                className={`w-28 ${inputClasses}`}
+                                            />
+                                            <input
+                                                type="number"
+                                                placeholder="%"
+                                                value={item.discount}
+                                                onChange={(e) => updateItem(item.id, 'discount', Number(e.target.value))}
+                                                className={`w-20 ${inputClasses}`}
+                                            />
+                                        </div>
+                                    </div>
                                     <button
                                         onClick={() => removeItem(item.id)}
-                                        className="p-2 text-[#808080] hover:text-red-400 transition-colors"
+                                        className="p-2 text-[#808080] hover:text-red-400 transition-colors self-end sm:self-auto"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </button>
@@ -209,7 +213,7 @@ export default function ProposalsPage() {
                 </div>
 
                 {/* Preview & Actions */}
-                <div className="space-y-4">
+                <div className="space-y-4 lg:w-80 flex-shrink-0">
                     <div className="ui-card">
                         <div className="flex items-center gap-2 mb-4">
                             <FileText className="h-5 w-5 text-white" />
