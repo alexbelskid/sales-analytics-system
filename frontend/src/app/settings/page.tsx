@@ -30,7 +30,7 @@ const SETTINGS_CARDS = [
 
 export default function SettingsPage() {
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white p-8">
+        <div className="min-h-screen bg-[#202020] text-white p-8">
             <div className="max-w-4xl mx-auto space-y-12">
 
                 {/* Header */}
@@ -41,17 +41,17 @@ export default function SettingsPage() {
                     </p>
                 </div>
 
-                <div className="h-[1px] bg-gradient-to-r from-[#2A2A2A] to-transparent" />
+                <div className="h-[1px] bg-gradient-to-r from-[#333333] to-transparent" />
 
                 {/* Settings Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {SETTINGS_CARDS.map((card) => {
                         const Icon = card.icon;
                         const Content = (
-                            <div className={`relative h-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6 transition-all duration-300 ${card.disabled ? 'opacity-50 grayscale' : 'hover:border-white/30 hover:bg-[#222222] group cursor-pointer'}`}>
+                            <div className={`relative h-full bg-[#262626] border border-[#333333] rounded-lg p-6 transition-all duration-300 ${card.disabled ? 'opacity-50 grayscale' : 'hover:border-white/30 hover:bg-[#222222] group cursor-pointer'}`}>
                                 <div className="flex flex-col h-full justify-between">
                                     <div>
-                                        <div className="mb-6 inline-flex p-3 rounded-lg bg-black border border-[#2A2A2A]">
+                                        <div className="mb-6 inline-flex p-3 rounded-lg bg-black border border-[#333333]">
                                             <Icon className={`h-6 w-6 ${card.color}`} />
                                         </div>
                                         <h3 className="text-lg font-semibold mb-2 group-hover:text-white transition-colors">{card.title}</h3>

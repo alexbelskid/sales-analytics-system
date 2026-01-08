@@ -12,7 +12,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <div className="flex h-screen bg-[#0A0A0A]">
+        <div className="flex h-screen bg-[#202020]">
             {/* Sidebar - handles both desktop and mobile */}
             <Sidebar
                 isMobileOpen={isMobileMenuOpen}

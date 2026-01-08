@@ -48,7 +48,7 @@ export default function SalesTrendChart() {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="rounded-lg border border-[#2A2A2A] bg-[#0A0A0A] p-3 shadow-lg">
+                <div className="rounded-lg border border-[#333333] bg-[#202020] p-3 shadow-lg">
                     <p className="text-sm font-medium text-white">{label}</p>
                     <p className="text-sm text-white">
                         Сумма: {formatCurrency(payload[0].value)}
@@ -107,7 +107,7 @@ export default function SalesTrendChart() {
                             <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0} />
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                     <XAxis
                         dataKey="period"
                         stroke="#404040"

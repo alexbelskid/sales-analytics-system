@@ -37,7 +37,7 @@ export default function KnowledgeModal({ item, categories, onClose, onSave }: Kn
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg p-6 w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-[#202020] border border-[#333333] rounded-lg p-6 w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-xl font-semibold mb-6">
                     {item ? 'Редактировать' : 'Добавить информацию'}
                 </h2>
@@ -48,7 +48,7 @@ export default function KnowledgeModal({ item, categories, onClose, onSave }: Kn
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded h-12 px-4 focus:outline-none focus:border-white transition-colors"
+                            className="w-full bg-[#262626] border border-[#333333] text-white rounded h-12 px-4 focus:outline-none focus:border-white transition-colors"
                         >
                             {categories.map(cat => (
                                 <option key={cat.id} value={cat.id}>{cat.label}</option>
@@ -62,7 +62,7 @@ export default function KnowledgeModal({ item, categories, onClose, onSave }: Kn
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Например: Шоколад молочный"
-                            className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded h-12 px-4 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
+                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded h-12 px-4 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
                         />
                     </div>
 
@@ -72,7 +72,7 @@ export default function KnowledgeModal({ item, categories, onClose, onSave }: Kn
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             placeholder="Цена: 5.50 BYN/кг. Описание..."
-                            className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded min-h-[150px] p-4 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
+                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded min-h-[150px] p-4 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
                         />
                     </div>
 
@@ -80,7 +80,7 @@ export default function KnowledgeModal({ item, categories, onClose, onSave }: Kn
                         <Button
                             onClick={onClose}
                             variant="outline"
-                            className="flex-1 bg-transparent border-[#2A2A2A] text-white hover:bg-[#1A1A1A] hover:text-white rounded h-10"
+                            className="flex-1 bg-transparent border-[#333333] text-white hover:bg-[#262626] hover:text-white rounded h-10"
                         >
                             Отмена
                         </Button>

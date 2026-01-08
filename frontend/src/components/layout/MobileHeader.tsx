@@ -8,11 +8,11 @@ interface MobileHeaderProps {
 
 export default function MobileHeader({ onMenuClick }: MobileHeaderProps) {
     return (
-        <header className="lg:hidden sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#2A2A2A] bg-[#0A0A0A]/95 backdrop-blur-sm px-4">
+        <header className="lg:hidden sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[#333333] bg-[#202020]/95 backdrop-blur-sm px-4">
             {/* Burger Menu Button */}
             <button
                 onClick={onMenuClick}
-                className="p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white active:bg-[#2A2A2A] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="p-2 rounded-lg bg-[#262626] border border-[#333333] text-[#808080] hover:text-white active:bg-[#333333] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Открыть меню"
             >
                 <Menu size={20} />

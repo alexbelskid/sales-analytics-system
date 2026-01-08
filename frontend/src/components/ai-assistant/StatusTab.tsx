@@ -48,7 +48,7 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                         <Zap className="h-5 w-5 text-orange-500" />
                         Groq AI (Llama 3)
                     </h3>
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5">
+                    <div className="bg-[#262626] border border-[#333333] rounded-lg p-5">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
                             <span className="font-medium text-green-400">Статус: Подключён</span>
@@ -65,9 +65,9 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                         <Database className="h-5 w-5 text-blue-400" />
                         Доступ к данным
                     </h3>
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5">
+                    <div className="bg-[#262626] border border-[#333333] rounded-lg p-5">
                         <div className="space-y-2 text-sm">
-                            <div className="flex justify-between border-b border-[#2A2A2A] pb-2">
+                            <div className="flex justify-between border-b border-[#333333] pb-2">
                                 <span className="text-[#808080]">Анализируемый период:</span>
                                 <span className="text-white">{status.monthly.period}</span>
                             </div>
@@ -86,7 +86,7 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                                 </span>
                             </div>
                         </div>
-                        <div className="mt-3 pt-3 border-t border-[#2A2A2A] text-xs text-[#606060] flex items-center gap-1">
+                        <div className="mt-3 pt-3 border-t border-[#333333] text-xs text-[#606060] flex items-center gap-1">
                             <Activity className="w-3 h-3" />
                             AI имеет полный доступ к этим данным для генерации ответов
                         </div>
@@ -101,7 +101,7 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                         <BookOpen className="h-5 w-5 text-yellow-400" />
                         База знаний
                     </h3>
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5">
+                    <div className="bg-[#262626] border border-[#333333] rounded-lg p-5">
                         <div className="text-3xl font-bold mb-1 pl-1">
                             {status.knowledge.total}
                         </div>
@@ -109,7 +109,7 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
 
                         <div className="space-y-2">
                             {status.knowledge.categories.map((cat: any) => (
-                                <div key={cat.name} className="flex justify-between items-center text-sm bg-[#222] px-3 py-2 rounded border border-[#2A2A2A]/50">
+                                <div key={cat.name} className="flex justify-between items-center text-sm bg-[#222] px-3 py-2 rounded border border-[#333333]/50">
                                     <span className="text-gray-300 capitalize">{cat.name === 'product' ? 'Продукты' : cat.name}</span>
                                     <span className="text-gray-500 font-mono">{cat.count}</span>
                                 </div>
@@ -127,13 +127,13 @@ const StatusTab = memo(({ status, knowledgeCount, trainingCount }: StatusTabProp
                         <BrainCircuit className="h-5 w-5 text-red-400" />
                         Обучение
                     </h3>
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-5">
+                    <div className="bg-[#262626] border border-[#333333] rounded-lg p-5">
                         <div className="text-3xl font-bold mb-1 pl-1">
                             {status.training.total}
                         </div>
                         <div className="text-sm text-[#808080] pl-1 mb-6">примеров диалогов</div>
 
-                        <div className="bg-[#222] p-4 rounded-lg border border-[#2A2A2A]/50">
+                        <div className="bg-[#222] p-4 rounded-lg border border-[#333333]/50">
                             <div className="flex justify-between text-sm mb-2">
                                 <span className="text-gray-400">Средняя уверенность</span>
                                 <span className="text-white font-medium">{(status.training.avg_confidence * 100).toFixed(0)}%</span>

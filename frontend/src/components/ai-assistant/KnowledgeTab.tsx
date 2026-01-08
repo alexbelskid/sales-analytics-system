@@ -51,7 +51,7 @@ const KnowledgeTab = memo(({ items, categories, onEdit, onDelete }: KnowledgeTab
             })}
 
             {items.length === 0 && (
-                <div className="text-center py-12 border border-dashed border-[#2A2A2A] rounded-lg">
+                <div className="text-center py-12 border border-dashed border-[#333333] rounded-lg">
                     <p className="text-[#808080]">База знаний пуста. Добавьте первую запись.</p>
                 </div>
             )}

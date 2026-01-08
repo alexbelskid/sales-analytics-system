@@ -234,7 +234,7 @@ export default function AIAssistantPage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white">
+        <div className="min-h-screen bg-[#202020] text-white">
             <div className="max-w-7xl mx-auto px-8 py-12">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4 mb-8 sm:mb-12">
@@ -265,7 +265,7 @@ export default function AIAssistantPage() {
                 </div>
 
                 {/* Tabs Navigation */}
-                <div className="flex gap-4 sm:gap-8 border-b border-[#1A1A1A] mb-6 sm:mb-10 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex gap-4 sm:gap-8 border-b border-[#262626] mb-6 sm:mb-10 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
                     {[
                         { id: 'status', label: 'Статус' },
                         { id: 'knowledge', label: 'База знаний' },

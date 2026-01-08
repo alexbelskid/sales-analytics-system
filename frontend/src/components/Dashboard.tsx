@@ -192,7 +192,7 @@ export default function Dashboard() {
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {
             return (
-                <div className="rounded-lg border border-[#2A2A2A] bg-[#0A0A0A] p-3 shadow-lg">
+                <div className="rounded-lg border border-[#333333] bg-[#202020] p-3 shadow-lg">
                     <p className="text-sm font-medium">{label}</p>
                     <p className="text-sm text-white">
                         Прогноз: {formatCurrency(payload[0].value)}
@@ -245,7 +245,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <select className="rounded-full bg-[#111] border border-[#2A2A2A] px-5 py-3 sm:py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer min-h-[44px]">
+                    <select className="rounded-full bg-[#111] border border-[#333333] px-5 py-3 sm:py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer min-h-[44px]">
                         <option>Этот месяц</option>
                         <option>Прошлый месяц</option>
                         <option>Этот квартал</option>
@@ -254,7 +254,7 @@ export default function Dashboard() {
 
                     <button
                         onClick={() => setShowUploader(!showUploader)}
-                        className={`flex items-center justify-center gap-2 rounded-full border px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] hover:scale-[1.02] ${showUploader ? 'bg-rose-800/20 border-rose-800 text-white shadow-lg shadow-rose-800/25' : 'border-[#2A2A2A] hover:bg-[#1A1A1A]'}`}
+                        className={`flex items-center justify-center gap-2 rounded-full border px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] hover:scale-[1.02] ${showUploader ? 'bg-rose-800/20 border-rose-800 text-white shadow-lg shadow-rose-800/25' : 'border-[#333333] hover:bg-[#262626]'}`}
                     >
                         <UploadIcon className="h-4 w-4" />
                         <span>Загрузить данные</span>
@@ -274,7 +274,7 @@ export default function Dashboard() {
 
             {/* Collapsible Upload Section */}
             {showUploader && (
-                <div className="bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg p-6 animate-in slide-in-from-top-4 duration-300">
+                <div className="bg-[#202020] border border-[#333333] rounded-lg p-6 animate-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold">Загрузить данные</h2>
                         <button onClick={() => setShowUploader(false)} className="text-[#404040] hover:text-white transition-colors">
@@ -288,7 +288,7 @@ export default function Dashboard() {
                             onClick={() => setImportTab('excel')}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${importTab === 'excel'
                                 ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                                : 'bg-[#1A1A1A] text-[#808080] hover:text-white'
+                                : 'bg-[#262626] text-[#808080] hover:text-white'
                                 }`}
                         >
                             <FileSpreadsheet className="h-4 w-4" />
@@ -298,7 +298,7 @@ export default function Dashboard() {
                             onClick={() => setImportTab('csv')}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${importTab === 'csv'
                                 ? 'bg-rose-800 text-white shadow-lg shadow-rose-800/25'
-                                : 'bg-[#1A1A1A] text-[#808080] hover:text-white'
+                                : 'bg-[#262626] text-[#808080] hover:text-white'
                                 }`}
                         >
                             <UploadIcon className="h-4 w-4" />
@@ -323,8 +323,8 @@ export default function Dashboard() {
                                         key={type.id}
                                         onClick={() => setSelectedType(type.id as DataType)}
                                         className={`flex items-center gap-3 rounded border p-3 text-left transition-all ${selectedType === type.id
-                                            ? 'border-white bg-[#1A1A1A]'
-                                            : 'border-[#2A2A2A] hover:border-[#333]'
+                                            ? 'border-white bg-[#262626]'
+                                            : 'border-[#333333] hover:border-[#333]'
                                             }`}
                                     >
                                         <span className={`${selectedType === type.id ? 'text-white' : 'text-[#404040]'}`}>{type.icon}</span>
@@ -338,8 +338,8 @@ export default function Dashboard() {
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onClick={() => fileInputRef.current?.click()}
-                                className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#1A1A1A]' :
-                                    file ? 'border-white bg-[#1A1A1A]' : 'border-[#2A2A2A] hover:border-[#333]'
+                                className={`cursor-pointer rounded border-2 border-dashed p-8 text-center transition-all ${isDragging ? 'border-white bg-[#262626]' :
+                                    file ? 'border-white bg-[#262626]' : 'border-[#333333] hover:border-[#333]'
                                     }`}
                             >
                                 <input
@@ -421,7 +421,7 @@ export default function Dashboard() {
                 </div>
             )}
 
-            <div className="h-[1px] bg-[#1A1A1A]" />
+            <div className="h-[1px] bg-[#262626]" />
 
             {/* Metrics Grid */}
             <div>
@@ -462,7 +462,7 @@ export default function Dashboard() {
                 <TopCustomersChart />
             </div>
 
-            <div className="h-[1px] bg-[#1A1A1A]" />
+            <div className="h-[1px] bg-[#262626]" />
 
             {/* Forecast Section */}
             <div className="space-y-6">
@@ -475,7 +475,7 @@ export default function Dashboard() {
                     <select
                         value={monthsAhead}
                         onChange={(e) => setMonthsAhead(Number(e.target.value))}
-                        className="rounded-full bg-[#111] border border-[#2A2A2A] px-5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer"
+                        className="rounded-full bg-[#111] border border-[#333333] px-5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer"
                     >
                         <option value={1}>1 месяц</option>
                         <option value={3}>3 месяца</option>
@@ -501,7 +501,7 @@ export default function Dashboard() {
                                         <stop offset="95%" stopColor="#FFFFFF" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                                 <XAxis
                                     dataKey="date"
                                     stroke="#404040"
@@ -532,7 +532,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Seasonality Chart */}
-                <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg p-6">
+                <div className="bg-[#202020] border border-[#262626] rounded-lg p-6">
                     <div className="mb-6 flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-gray-400" />
                         <h3 className="font-medium">Сезонность по месяцам</h3>
@@ -540,7 +540,7 @@ export default function Dashboard() {
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={seasonality?.monthly || []}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                                 <XAxis
                                     dataKey="month"
                                     stroke="#404040"
@@ -556,7 +556,7 @@ export default function Dashboard() {
                                     axisLine={false}
                                 />
                                 <Tooltip
-                                    contentStyle={{ background: '#0A0A0A', border: '1px solid #2A2A2A', borderRadius: '8px' }}
+                                    contentStyle={{ background: '#202020', border: '1px solid #333333', borderRadius: '8px' }}
                                     itemStyle={{ color: '#white' }}
                                 />
                                 <Bar dataKey="index" fill="#FFFFFF" radius={[2, 2, 0, 0]} opacity={0.8} />

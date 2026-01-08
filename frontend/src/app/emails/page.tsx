@@ -71,13 +71,13 @@ export default function EmailsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white">
+        <div className="min-h-screen bg-[#202020] text-white">
             <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
 
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl sm:text-[32px] font-semibold mb-2">Автоответы</h1>
-                    <div className="h-[1px] bg-[#1A1A1A]" />
+                    <div className="h-[1px] bg-[#262626]" />
                 </div>
 
 
@@ -91,7 +91,7 @@ export default function EmailsPage() {
                                 placeholder="client@example.com"
                                 value={sender}
                                 onChange={(e) => setSender(e.target.value)}
-                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300 min-h-[44px]"
+                                className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300 min-h-[44px]"
                             />
                         </div>
                         <div>
@@ -100,7 +100,7 @@ export default function EmailsPage() {
                                 placeholder="Запрос коммерческого предложения"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
-                                className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
+                                className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
                             />
                         </div>
                     </div>
@@ -110,7 +110,7 @@ export default function EmailsPage() {
                         <label className="block text-sm text-[#808080] mb-2">Текст письма</label>
                         <Textarea
                             placeholder="Скопируйте сюда текст полученного письма..."
-                            className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded-2xl min-h-[200px] p-5 resize-none focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
+                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded-2xl min-h-[200px] p-5 resize-none focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
                             value={body}
                             onChange={(e) => setBody(e.target.value)}
                         />
@@ -122,7 +122,7 @@ export default function EmailsPage() {
                         <select
                             value={tone}
                             onChange={(e) => setTone(e.target.value)}
-                            className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded-xl h-12 px-4 focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 appearance-none cursor-pointer"
+                            className="w-full bg-[#262626] border border-[#333333] text-white rounded-xl h-12 px-4 focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 appearance-none cursor-pointer"
                             style={{
                                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                                 backgroundRepeat: 'no-repeat',
@@ -130,7 +130,7 @@ export default function EmailsPage() {
                             }}
                         >
                             {TONES.map((t) => (
-                                <option key={t.id} value={t.id} className="bg-[#1A1A1A]">
+                                <option key={t.id} value={t.id} className="bg-[#262626]">
                                     {t.label}
                                 </option>
                             ))}
@@ -158,7 +158,7 @@ export default function EmailsPage() {
                 </div>
 
                 {/* Divider */}
-                <div className="h-[1px] bg-[#1A1A1A]" />
+                <div className="h-[1px] bg-[#262626]" />
 
                 {/* Response */}
                 <div className="space-y-4">
@@ -173,7 +173,7 @@ export default function EmailsPage() {
                     {generatedResponse ? (
                         <div className="space-y-4">
                             <Textarea
-                                className="bg-[#0F0F0F] border-[#2A2A2A] text-white rounded-2xl min-h-[200px] p-5 resize-none focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
+                                className="bg-[#0F0F0F] border-[#333333] text-white rounded-2xl min-h-[200px] p-5 resize-none focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
                                 value={generatedResponse}
                                 onChange={(e) => setGeneratedResponse(e.target.value)}
                             />
@@ -184,7 +184,7 @@ export default function EmailsPage() {
                                         setConfidence(0);
                                     }}
                                     variant="outline"
-                                    className="bg-transparent border-[#2A2A2A] text-white hover:bg-[#1A1A1A] hover:text-white rounded-full h-10 transition-all duration-300"
+                                    className="bg-transparent border-[#333333] text-white hover:bg-[#262626] hover:text-white rounded-full h-10 transition-all duration-300"
                                 >
                                     Очистить
                                 </Button>
@@ -198,7 +198,7 @@ export default function EmailsPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-[#0F0F0F] border border-[#2A2A2A] rounded-[4px] min-h-[200px] flex items-center justify-center">
+                        <div className="bg-[#0F0F0F] border border-[#333333] rounded-[4px] min-h-[200px] flex items-center justify-center">
                             <p className="text-[#404040] text-sm">
                                 Ответ появится здесь после генерации
                             </p>

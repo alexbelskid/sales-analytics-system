@@ -56,7 +56,7 @@ export default function DataUploader() {
     ];
 
     return (
-        <div className="bg-[#1A1A1A] rounded-lg p-6 mb-6 text-white border border-[#2A2A2A]">
+        <div className="bg-[#262626] rounded-lg p-6 mb-6 text-white border border-[#333333]">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Upload Data</h2>
                 <div className="text-sm text-gray-400">
@@ -72,7 +72,7 @@ export default function DataUploader() {
                         onClick={() => { setActiveTab(tab.id as UploadType); setResult(null); }}
                         className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${activeTab === tab.id
                                 ? 'bg-white text-black font-medium'
-                                : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#3A3A3A]'
+                                : 'bg-[#333333] text-gray-300 hover:bg-[#3A3A3A]'
                             }`}
                     >
                         <span>{tab.icon}</span>
@@ -85,7 +85,7 @@ export default function DataUploader() {
             <div
                 {...getRootProps()}
                 className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200 ${isDragActive
-                        ? 'border-green-500 bg-[#2A2A2A] scale-[1.01]'
+                        ? 'border-green-500 bg-[#333333] scale-[1.01]'
                         : 'border-[#404040] hover:border-gray-500 hover:bg-[#222]'
                     }`}
             >
@@ -150,7 +150,7 @@ export default function DataUploader() {
                 </div>
 
                 {/* Helper Text */}
-                <div className="text-xs text-gray-500 bg-[#1A1A1A] px-3 py-1.5 rounded border border-[#333]">
+                <div className="text-xs text-gray-500 bg-[#262626] px-3 py-1.5 rounded border border-[#333]">
                     Required columns:
                     {activeTab === 'sales' && <span className="text-gray-300 ml-1">date, customer_name, product_name, quantity, price, amount</span>}
                     {activeTab === 'products' && <span className="text-gray-300 ml-1">name, category, price</span>}

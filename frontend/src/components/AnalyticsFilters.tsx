@@ -70,7 +70,7 @@ export function AnalyticsFilters({ onFilterChange, defaultYear, defaultMonth }: 
             <select
                 value={selectedYear ?? 'all'}
                 onChange={(e) => handleYearChange(e.target.value)}
-                className="rounded-[4px] bg-[#111] border border-[#2A2A2A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer min-w-[100px]"
+                className="rounded-[4px] bg-[#111] border border-[#333333] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer min-w-[100px]"
             >
                 <option value="all">Все годы</option>
                 {availableYears.map((year) => (
@@ -82,7 +82,7 @@ export function AnalyticsFilters({ onFilterChange, defaultYear, defaultMonth }: 
             <select
                 value={selectedMonth ?? 'all'}
                 onChange={(e) => handleMonthChange(e.target.value)}
-                className="rounded-[4px] bg-[#111] border border-[#2A2A2A] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer min-w-[130px]"
+                className="rounded-[4px] bg-[#111] border border-[#333333] px-3 py-2 text-sm text-white focus:outline-none focus:border-[#404040] transition-colors cursor-pointer min-w-[130px]"
             >
                 {months.map((month) => (
                     <option key={month.label} value={month.value ?? 'all'}>

@@ -38,7 +38,7 @@ export default function TrainingModal({ item, tones, onClose, onSave }: Training
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={onClose}>
-            <div className="bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-[#202020] border border-[#333333] rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-xl font-semibold mb-6">
                     {item ? 'Редактировать пример' : 'Добавить пример'}
                 </h2>
@@ -50,7 +50,7 @@ export default function TrainingModal({ item, tones, onClose, onSave }: Training
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
                             placeholder="Какая цена на шоколад?"
-                            className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded min-h-[100px] p-4 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
+                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded min-h-[100px] p-4 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
                         />
                     </div>
 
@@ -60,7 +60,7 @@ export default function TrainingModal({ item, tones, onClose, onSave }: Training
                             value={answer}
                             onChange={(e) => setAnswer(e.target.value)}
                             placeholder="Здравствуйте! Цена на шоколад..."
-                            className="bg-[#1A1A1A] border-[#2A2A2A] text-white placeholder:text-[#404040] rounded min-h-[150px] p-4 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
+                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded min-h-[150px] p-4 resize-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-white transition-colors"
                         />
                     </div>
 
@@ -70,7 +70,7 @@ export default function TrainingModal({ item, tones, onClose, onSave }: Training
                             <select
                                 value={tone}
                                 onChange={(e) => setTone(e.target.value)}
-                                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded h-12 px-4 focus:outline-none focus:border-white transition-colors"
+                                className="w-full bg-[#262626] border border-[#333333] text-white rounded h-12 px-4 focus:outline-none focus:border-white transition-colors"
                             >
                                 {tones.map(t => (
                                     <option key={t.id} value={t.id}>{t.label}</option>
@@ -86,7 +86,7 @@ export default function TrainingModal({ item, tones, onClose, onSave }: Training
                                 step="0.1"
                                 value={confidence}
                                 onChange={(e) => setConfidence(parseFloat(e.target.value))}
-                                className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white rounded h-12 px-4 focus:outline-none focus:border-white transition-colors"
+                                className="w-full bg-[#262626] border border-[#333333] text-white rounded h-12 px-4 focus:outline-none focus:border-white transition-colors"
                             />
                         </div>
                     </div>
@@ -95,7 +95,7 @@ export default function TrainingModal({ item, tones, onClose, onSave }: Training
                         <Button
                             onClick={onClose}
                             variant="outline"
-                            className="flex-1 bg-transparent border-[#2A2A2A] text-white hover:bg-[#1A1A1A] hover:text-white rounded h-10"
+                            className="flex-1 bg-transparent border-[#333333] text-white hover:bg-[#262626] hover:text-white rounded h-10"
                         >
                             Отмена
                         </Button>

@@ -42,8 +42,8 @@ const TrainingTab = memo(({
                 onDragLeave={onDragLeave}
                 onClick={onUploadClick}
                 className={`border-2 border-dashed rounded-lg p-12 text-center transition-all cursor-pointer ${isDragging
-                    ? 'border-white bg-[#1A1A1A]'
-                    : 'border-[#2A2A2A] hover:border-[#404040]'
+                    ? 'border-white bg-[#262626]'
+                    : 'border-[#333333] hover:border-[#404040]'
                     }`}
             >
                 <div className="flex flex-col items-center">
@@ -62,7 +62,7 @@ const TrainingTab = memo(({
                             <div className="flex justify-between items-start mb-4">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#808080] bg-[#2A2A2A] px-2 py-0.5 rounded">
+                                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#808080] bg-[#333333] px-2 py-0.5 rounded">
                                             Тон: {example.tone}
                                         </span>
                                         <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest bg-white/5 px-2 py-0.5 rounded">

@@ -68,7 +68,7 @@ export default function TopProductsChart() {
         if (active && payload && payload.length) {
             const item = payload[0].payload;
             return (
-                <div className="rounded-lg border border-[#2A2A2A] bg-[#0A0A0A] p-3 shadow-lg">
+                <div className="rounded-lg border border-[#333333] bg-[#202020] p-3 shadow-lg">
                     <p className="text-sm font-medium text-[#E5E5DC]">{label}</p>
                     <p className="text-sm text-[#E5E5DC]">
                         Сумма: {formatCurrency(item.total_amount)}
@@ -104,7 +104,7 @@ export default function TopProductsChart() {
         <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#262626" horizontal={false} />
                     <XAxis
                         type="number"
                         stroke="#404040"

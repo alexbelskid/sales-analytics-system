@@ -93,7 +93,7 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
     };
 
     return (
-        <div className="bg-[#0A0A0A] border border-[#2A2A2A] rounded-lg p-6">
+        <div className="bg-[#202020] border border-[#333333] rounded-lg p-6">
             <div className="flex items-center gap-3 mb-4">
                 <FileSpreadsheet className="h-5 w-5 text-green-500" />
                 <h3 className="font-semibold">Импорт Excel файла</h3>
@@ -103,7 +103,7 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
             <div className="space-y-4">
                 <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-[#2A2A2A] rounded-lg p-8 text-center cursor-pointer hover:border-[#404040] transition-colors"
+                    className="border-2 border-dashed border-[#333333] rounded-lg p-8 text-center cursor-pointer hover:border-[#404040] transition-colors"
                 >
                     <input
                         ref={fileInputRef}
@@ -171,7 +171,7 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
                             <span className="font-medium">{status.progress_percent}%</span>
                         </div>
 
-                        <div className="w-full bg-[#2A2A2A] rounded-full h-2">
+                        <div className="w-full bg-[#333333] rounded-full h-2">
                             <div
                                 className={`h-2 rounded-full transition-all duration-300 ${status.status === 'completed' ? 'bg-green-500' :
                                         status.status === 'failed' ? 'bg-red-500' :

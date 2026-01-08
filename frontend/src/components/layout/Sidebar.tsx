@@ -39,7 +39,7 @@ const NavItem = memo(({ item, isActive, isCollapsed, onClick }: NavItemProps) =>
         title={isCollapsed ? item.name : ''}
         className={`flex items-center gap-3 px-3 py-3 text-sm rounded-lg transition-all duration-200 min-h-[44px] ${isActive
                 ? 'bg-white text-black font-medium shadow-sm'
-                : 'text-[#808080] hover:text-white hover:bg-[#1A1A1A] active:bg-[#2A2A2A]'
+                : 'text-[#808080] hover:text-white hover:bg-[#262626] active:bg-[#333333]'
             } ${isCollapsed ? 'justify-center px-2' : ''}`}
     >
         <item.icon className="h-5 w-5 shrink-0" />
@@ -97,7 +97,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
     const sidebarContent = (
         <div className="flex h-full flex-col">
             {/* Logo Section */}
-            <div className={`flex h-16 items-center border-b border-[#2A2A2A] shrink-0 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'
+            <div className={`flex h-16 items-center border-b border-[#333333] shrink-0 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'
                 }`}>
                 {!isCollapsed && (
                     <div className="flex items-center gap-2 overflow-hidden">
@@ -110,7 +110,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
                 {/* Collapse button - only on desktop */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="hidden lg:flex p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
+                    className="hidden lg:flex p-2 rounded-lg bg-[#262626] border border-[#333333] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] items-center justify-center"
                 >
                     {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
                 </button>
@@ -119,7 +119,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
                 {onMobileClose && (
                     <button
                         onClick={onMobileClose}
-                        className="lg:hidden p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                        className="lg:hidden p-2 rounded-lg bg-[#262626] border border-[#333333] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                     >
                         <X size={20} />
                     </button>
@@ -140,7 +140,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
             </nav>
 
             {/* Settings */}
-            <div className="border-t border-[#2A2A2A] p-3 shrink-0">
+            <div className="border-t border-[#333333] p-3 shrink-0">
                 <NavItem
                     item={{ name: 'Настройки', href: '/settings', icon: Settings }}
                     isActive={pathname === '/settings'}
@@ -155,7 +155,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
         <>
             {/* Desktop Sidebar */}
             <aside
-                className={`hidden lg:flex border-r border-[#2A2A2A] bg-[#0A0A0A] flex-col overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'
+                className={`hidden lg:flex border-r border-[#333333] bg-[#202020] flex-col overflow-hidden transition-all duration-300 ease-in-out ${isCollapsed ? 'w-16' : 'w-64'
                     }`}
             >
                 {sidebarContent}
@@ -171,7 +171,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
 
             {/* Mobile Sidebar */}
             <aside
-                className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#0A0A0A] border-r border-[#2A2A2A] transform transition-transform duration-300 ease-in-out ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-[#202020] border-r border-[#333333] transform transition-transform duration-300 ease-in-out ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 {sidebarContent}
@@ -185,7 +185,7 @@ export function MobileMenuButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="lg:hidden p-2 rounded-lg bg-[#1A1A1A] border border-[#2A2A2A] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="lg:hidden p-2 rounded-lg bg-[#262626] border border-[#333333] text-[#808080] hover:text-white transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Открыть меню"
         >
             <Menu size={20} />
