@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    /* Brutal Minimalism - Black/White/Grey Only */
-    --background: 0 0% 4%;
-    /* #0A0A0A */
+    /* Dark Gray Theme */
+    --background: 0 0% 12.5%;
+    /* #202020 - Dark Gray */
     --foreground: 40 10% 90%;
     /* #E5E5DC - Light beige */
-    --card: 0 0% 10%;
-    /* #1A1A1A */
+    --card: 0 0% 15%;
+    /* #262626 */
     --card-foreground: 40 10% 90%;
     /* #E5E5DC */
-    --popover: 0 0% 10%;
+    --popover: 0 0% 15%;
     --popover-foreground: 40 10% 90%;
     --primary: 40 10% 90%;
     /* Beige primary */
     --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 16%;
-    /* #2A2A2A */
+    --secondary: 0 0% 20%;
+    /* #333333 */
     --secondary-foreground: 40 10% 90%;
-    --muted: 0 0% 16%;
+    --muted: 0 0% 20%;
     --muted-foreground: 0 0% 50%;
     /* #808080 */
     --accent: 348 70% 36%;
@@ -29,9 +29,9 @@
     --accent-foreground: 40 10% 90%;
     --destructive: 0 80% 55%;
     --destructive-foreground: 40 10% 90%;
-    --border: 0 0% 16%;
-    /* #2A2A2A */
-    --input: 0 0% 16%;
+    --border: 0 0% 20%;
+    /* #333333 */
+    --input: 0 0% 20%;
     --ring: 348 70% 36%;
     --radius: 0.75rem;
     /* 12px - rounded */
