@@ -1,6 +1,7 @@
 """
 Training Examples Router
-CRUD operations for AI training examples (question-answer pairs)
+CRUD operations for AI training examples
+Uses direct PostgreSQL connection to bypass PostgREST schema cache issues
 """
 
 from fastapi import APIRouter, HTTPException, UploadFile, File
@@ -11,7 +12,7 @@ import logging
 import csv
 import io
 
-from app.database import get_supabase_admin as get_supabase
+from app import db_direct
 
 logger = logging.getLogger(__name__)
 
@@ -44,208 +45,85 @@ class TrainingUpdate(BaseModel):
     confidence_score: Optional[float] = None
 
 
+VALID_TONES = ["professional", "friendly", "formal", "brief", "detailed", "creative"]
+
+
 @router.get("", response_model=List[TrainingExample])
-async def list_training_examples(tone: Optional[str] = None, limit: int = 100):
-    """
-    List training examples, optionally filtered by tone
-    
-    Args:
-        tone: Filter by tone
-        limit: Maximum number of examples to return
-    """
+async def list_training(tone: Optional[str] = None):
+    """List all training examples"""
     try:
-        supabase = get_supabase()
-        
-        query = supabase.table("training_examples").select("*")
-        
-        if tone:
-            query = query.eq("tone", tone)
-        
-        response = query.order("confidence_score", desc=True).limit(limit).execute()
-        
-        return response.data
-        
+        items = db_direct.get_all_training(tone)
+        return items
     except Exception as e:
-        logger.error(f"Error listing training examples: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/{example_id}", response_model=TrainingExample)
-async def get_training_example(example_id: str):
-    """Get single training example by ID"""
-    try:
-        supabase = get_supabase()
-        
-        response = supabase.table("training_examples").select("*").eq("id", example_id).execute()
-        
-        if not response.data:
-            raise HTTPException(status_code=404, detail="Training example not found")
-        
-        return response.data[0]
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting training example: {e}")
+        logger.error(f"Error listing training: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("", response_model=TrainingExample)
-async def create_training_example(example: TrainingCreate):
+async def create_training(item: TrainingCreate):
     """Create new training example"""
     try:
-        supabase = get_supabase()
+        if item.tone not in VALID_TONES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid tone. Must be one of: {', '.join(VALID_TONES)}"
+            )
         
-        data = {
-            "question": example.question,
-            "answer": example.answer,
-            "tone": example.tone,
-            "confidence_score": example.confidence_score
-        }
-        
-        response = supabase.table("training_examples").insert(data).execute()
-        
-        return response.data[0]
-        
-    except Exception as e:
-        logger.error(f"Error creating training example: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.put("/{example_id}", response_model=TrainingExample)
-async def update_training_example(example_id: str, example: TrainingUpdate):
-    """Update existing training example"""
-    try:
-        supabase = get_supabase()
-        
-        # Build update data
-        update_data = {}
-        if example.question is not None:
-            update_data["question"] = example.question
-        if example.answer is not None:
-            update_data["answer"] = example.answer
-        if example.tone is not None:
-            update_data["tone"] = example.tone
-        if example.confidence_score is not None:
-            update_data["confidence_score"] = example.confidence_score
-        
-        if not update_data:
-            raise HTTPException(status_code=400, detail="No fields to update")
-        
-        response = supabase.table("training_examples").update(update_data).eq("id", example_id).execute()
-        
-        if not response.data:
-            raise HTTPException(status_code=404, detail="Training example not found")
-        
-        return response.data[0]
+        result = db_direct.insert_training(
+            item.question, 
+            item.answer, 
+            item.tone, 
+            item.confidence_score
+        )
+        logger.info(f"Created training example: {result}")
+        return result
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error updating training example: {e}")
+        logger.error(f"Error creating training: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/{example_id}")
-async def delete_training_example(example_id: str):
+@router.delete("/{item_id}")
+async def delete_training(item_id: str):
     """Delete training example"""
     try:
-        supabase = get_supabase()
-        
-        response = supabase.table("training_examples").delete().eq("id", example_id).execute()
-        
-        if not response.data:
+        success = db_direct.delete_training(item_id)
+        if not success:
             raise HTTPException(status_code=404, detail="Training example not found")
-        
         return {"success": True, "message": "Training example deleted"}
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting training example: {e}")
+        logger.error(f"Error deleting training: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/upload/csv")
-async def upload_csv_examples(file: UploadFile = File(...)):
-    """
-    Upload training examples from CSV file
-    
-    CSV format: question,answer,tone
-    """
+async def upload_training_csv(file: UploadFile = File(...)):
+    """Upload training examples from CSV file"""
     try:
-        if not file.filename.endswith('.csv'):
-            raise HTTPException(status_code=400, detail="File must be CSV format")
+        content = await file.read()
+        text = content.decode('utf-8')
         
-        # Read CSV
-        contents = await file.read()
-        csv_data = contents.decode('utf-8')
-        csv_reader = csv.DictReader(io.StringIO(csv_data))
+        reader = csv.DictReader(io.StringIO(text))
+        created = 0
         
-        # Validate headers
-        required_headers = {'question', 'answer'}
-        if not required_headers.issubset(set(csv_reader.fieldnames or [])):
-            raise HTTPException(
-                status_code=400,
-                detail=f"CSV must have columns: {', '.join(required_headers)}"
-            )
+        for row in reader:
+            question = row.get('question', row.get('вопрос', ''))
+            answer = row.get('answer', row.get('ответ', ''))
+            tone = row.get('tone', row.get('тон', 'professional'))
+            
+            if question and answer:
+                if tone not in VALID_TONES:
+                    tone = 'professional'
+                db_direct.insert_training(question, answer, tone, 1.0)
+                created += 1
         
-        # Parse and insert
-        supabase = get_supabase()
-        examples = []
-        
-        for row in csv_reader:
-            example = {
-                "question": row["question"],
-                "answer": row["answer"],
-                "tone": row.get("tone", "professional"),
-                "confidence_score": float(row.get("confidence_score", 1.0))
-            }
-            examples.append(example)
-        
-        if not examples:
-            raise HTTPException(status_code=400, detail="No valid examples found in CSV")
-        
-        response = supabase.table("training_examples").insert(examples).execute()
-        
-        return {
-            "success": True,
-            "message": f"Uploaded {len(examples)} training examples",
-            "count": len(examples)
-        }
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error uploading CSV: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/stats/summary")
-async def get_training_stats():
-    """Get training examples statistics"""
-    try:
-        supabase = get_supabase()
-        
-        response = supabase.table("training_examples").select("tone, confidence_score").execute()
-        
-        # Count by tone
-        tones = {}
-        total_confidence = 0
-        
-        for item in response.data:
-            tone = item["tone"]
-            tones[tone] = tones.get(tone, 0) + 1
-            total_confidence += item.get("confidence_score", 1.0)
-        
-        avg_confidence = total_confidence / len(response.data) if response.data else 0
-        
-        return {
-            "total": len(response.data),
-            "by_tone": tones,
-            "average_confidence": round(avg_confidence, 2)
-        }
+        return {"success": True, "created": created}
         
     except Exception as e:
-        logger.error(f"Error getting training stats: {e}")
+        logger.error(f"Error uploading training CSV: {e}")
         raise HTTPException(status_code=500, detail=str(e))
