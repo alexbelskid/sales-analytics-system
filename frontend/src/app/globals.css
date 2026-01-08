@@ -65,6 +65,28 @@
     @apply bg-card border border-border rounded-xl p-6 transition-all duration-300 ease-out hover:border-white/20 hover:scale-[1.01];
   }
 
+  /* Universal card/block component */
+  .ui-card {
+    @apply bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 transition-all duration-300 ease-out;
+  }
+
+  .ui-card:hover {
+    @apply border-[#404040] scale-[1.01] shadow-lg shadow-black/20;
+  }
+
+  .ui-card:active {
+    @apply scale-[0.99];
+  }
+
+  /* Compact card variant */
+  .ui-card-compact {
+    @apply bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4 transition-all duration-300 ease-out;
+  }
+
+  .ui-card-compact:hover {
+    @apply border-[#404040] scale-[1.01];
+  }
+
   /* Global button styles */
   button {
     @apply rounded-full transition-all duration-300 ease-out;

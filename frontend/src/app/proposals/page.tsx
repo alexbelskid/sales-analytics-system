@@ -116,8 +116,8 @@ export default function ProposalsPage() {
                 {/* Form */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Customer */}
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6 space-y-4">
-                        <h3 className="font-semibold">Клиент</h3>
+                    <div className="ui-card">
+                        <h3 className="font-semibold mb-4">Клиент</h3>
                         <div className="grid gap-4 md:grid-cols-2">
                             <input
                                 type="text"
@@ -137,8 +137,8 @@ export default function ProposalsPage() {
                     </div>
 
                     {/* Items */}
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6 space-y-4">
-                        <div className="flex items-center justify-between">
+                    <div className="ui-card">
+                        <div className="flex items-center justify-between mb-4">
                             <h3 className="font-semibold">Товары/Услуги</h3>
                             <button
                                 onClick={addItem}
@@ -196,8 +196,8 @@ export default function ProposalsPage() {
                     </div>
 
                     {/* Conditions */}
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6 space-y-4">
-                        <h3 className="font-semibold">Условия</h3>
+                    <div className="ui-card">
+                        <h3 className="font-semibold mb-4">Условия</h3>
                         <textarea
                             placeholder="Условия оплаты, доставки, гарантии..."
                             value={conditions}
@@ -210,8 +210,8 @@ export default function ProposalsPage() {
 
                 {/* Preview & Actions */}
                 <div className="space-y-4">
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6 space-y-4">
-                        <div className="flex items-center gap-2">
+                    <div className="ui-card">
+                        <div className="flex items-center gap-2 mb-4">
                             <FileText className="h-5 w-5 text-white" />
                             <h3 className="font-semibold">Предпросмотр</h3>
                         </div>
@@ -232,8 +232,8 @@ export default function ProposalsPage() {
                         )}
                     </div>
 
-                    <div className="bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-6 space-y-3">
-                        <h3 className="font-semibold">Экспорт</h3>
+                    <div className="ui-card">
+                        <h3 className="font-semibold mb-3">Экспорт</h3>
                         <button
                             onClick={exportDocx}
                             className="flex w-full items-center justify-center gap-2 rounded-full border border-[#2A2A2A] py-2.5 font-medium text-white hover:bg-[#2A2A2A] transition-all duration-300"
