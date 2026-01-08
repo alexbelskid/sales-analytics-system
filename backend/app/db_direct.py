@@ -18,25 +18,17 @@ def get_db_connection():
     """Get a direct PostgreSQL connection"""
     conn = None
     try:
-        database_url = settings.database_url
-        if not database_url:
-            logger.error("DATABASE_URL not configured")
-            raise Exception("DATABASE_URL not configured. Please add it to environment variables.")
+        if not settings.database_url:
+            raise Exception("DATABASE_URL not configured")
         
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(settings.database_url)
         yield conn
-    except psycopg2.OperationalError as e:
-        logger.error(f"Database connection failed: {e}")
-        raise Exception(f"Cannot connect to database: {e}")
     except Exception as e:
-        logger.error(f"Database error: {e}")
+        logger.error(f"Database connection error: {e}")
         raise
     finally:
         if conn:
-            try:
-                conn.close()
-            except:
-                pass
+            conn.close()
 
 
 def execute_query(sql: str, params: tuple = None, fetch: bool = True) -> Optional[List[Dict]]:
