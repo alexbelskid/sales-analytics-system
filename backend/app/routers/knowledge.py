@@ -1,7 +1,6 @@
 """
 Knowledge Base Router
 CRUD operations for company knowledge base (products, terms, contacts, FAQ, company info)
-Uses direct PostgreSQL connection to bypass PostgREST schema cache issues
 """
 
 from fastapi import APIRouter, HTTPException
@@ -10,7 +9,7 @@ from typing import List, Optional
 from datetime import datetime
 import logging
 
-from app import db_direct
+from app.database import get_supabase_admin as get_supabase
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +40,26 @@ class KnowledgeUpdate(BaseModel):
     content: Optional[str] = None
 
 
-VALID_CATEGORIES = ["products", "terms", "contacts", "faq", "company_info"]
-
-
 @router.get("", response_model=List[KnowledgeItem])
 async def list_knowledge(category: Optional[str] = None):
-    """List all knowledge base items, optionally filtered by category"""
+    """
+    List all knowledge base items, optionally filtered by category
+    
+    Args:
+        category: Filter by category (products, terms, contacts, faq, company_info)
+    """
     try:
-        items = db_direct.get_all_knowledge(category)
-        return items
+        supabase = get_supabase()
+        
+        query = supabase.table("knowledge_base").select("*")
+        
+        if category:
+            query = query.eq("category", category)
+        
+        response = query.order("created_at", desc=True).execute()
+        
+        return response.data
+        
     except Exception as e:
         logger.error(f"Error listing knowledge: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -59,10 +69,15 @@ async def list_knowledge(category: Optional[str] = None):
 async def get_knowledge(item_id: str):
     """Get single knowledge base item by ID"""
     try:
-        item = db_direct.get_knowledge_by_id(item_id)
-        if not item:
+        supabase = get_supabase()
+        
+        response = supabase.table("knowledge_base").select("*").eq("id", item_id).execute()
+        
+        if not response.data:
             raise HTTPException(status_code=404, detail="Knowledge item not found")
-        return item
+        
+        return response.data[0]
+        
     except HTTPException:
         raise
     except Exception as e:
@@ -74,16 +89,25 @@ async def get_knowledge(item_id: str):
 async def create_knowledge(item: KnowledgeCreate):
     """Create new knowledge base item"""
     try:
+        supabase = get_supabase()
+        
         # Validate category
-        if item.category not in VALID_CATEGORIES:
+        valid_categories = ["products", "terms", "contacts", "faq", "company_info"]
+        if item.category not in valid_categories:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid category. Must be one of: {', '.join(VALID_CATEGORIES)}"
+                detail=f"Invalid category. Must be one of: {', '.join(valid_categories)}"
             )
         
-        result = db_direct.insert_knowledge(item.category, item.title, item.content)
-        logger.info(f"Created knowledge item: {result}")
-        return result
+        data = {
+            "category": item.category,
+            "title": item.title,
+            "content": item.content
+        }
+        
+        response = supabase.table("knowledge_base").insert(data).execute()
+        
+        return response.data[0]
         
     except HTTPException:
         raise
@@ -96,23 +120,34 @@ async def create_knowledge(item: KnowledgeCreate):
 async def update_knowledge(item_id: str, item: KnowledgeUpdate):
     """Update existing knowledge base item"""
     try:
-        if item.category and item.category not in VALID_CATEGORIES:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid category. Must be one of: {', '.join(VALID_CATEGORIES)}"
-            )
+        supabase = get_supabase()
         
-        result = db_direct.update_knowledge(
-            item_id,
-            category=item.category,
-            title=item.title,
-            content=item.content
-        )
+        # Build update data
+        update_data = {}
+        if item.category is not None:
+            valid_categories = ["products", "terms", "contacts", "faq", "company_info"]
+            if item.category not in valid_categories:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid category. Must be one of: {', '.join(valid_categories)}"
+                )
+            update_data["category"] = item.category
+        if item.title is not None:
+            update_data["title"] = item.title
+        if item.content is not None:
+            update_data["content"] = item.content
         
-        if not result:
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        
+        update_data["updated_at"] = datetime.utcnow().isoformat()
+        
+        response = supabase.table("knowledge_base").update(update_data).eq("id", item_id).execute()
+        
+        if not response.data:
             raise HTTPException(status_code=404, detail="Knowledge item not found")
         
-        return result
+        return response.data[0]
         
     except HTTPException:
         raise
@@ -125,9 +160,13 @@ async def update_knowledge(item_id: str, item: KnowledgeUpdate):
 async def delete_knowledge(item_id: str):
     """Delete knowledge base item"""
     try:
-        success = db_direct.delete_knowledge(item_id)
-        if not success:
+        supabase = get_supabase()
+        
+        response = supabase.table("knowledge_base").delete().eq("id", item_id).execute()
+        
+        if not response.data:
             raise HTTPException(status_code=404, detail="Knowledge item not found")
+        
         return {"success": True, "message": "Knowledge item deleted"}
         
     except HTTPException:
@@ -141,16 +180,18 @@ async def delete_knowledge(item_id: str):
 async def get_knowledge_stats():
     """Get knowledge base statistics"""
     try:
-        items = db_direct.get_all_knowledge()
+        supabase = get_supabase()
+        
+        response = supabase.table("knowledge_base").select("category").execute()
         
         # Count by category
         categories = {}
-        for item in items:
+        for item in response.data:
             cat = item["category"]
             categories[cat] = categories.get(cat, 0) + 1
         
         return {
-            "total": len(items),
+            "total": len(response.data),
             "by_category": categories
         }
         
