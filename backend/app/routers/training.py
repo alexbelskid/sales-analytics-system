@@ -11,7 +11,7 @@ import logging
 import csv
 import io
 
-from app.database import get_supabase
+from app.database import get_supabase_admin as get_supabase
 
 logger = logging.getLogger(__name__)
 
