@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { TrendingUp, TrendingDown, MapPin, Trophy, Eye } from 'lucide-react';
+import { TrendingUp, TrendingDown, MapPin, Trophy, Eye, User } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import AgentDetailsModal from './AgentDetailsModal';
 
@@ -24,93 +24,136 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
     const [showDetails, setShowDetails] = useState(false);
 
     const fulfillmentColor =
-        agent.fulfillment_percent >= 100 ? 'text-green-500' :
-            agent.fulfillment_percent >= 80 ? 'text-yellow-500' :
-                'text-red-500';
+        agent.fulfillment_percent >= 100 ? 'text-emerald-400' :
+            agent.fulfillment_percent >= 80 ? 'text-amber-400' :
+                agent.fulfillment_percent >= 50 ? 'text-orange-400' :
+                    'text-rose-400';
+
+    const progressColor =
+        agent.fulfillment_percent >= 100 ? 'from-emerald-600 to-emerald-400' :
+            agent.fulfillment_percent >= 80 ? 'from-amber-600 to-amber-400' :
+                agent.fulfillment_percent >= 50 ? 'from-orange-600 to-orange-400' :
+                    'from-rose-600 to-rose-400';
 
     const getTrendIcon = () => {
         if (agent.forecast_fulfillment_percent) {
             return agent.forecast_fulfillment_percent >= 100 ?
-                <TrendingUp className="h-4 w-4 text-green-500" /> :
-                <TrendingDown className="h-4 w-4 text-red-500" />;
+                <TrendingUp className="h-4 w-4 text-emerald-400" /> :
+                <TrendingDown className="h-4 w-4 text-rose-400" />;
         }
         return null;
+    };
+
+    const isTopPerformer = rank <= 3;
+    const rankColors: Record<number, string> = {
+        1: 'from-yellow-500 to-amber-600',
+        2: 'from-gray-300 to-gray-500',
+        3: 'from-orange-400 to-orange-600',
     };
 
     return (
         <>
             <div
                 onClick={() => setShowDetails(true)}
-                className="ui-card cursor-pointer hover:scale-[1.02] transition-transform duration-200"
+                className={`
+                    relative overflow-hidden rounded-xl border border-[#262626] bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f]
+                    cursor-pointer transition-all duration-300 
+                    hover:border-rose-800/50 hover:shadow-lg hover:shadow-rose-900/20 hover:scale-[1.02]
+                    ${isTopPerformer ? 'ring-1 ring-yellow-500/20' : ''}
+                `}
             >
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-1">{agent.agent_name}</h3>
-                        <div className="flex items-center gap-2 text-sm text-[#808080]">
-                            <MapPin className="h-3 w-3" />
-                            <span>{agent.region}</span>
+                {/* Top performer glow */}
+                {isTopPerformer && (
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500/50 via-amber-400/50 to-yellow-500/50" />
+                )}
+
+                <div className="p-5">
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            {/* Avatar */}
+                            <div className={`
+                                w-10 h-10 rounded-full flex items-center justify-center
+                                ${isTopPerformer
+                                    ? `bg-gradient-to-br ${rankColors[rank]}`
+                                    : 'bg-gradient-to-br from-[#333] to-[#222]'
+                                }
+                            `}>
+                                {isTopPerformer ? (
+                                    <Trophy className="h-5 w-5 text-white" />
+                                ) : (
+                                    <User className="h-5 w-5 text-[#808080]" />
+                                )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-base truncate">{agent.agent_name}</h3>
+                                <div className="flex items-center gap-1.5 text-xs text-[#666]">
+                                    <MapPin className="h-3 w-3" />
+                                    <span className="truncate">{agent.region}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {isTopPerformer && (
+                            <div className={`
+                                flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white
+                                bg-gradient-to-r ${rankColors[rank]}
+                            `}>
+                                #{rank}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Sales Info */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="bg-[#0a0a0a] rounded-lg p-3">
+                            <div className="text-xs text-[#666] mb-1">План</div>
+                            <div className="text-sm font-semibold">{formatCurrency(agent.plan_amount)}</div>
+                        </div>
+                        <div className="bg-[#0a0a0a] rounded-lg p-3">
+                            <div className="text-xs text-[#666] mb-1">Факт</div>
+                            <div className="text-sm font-semibold">{formatCurrency(agent.actual_sales)}</div>
                         </div>
                     </div>
 
-                    {rank <= 3 && (
-                        <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-500/10 text-yellow-500 text-xs">
-                            <Trophy className="h-3 w-3" />
-                            <span>#{rank}</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Sales Info */}
-                <div className="space-y-3 mb-4">
-                    <div>
-                        <div className="flex justify-between items-center mb-1">
-                            <span className="text-xs text-[#808080]">План</span>
-                            <span className="text-sm font-medium">{formatCurrency(agent.plan_amount)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-xs text-[#808080]">Факт</span>
-                            <span className="text-sm font-medium">{formatCurrency(agent.actual_sales)}</span>
-                        </div>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div>
+                    {/* Progress */}
+                    <div className="mb-4">
                         <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-[#808080]">Выполнение</span>
-                            <span className={`text-lg font-bold ${fulfillmentColor}`}>
+                            <span className="text-xs text-[#666]">Выполнение</span>
+                            <span className={`text-xl font-bold ${fulfillmentColor}`}>
                                 {agent.fulfillment_percent.toFixed(1)}%
                             </span>
                         </div>
-                        <div className="w-full h-2 bg-[#262626] rounded-full overflow-hidden">
+                        <div className="w-full h-2.5 bg-[#1a1a1a] rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-rose-600 to-rose-400 transition-all duration-500"
+                                className={`h-full bg-gradient-to-r ${progressColor} transition-all duration-700 ease-out`}
                                 style={{ width: `${Math.min(agent.fulfillment_percent, 100)}%` }}
                             />
                         </div>
                     </div>
-                </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-[#262626]">
-                    <div className="flex items-center gap-2">
-                        {getTrendIcon()}
-                        {agent.forecast_fulfillment_percent && (
-                            <span className="text-xs text-[#808080]">
-                                Прогноз: {agent.forecast_fulfillment_percent.toFixed(1)}%
-                            </span>
-                        )}
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-3 border-t border-[#1f1f1f]">
+                        <div className="flex items-center gap-2">
+                            {getTrendIcon()}
+                            {agent.forecast_fulfillment_percent && (
+                                <span className="text-xs text-[#666]">
+                                    Прогноз: {agent.forecast_fulfillment_percent.toFixed(1)}%
+                                </span>
+                            )}
+                        </div>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDetails(true);
+                            }}
+                            className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors"
+                        >
+                            <Eye className="h-3.5 w-3.5" />
+                            <span>Детали</span>
+                        </button>
                     </div>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDetails(true);
-                        }}
-                        className="flex items-center gap-1 text-xs text-rose-500 hover:text-rose-400"
-                    >
-                        <Eye className="h-3 w-3" />
-                        <span>Детали</span>
-                    </button>
                 </div>
             </div>
 
@@ -125,3 +168,4 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
         </>
     );
 }
+
