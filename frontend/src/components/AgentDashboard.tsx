@@ -123,24 +123,24 @@ export default function AgentDashboard() {
                 </div>
 
                 {/* Controls */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                     <input
                         type="date"
                         value={periodStart}
                         onChange={(e) => setPeriodStart(e.target.value)}
-                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white"
+                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white min-w-[140px]"
                     />
                     <input
                         type="date"
                         value={periodEnd}
                         onChange={(e) => setPeriodEnd(e.target.value)}
-                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white"
+                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white min-w-[140px]"
                     />
 
                     <select
                         value={selectedRegion || ''}
                         onChange={(e) => setSelectedRegion(e.target.value || null)}
-                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white"
+                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white min-w-[140px]"
                     >
                         <option value="">Все регионы</option>
                         <option value="БРЕСТ">БРЕСТ</option>
@@ -152,7 +152,7 @@ export default function AgentDashboard() {
 
                     <button
                         onClick={() => setShowImporter(!showImporter)}
-                        className="flex items-center justify-center gap-2 rounded-full border border-[#333333] px-5 py-2.5 text-sm hover:bg-[#262626]"
+                        className="flex items-center justify-center gap-2 rounded-full border border-[#333333] px-5 py-2.5 text-sm hover:bg-[#262626] transition-colors min-w-[120px]"
                     >
                         <Upload className="h-4 w-4" />
                         <span>Импорт</span>
@@ -161,7 +161,7 @@ export default function AgentDashboard() {
                     <button
                         onClick={loadDashboard}
                         disabled={loading}
-                        className="flex items-center justify-center gap-2 rounded-full bg-rose-800 hover:bg-rose-700 px-5 py-2.5 text-sm disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 rounded-full bg-rose-800 hover:bg-rose-700 px-5 py-2.5 text-sm disabled:opacity-50 transition-colors min-w-[120px]"
                     >
                         <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                         <span>Обновить</span>

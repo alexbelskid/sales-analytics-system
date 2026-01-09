@@ -14,7 +14,8 @@ import {
     ChevronRight,
     Sparkles,
     X,
-    Menu
+    Menu,
+    FileSpreadsheet
 } from 'lucide-react';
 
 const navigation = [
@@ -23,6 +24,7 @@ const navigation = [
     { name: 'AI Ассистент', href: '/ai-assistant', icon: TrendingUp },
     { name: 'КП', href: '/proposals', icon: FileText },
     { name: 'Зарплаты', href: '/salary', icon: Calculator },
+    { name: 'Файлы', href: '/files', icon: FileSpreadsheet },
 ];
 
 interface NavItemProps {
@@ -38,8 +40,8 @@ const NavItem = memo(({ item, isActive, isCollapsed, onClick }: NavItemProps) =>
         onClick={onClick}
         title={isCollapsed ? item.name : ''}
         className={`flex items-center gap-3 px-3 py-3 text-sm rounded-lg transition-all duration-200 min-h-[44px] ${isActive
-                ? 'bg-white text-black font-medium shadow-sm'
-                : 'text-[#808080] hover:text-white hover:bg-[#262626] active:bg-[#333333]'
+            ? 'bg-white text-black font-medium shadow-sm'
+            : 'text-[#808080] hover:text-white hover:bg-[#262626] active:bg-[#333333]'
             } ${isCollapsed ? 'justify-center px-2' : ''}`}
     >
         <item.icon className="h-5 w-5 shrink-0" />

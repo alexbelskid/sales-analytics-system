@@ -101,7 +101,7 @@ export default function TopProductsChart() {
     }
 
     return (
-        <div className="h-72">
+        <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#262626" horizontal={false} />
@@ -120,7 +120,8 @@ export default function TopProductsChart() {
                         fontSize={10}
                         tickLine={false}
                         axisLine={false}
-                        width={100}
+                        width={160}
+                        tickFormatter={(value) => value.length > 20 ? value.substring(0, 18) + '...' : value}
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Bar dataKey="total_amount" radius={[0, 8, 8, 0]}>

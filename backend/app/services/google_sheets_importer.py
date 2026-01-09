@@ -41,52 +41,87 @@ class GoogleSheetsImporter:
             plans_imported = 0
             daily_sales_imported = 0
             errors = []
+            processed_names = set()
             
             current_region = None
+            header_row_idx = None
+            
+            logger.info(f"Starting import of {len(data)} rows")
             
             for row_idx, row in enumerate(data):
                 if not row or len(row) == 0:
                     continue
                 
-                # Check if this is a regional header
-                first_cell = str(row[0]).strip().upper()
-                if first_cell in self.REGIONAL_HEADERS or any(reg in first_cell for reg in self.REGIONAL_HEADERS):
-                    current_region = first_cell
-                    logger.info(f"Found region header: {current_region}")
+                # Get first cell
+                first_cell = str(row[0]).strip() if row[0] else ""
+                first_cell_upper = first_cell.upper()
+                
+                # Skip completely empty or very short cells
+                if len(first_cell) < 2:
                     continue
                 
-                # Skip header rows (contains "Продажи", "План", etc.)
-                if any(header in str(row[0:5]).upper() for header in ['ПРОДАЖИ', 'ПЛАН', 'ВЫПОЛН', 'ПРОГНОЗ']):
+                # Check if this is a regional header (colored row with region name)
+                is_region_header = any(reg in first_cell_upper for reg in self.REGIONAL_HEADERS)
+                if is_region_header:
+                    current_region = first_cell_upper
+                    # Normalize region name
+                    for reg in self.REGIONAL_HEADERS:
+                        if reg in current_region:
+                            current_region = reg
+                            break
+                    logger.info(f"Row {row_idx}: Found region header: {current_region}")
                     continue
+                
+                # Skip column header rows (contain column titles like "Район / Ответственный", "Продажи", etc.)
+                skip_keywords = ['РАЙОН', 'ОТВЕТСТВЕННЫЙ', 'ПРОДАЖИ', 'ПЛАН', 'ВЫПОЛНЕНИЕ', 
+                                'ПРОГНОЗ', 'БЕЛПОЧТА', 'ПОТРЕБКООП', 'ПИРОТЕХНИКА',
+                                'РЕГИОН', 'ПОЛЬЗОВАТЕЛЬ', 'ТОРГОВАЯ МАРКА']
+                if any(kw in first_cell_upper for kw in skip_keywords):
+                    header_row_idx = row_idx
+                    logger.info(f"Row {row_idx}: Skipping header row")
+                    continue
+                
+                # Skip summary/total rows
+                if any(word in first_cell_upper for word in ['ИТОГО', 'TOTAL', 'ВСЕГО', 'ОБЩИЙ']):
+                    logger.info(f"Row {row_idx}: Skipping summary row: {first_cell}")
+                    continue
+                
+                # Skip if first cell is a number (likely data cell, not agent name)
+                if self._parse_float(first_cell) is not None and first_cell.replace('.', '').replace(',', '').isdigit():
+                    continue
+                
+                # This should be an agent row - agent name should be a text string with letters
+                # Check if it looks like a name (contains Cyrillic or Latin letters)
+                has_letters = any(c.isalpha() for c in first_cell)
+                if not has_letters:
+                    continue
+                
+                agent_name = first_cell
+                
+                # Skip duplicate names in same import
+                if agent_name in processed_names:
+                    continue
+                processed_names.add(agent_name)
                 
                 # Try to parse agent row
                 try:
-                    agent_name = str(row[0]).strip() if row[0] else None
-                    
-                    if not agent_name or len(agent_name) < 3:
-                        continue
-                    
-                    # Skip summary rows (Итого, Total, etc.)
-                    if any(word in agent_name.upper() for word in ['ИТОГО', 'TOTAL', 'ВСЕГО']):
-                        continue
-                    
-                    # Parse sales data
+                    # Parse sales data - columns B, C, D, E
                     sales = self._parse_float(row[1] if len(row) > 1 else None)
                     plan = self._parse_float(row[2] if len(row) > 2 else None)
                     fulfillment_pct = self._parse_float(row[3] if len(row) > 3 else None)
                     forecast_pct = self._parse_float(row[4] if len(row) > 4 else None)
                     
-                    # Parse special categories (БелПочта, Потребкооперация, ПИРОТЕХНИКА)
+                    # Skip if no sales data at all
+                    if sales is None and plan is None:
+                        logger.debug(f"Row {row_idx}: Skipping {agent_name} - no sales/plan data")
+                        continue
+                    
+                    # Parse special categories (БелПочта, Потребкооперация, ПИРОТЕХНИКА) - columns F, G, H
                     belpochta = self._parse_float(row[5] if len(row) > 5 else None) or 0
                     potrebkoop = self._parse_float(row[6] if len(row) > 6 else None) or 0
                     pyrotech = self._parse_float(row[7] if len(row) > 7 else None) or 0
                     
-                    # Parse daily history (columns 1-7 after special categories)
-                    daily_history = []
-                    for i in range(8, min(15, len(row))):  # Typically columns 8-14
-                        val = self._parse_float(row[i])
-                        if val is not None and val > 0:
-                            daily_history.append(val)
+                    logger.info(f"Row {row_idx}: Importing agent '{agent_name}' - region: {current_region}, sales: {sales}, plan: {plan}")
                     
                     # Create or update agent
                     agent_id = await self._upsert_agent(agent_name, current_region or 'Unknown')
@@ -111,36 +146,29 @@ class GoogleSheetsImporter:
                         # Create category sales
                         if belpochta > 0:
                             await self._upsert_daily_sales(
-                                agent_id, today, belpochta, current_region, 'БелПочта'
+                                agent_id, date.today(), belpochta, current_region, 'БелПочта'
                             )
                             daily_sales_imported += 1
                         
                         if potrebkoop > 0:
                             await self._upsert_daily_sales(
-                                agent_id, today, potrebkoop, current_region, 'Потребкооперация'
+                                agent_id, date.today(), potrebkoop, current_region, 'Потребкооперация'
                             )
                             daily_sales_imported += 1
                         
                         if pyrotech > 0:
                             await self._upsert_daily_sales(
-                                agent_id, today, pyrotech, current_region, 'ПИРОТЕХНИКА'
+                                agent_id, date.today(), pyrotech, current_region, 'ПИРОТЕХНИКА'
                             )
                             daily_sales_imported += 1
-                        
-                        # Import historical daily data if available
-                        for day_idx, daily_val in enumerate(daily_history, 1):
-                            hist_date = period_start + timedelta(days=day_idx - 1)
-                            if hist_date <= period_end:
-                                await self._upsert_daily_sales(
-                                    agent_id, hist_date, daily_val, current_region, 'General'
-                                )
-                                daily_sales_imported += 1
                 
                 except Exception as row_error:
-                    error_msg = f"Error processing row {row_idx}: {str(row_error)}"
+                    error_msg = f"Error processing row {row_idx} ({agent_name}): {str(row_error)}"
                     logger.error(error_msg)
                     errors.append(error_msg)
                     continue
+            
+            logger.info(f"Import complete: {agents_imported} agents, {plans_imported} plans, {daily_sales_imported} sales")
             
             return GoogleSheetsImportResult(
                 success=True,
@@ -148,7 +176,7 @@ class GoogleSheetsImporter:
                 plans_imported=plans_imported,
                 daily_sales_imported=daily_sales_imported,
                 errors=errors,
-                message=f"Successfully imported {agents_imported} agents, {plans_imported} plans, {daily_sales_imported} daily sales records"
+                message=f"Успешно импортировано: {agents_imported} агентов, {plans_imported} планов, {daily_sales_imported} записей продаж"
             )
         
         except Exception as e:
@@ -156,7 +184,7 @@ class GoogleSheetsImporter:
             return GoogleSheetsImportResult(
                 success=False,
                 errors=[str(e)],
-                message=f"Import failed: {str(e)}"
+                message=f"Ошибка импорта: {str(e)}"
             )
     
     # ========================================================================

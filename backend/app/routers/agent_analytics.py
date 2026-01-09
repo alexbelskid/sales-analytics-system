@@ -9,6 +9,7 @@ from typing import Optional, List
 from uuid import UUID
 import logging
 import io
+import csv
 import openpyxl
 
 from app.models.agent_analytics import (
@@ -236,29 +237,72 @@ async def get_agent_rankings(
 
 @router.post("/import-excel", response_model=GoogleSheetsImportResult)
 async def import_from_excel(
-    file: UploadFile = File(..., description="Excel file with agent sales data"),
+    file: UploadFile = File(..., description="Excel or CSV file with agent sales data"),
     period_start: date = Query(..., description="Start date of period"),
     period_end: date = Query(..., description="End date of period"),
 ):
     """
-    Import agent sales data from Excel file (Daily Sales-Out format)
+    Import agent sales data from Excel (.xlsx) or CSV file (Daily Sales-Out format)
     
     Expected format:
     - Regional headers (БРЕСТ, ВИТЕБСК, etc.)
     - Agent rows: Name | Sales | Plan | Fulfillment% | Forecast% | Categories... | Daily history...
     """
     try:
-        # Read Excel file
         contents = await file.read()
-        workbook = openpyxl.load_workbook(io.BytesIO(contents), data_only=True)
-        
-        # Get first sheet (typically "TDSheet")
-        sheet = workbook.active
-        
-        # Convert to list of lists
+        filename = file.filename or ""
         data = []
-        for row in sheet.iter_rows(values_only=True):
-            data.append(list(row))
+        
+        # Determine file type and parse accordingly
+        if filename.lower().endswith('.csv'):
+            # Parse CSV file
+            try:
+                text_content = contents.decode('utf-8')
+            except UnicodeDecodeError:
+                text_content = contents.decode('windows-1251')  # Cyrillic encoding fallback
+            
+            reader = csv.reader(io.StringIO(text_content))
+            data = list(reader)
+            logger.info(f"Parsed CSV with {len(data)} rows")
+            
+        elif filename.lower().endswith(('.xlsx', '.xls')):
+            # Parse Excel file
+            try:
+                workbook = openpyxl.load_workbook(io.BytesIO(contents), data_only=True)
+                sheet = workbook.active
+                for row in sheet.iter_rows(values_only=True):
+                    data.append(list(row))
+                logger.info(f"Parsed Excel with {len(data)} rows")
+            except Exception as excel_error:
+                logger.error(f"Excel parse error: {excel_error}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Ошибка чтения Excel файла. Убедитесь, что файл имеет формат .xlsx. Ошибка: {str(excel_error)}"
+                )
+        else:
+            # Try to auto-detect format
+            try:
+                # Try Excel first
+                workbook = openpyxl.load_workbook(io.BytesIO(contents), data_only=True)
+                sheet = workbook.active
+                for row in sheet.iter_rows(values_only=True):
+                    data.append(list(row))
+            except:
+                # Try CSV
+                try:
+                    text_content = contents.decode('utf-8')
+                except UnicodeDecodeError:
+                    text_content = contents.decode('windows-1251')
+                reader = csv.reader(io.StringIO(text_content))
+                data = list(reader)
+        
+        if not data:
+            raise HTTPException(
+                status_code=400,
+                detail="Файл пуст или не содержит данных"
+            )
+        
+        logger.info(f"Starting import of {len(data)} rows for period {period_start} to {period_end}")
         
         # Import using the importer service
         result = await google_sheets_importer.import_from_data(
@@ -267,11 +311,13 @@ async def import_from_excel(
         
         return result
     
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Import error: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to import data: {str(e)}"
+            detail=f"Ошибка импорта: {str(e)}. Поддерживаемые форматы: .xlsx, .csv"
         )
 
 

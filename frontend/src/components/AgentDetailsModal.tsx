@@ -33,9 +33,40 @@ export default function AgentDetailsModal({ agentId, agentName, onClose }: Agent
 
     if (loading) {
         return (
-            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-                <div className="bg-[#1a1a1a] rounded-lg p-8">
-                    <p>Загрузка...</p>
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onClose}>
+                <div
+                    className="bg-[#1a1a1a] rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Header */}
+                    <div className="border-b border-[#262626] p-6 flex items-center justify-between">
+                        <div>
+                            <h2 className="text-2xl font-semibold">{agentName}</h2>
+                            <p className="text-sm text-[#808080]">Загрузка данных...</p>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-2 hover:bg-[#262626] rounded-lg transition-colors"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    {/* Skeleton Content */}
+                    <div className="p-6 space-y-6">
+                        <div className="grid grid-cols-3 gap-4">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="bg-[#202020] border border-[#262626] rounded-lg p-4 animate-pulse">
+                                    <div className="h-3 bg-[#333] rounded w-20 mb-3"></div>
+                                    <div className="h-8 bg-[#333] rounded w-24"></div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-[#202020] border border-[#262626] rounded-lg p-6 animate-pulse">
+                            <div className="h-4 bg-[#333] rounded w-32 mb-4"></div>
+                            <div className="h-48 bg-[#333] rounded"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
