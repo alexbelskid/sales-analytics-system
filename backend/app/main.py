@@ -64,6 +64,10 @@ app.include_router(extended_analytics.router)
 from app.routers import files_router
 app.include_router(files_router.router)
 
+# Agent Analytics Router
+from app.routers import agent_analytics
+app.include_router(agent_analytics.router, prefix="/api")
+
 
 @app.get("/", tags=["Health"])
 async def root():

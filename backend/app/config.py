@@ -15,7 +15,6 @@ class Settings(BaseSettings):
     # AI APIs
     openai_api_key: str = ""
     openai_model: str = "gpt-4-turbo-preview"
-    google_gemini_api_key: str = ""
     groq_api_key: str = ""
     
     # Gmail / SMTP

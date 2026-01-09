@@ -489,3 +489,88 @@ export const trainingApi = {
     getStats: () =>
         fetchAPI<{ total: number; by_tone: Record<string, number>; average_confidence: number }>('/api/training/stats/summary'),
 };
+
+// Agent Analytics API
+export const agentAnalyticsApi = {
+    getDashboard: (params?: { period_start?: string; period_end?: string; region?: string }) =>
+        fetchAPI<{
+            total_agents: number;
+            total_plan: number;
+            total_sales: number;
+            overall_fulfillment_percent: number;
+            regional_performance: Array<any>;
+            top_performers: Array<any>;
+            bottom_performers: Array<any>;
+            period_start: string;
+            period_end: string;
+        }>('/api/agent-analytics/dashboard', { params }),
+
+    getAgents: (params?: { period_start?: string; period_end?: string; region?: string; min_fulfillment?: number; max_fulfillment?: number }) =>
+        fetchAPI<Array<{
+            agent_id: string;
+            agent_name: string;
+            agent_email: string;
+            region: string;
+            plan_amount: number;
+            actual_sales: number;
+            fulfillment_percent: number;
+            forecast_fulfillment_percent?: number;
+            ranking?: number;
+            total_lifetime_sales: number;
+        }>>('/api/agent-analytics/agents', { params }),
+
+    getAgentDetails: (agentId: string, params?: { period_start?: string; period_end?: string }) =>
+        fetchAPI<{
+            agent_id: string;
+            agent_name: string;
+            agent_email: string;
+            region: string;
+            plan_amount: number;
+            actual_sales: number;
+            fulfillment_percent: number;
+            daily_sales_trend: Array<{ sale_date: string; amount: number; category?: string }>;
+            category_breakdown: Record<string, number>;
+            monthly_history: Array<any>;
+            ai_insights?: any;
+        }>(`/api/agent-analytics/agents/${agentId}`, { params }),
+
+    getRegions: (params?: { period_start?: string; period_end?: string }) =>
+        fetchAPI<Array<{
+            region: string;
+            total_plan: number;
+            total_sales: number;
+            fulfillment_percent: number;
+            agents_count: number;
+        }>>('/api/agent-analytics/regions', { params }),
+
+    getRankings: (params?: { period_start?: string; period_end?: string; region?: string; limit?: number }) =>
+        fetchAPI<Array<any>>('/api/agent-analytics/rankings', { params }),
+
+    importExcel: async (file: File, period_start: string, period_end: string) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(
+            `${API_BASE}/api/agent-analytics/import-excel?period_start=${period_start}&period_end=${period_end}`,
+            {
+                method: 'POST',
+                body: formData,
+            }
+        );
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Ошибка импорта' }));
+            throw new Error(error.detail);
+        }
+
+        return response.json() as Promise<{
+            success: boolean;
+            agents_imported: number;
+            plans_imported: number;
+            daily_sales_imported: number;
+            errors: string[];
+            message: string;
+        }>;
+    },
+};
+

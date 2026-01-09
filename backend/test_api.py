@@ -183,7 +183,7 @@ def test_email_generation():
         else:
             print_warning(f"Статус: {response.status_code}")
             if response.status_code == 500:
-                print_warning("   Возможно не настроен GOOGLE_GEMINI_API_KEY")
+                print_warning("   Возможно не настроен GROQ_API_KEY")
             return False
     except Exception as e:
         print_error(f"Ошибка: {e}")
