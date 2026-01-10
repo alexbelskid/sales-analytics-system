@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Upload, RefreshCw, Users, Target, Award } from 'lucide-react';
+import { TrendingUp, TrendingDown, Upload, RefreshCw, Users, Target, Award, ArrowUpDown, Search } from 'lucide-react';
 import { agentAnalyticsApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import AgentCard from './AgentCard';
@@ -29,6 +29,8 @@ interface DashboardMetrics {
     bottom_performers: Agent[];
 }
 
+type SortOption = 'fulfillment' | 'name' | 'sales' | 'plan';
+
 export default function AgentDashboard() {
     const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [agents, setAgents] = useState<Agent[]>([]);
@@ -38,6 +40,7 @@ export default function AgentDashboard() {
     const [showImporter, setShowImporter] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [importing, setImporting] = useState(false);
+    const [sortBy, setSortBy] = useState<SortOption>('fulfillment');
 
     // Period selection
     const [periodStart, setPeriodStart] = useState(() => {
@@ -106,8 +109,20 @@ export default function AgentDashboard() {
         agent.agent_name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Sort agents by fulfillment
-    const sortedAgents = [...filteredAgents].sort((a, b) => b.fulfillment_percent - a.fulfillment_percent);
+    // Sort agents based on selected option
+    const sortedAgents = [...filteredAgents].sort((a, b) => {
+        switch (sortBy) {
+            case 'name':
+                return a.agent_name.localeCompare(b.agent_name);
+            case 'sales':
+                return b.actual_sales - a.actual_sales;
+            case 'plan':
+                return b.plan_amount - a.plan_amount;
+            case 'fulfillment':
+            default:
+                return b.fulfillment_percent - a.fulfillment_percent;
+        }
+    });
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -243,22 +258,46 @@ export default function AgentDashboard() {
                 <RegionalMap regions={metrics.regional_performance} />
             )}
 
-            {/* Search */}
-            <div>
-                <input
-                    type="text"
-                    placeholder="Поиск агента..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-full bg-[#111] border border-[#333333] px-5 py-3 text-sm text-white focus:outline-none focus:border-rose-800"
-                />
+            {/* Search and Sort Controls */}
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                <div className="relative flex-1">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#666]" />
+                    <input
+                        type="text"
+                        placeholder="Поиск агента..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full rounded-full bg-[#111] border border-[#333333] pl-11 pr-5 py-3 text-sm text-white focus:outline-none focus:border-rose-800"
+                    />
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-[#666]" />
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as SortOption)}
+                        className="rounded-full bg-[#111] border border-[#333333] px-4 py-2.5 text-sm text-white min-w-[160px]"
+                    >
+                        <option value="fulfillment">По выполнению</option>
+                        <option value="sales">По продажам</option>
+                        <option value="plan">По плану</option>
+                        <option value="name">По имени</option>
+                    </select>
+                </div>
             </div>
 
             {/* Agents Grid */}
             <div>
-                <h2 className="text-lg font-semibold mb-4">
-                    Агенты ({sortedAgents.length})
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">
+                        Агенты ({sortedAgents.length})
+                    </h2>
+                    {sortedAgents.length > 0 && (
+                        <span className="text-xs text-[#666]">
+                            Топ: {sortedAgents[0]?.agent_name} ({sortedAgents[0]?.fulfillment_percent.toFixed(1)}%)
+                        </span>
+                    )}
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {sortedAgents.map((agent, idx) => (
                         <AgentCard
