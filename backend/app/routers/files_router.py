@@ -118,11 +118,12 @@ async def delete_all_sales_data():
         # 1. Clear In-Memory Cache (Dashboard)
         try:
             from app.services.cache_service import cache
-            # Clear ALL analytics keys
-            cleared = cache.invalidate_pattern("analytics:")
-            # Also clear any other keys if needed, or just clear() the whole cache
+            # Clear ALL analytics keys - new patterns
+            cache.invalidate_pattern("dashboard:")
+            cache.invalidate_pattern("agent:")
+            cache.invalidate_pattern("analytics:")  # Legacy
             cache.clear() 
-            logger.info(f"Cache cleared: {cleared} entries")
+            logger.info("Cache cleared: all patterns")
         except Exception as e:
             logger.error(f"Cache clear error: {e}")
             

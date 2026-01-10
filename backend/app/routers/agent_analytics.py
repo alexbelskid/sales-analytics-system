@@ -309,6 +309,16 @@ async def import_from_excel(
             data, period_start, period_end
         )
         
+        # Invalidate cache after successful import
+        if result.success:
+            try:
+                from app.services.cache_service import cache
+                cache.invalidate_pattern("dashboard:")
+                cache.invalidate_pattern("agent:")
+                logger.info("Agent analytics cache invalidated after import")
+            except Exception as cache_error:
+                logger.warning(f"Cache invalidation failed: {cache_error}")
+        
         return result
     
     except HTTPException:

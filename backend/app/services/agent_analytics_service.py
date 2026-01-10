@@ -18,8 +18,13 @@ from app.models.agent_analytics import (
     AgentDailySales,
     DailySalesTrend,
 )
+from app.services.cache_service import cache
 
 logger = logging.getLogger(__name__)
+
+# Cache TTL in seconds
+DASHBOARD_CACHE_TTL = 120  # 2 minutes
+AGENT_DETAILS_CACHE_TTL = 60  # 1 minute
 
 
 class AgentAnalyticsService:
@@ -27,6 +32,7 @@ class AgentAnalyticsService:
     
     def __init__(self):
         self.supabase = supabase
+        self.cache = cache
     
     # ========================================================================
     # Dashboard Metrics
@@ -40,6 +46,13 @@ class AgentAnalyticsService:
     ) -> AgentDashboardMetrics:
         """Get overall dashboard metrics for agent performance"""
         try:
+            # Check cache first
+            cache_key = f"dashboard:{period_start}:{period_end}:{region or 'all'}"
+            cached = self.cache.get(cache_key)
+            if cached:
+                logger.debug(f"Dashboard cache hit: {cache_key}")
+                return cached
+            
             # Get all active agents
             query = self.supabase.table("agents").select("*").eq("is_active", True)
             if region:
@@ -96,7 +109,7 @@ class AgentAnalyticsService:
             # Sort by fulfillment
             performances_sorted = sorted(performances, key=lambda x: x.fulfillment_percent, reverse=True)
             
-            return AgentDashboardMetrics(
+            result = AgentDashboardMetrics(
                 total_agents=len(agents),
                 total_plan=total_plan,
                 total_sales=total_sales,
@@ -107,6 +120,10 @@ class AgentAnalyticsService:
                 period_start=period_start,
                 period_end=period_end
             )
+            
+            # Cache the result
+            self.cache.set(cache_key, result, DASHBOARD_CACHE_TTL)
+            return result
         
         except Exception as e:
             logger.error(f"Error getting dashboard metrics: {e}")
@@ -125,6 +142,13 @@ class AgentAnalyticsService:
     ) -> AgentPerformance | AgentPerformanceDetailed:
         """Get performance metrics for a specific agent"""
         try:
+            # Check cache first
+            cache_key = f"agent:{agent_id}:{period_start}:{period_end}:{detailed}"
+            cached = self.cache.get(cache_key)
+            if cached:
+                logger.debug(f"Agent cache hit: {cache_key}")
+                return cached
+            
             # Get agent info
             agent_result = self.supabase.table("agents").select("*").eq("id", str(agent_id)).single().execute()
             agent = agent_result.data
@@ -202,12 +226,16 @@ class AgentAnalyticsService:
                 # Get monthly history (last 6 months)
                 monthly_history = await self._get_monthly_history(agent_id)
                 
-                return AgentPerformanceDetailed(
+                result = AgentPerformanceDetailed(
                     **performance.dict(),
                     category_breakdown=category_breakdown,
                     monthly_history=monthly_history
                 )
+                self.cache.set(cache_key, result, AGENT_DETAILS_CACHE_TTL)
+                return result
             
+            # Cache and return basic performance
+            self.cache.set(cache_key, performance, AGENT_DETAILS_CACHE_TTL)
             return performance
         
         except Exception as e:
