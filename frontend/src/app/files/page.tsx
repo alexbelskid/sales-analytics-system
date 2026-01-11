@@ -160,7 +160,7 @@ export default function FilesPage() {
         const styles: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
             completed: { bg: 'bg-green-500/20', text: 'text-green-400', icon: <CheckCircle size={14} /> },
             failed: { bg: 'bg-red-500/20', text: 'text-red-400', icon: <XCircle size={14} /> },
-            processing: { bg: 'bg-blue-500/20', text: 'text-blue-400', icon: <RefreshCw size={14} className="animate-spin" /> },
+            processing: { bg: 'bg-gray-500/20', text: 'text-gray-400', icon: <RefreshCw size={14} className="animate-spin" /> },
             pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', icon: <Clock size={14} /> }
         };
 
@@ -183,7 +183,7 @@ export default function FilesPage() {
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <h1 className="text-2xl font-bold flex items-center gap-3">
-                            <FileSpreadsheet className="text-blue-400" />
+                            <FileSpreadsheet className="text-white" />
                             Управление файлами
                         </h1>
                         <p className="text-gray-400 mt-1">История импортов и загруженные данные</p>
@@ -289,7 +289,7 @@ export default function FilesPage() {
                                             {file.status === 'processing' && (
                                                 <div className="mt-2 w-full bg-gray-700 rounded-full h-1.5">
                                                     <div
-                                                        className="bg-blue-500 h-1.5 rounded-full transition-all"
+                                                        className="bg-gray-400 h-1.5 rounded-full transition-all"
                                                         style={{ width: `${file.progress}%` }}
                                                     />
                                                 </div>
