@@ -1,5 +1,5 @@
-import Dashboard from '@/components/Dashboard';
+import AgentDashboard from '@/components/AgentDashboard';
 
 export default function HomePage() {
-    return <Dashboard />;
+    return <AgentDashboard />;
 }
