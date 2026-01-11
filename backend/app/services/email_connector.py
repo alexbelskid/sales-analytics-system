@@ -8,6 +8,25 @@ import ssl
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 import re
+from app.services.encryption_service import decrypt_secret, is_encrypted
+
+
+def get_password_from_settings(settings: Dict[str, Any]) -> str:
+    """
+    Get password from settings, decrypting if necessary.
+    Handles both encrypted and legacy plaintext passwords.
+    """
+    # Try encrypted password first
+    encrypted_pwd = settings.get("password_encrypted")
+    if encrypted_pwd:
+        if is_encrypted(encrypted_pwd):
+            return decrypt_secret(encrypted_pwd)
+        else:
+            # Legacy plaintext - return as is
+            return encrypted_pwd
+    
+    # Fallback to plain password field
+    return settings.get("password", "")
 
 class EmailConnector:
     """
@@ -95,7 +114,7 @@ class EmailConnector:
         }
 
         email_user = settings.get("email_address")
-        password = settings.get("password")
+        password = get_password_from_settings(settings)
         
         # Test IMAP
         try:
@@ -140,7 +159,7 @@ class EmailConnector:
         Send an email via SMTP.
         """
         email_user = settings.get("email_address")
-        password = settings.get("password")
+        password = get_password_from_settings(settings)
         smtp_server = settings.get("smtp_server")
         smtp_port = int(settings.get("smtp_port", 587))
 
@@ -181,7 +200,7 @@ class EmailConnector:
         Simplified version: just gets the latest 'limit' emails from INBOX.
         """
         email_user = settings.get("email_address")
-        password = settings.get("password")
+        password = get_password_from_settings(settings)
         imap_server = settings.get("imap_server")
         imap_port = int(settings.get("imap_port", 993))
         

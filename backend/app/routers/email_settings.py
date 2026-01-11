@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from app.database import supabase
 from app.models.email import EmailSettings, EmailSettingsCreate, EmailSettingsUpdate
 from app.services.email_connector import EmailConnector
+from app.services.encryption_service import encrypt_secret
 
 router = APIRouter()
 
@@ -39,14 +40,21 @@ async def save_email_settings(settings: EmailSettingsCreate):
     existing = await get_email_settings()
     
     data = settings.dict(exclude_unset=True)
-    # Encrypt password/tokens here in real app
-    # data["password_encrypted"] = encrypt(settings.password) 
-    # For now saving as plain text (DEMO ONLY)
-    if settings.password:
-        data["password_encrypted"] = settings.password
     
-    if "password" in data:
-        del data["password"] # don't save raw or empty password field
+    # SECURITY: Encrypt password and tokens before storage
+    if settings.password:
+        data["password_encrypted"] = encrypt_secret(settings.password)
+    
+    if settings.oauth_token:
+        data["oauth_token_encrypted"] = encrypt_secret(settings.oauth_token)
+    
+    if settings.oauth_refresh_token:
+        data["oauth_refresh_token"] = encrypt_secret(settings.oauth_refresh_token)
+    
+    # Remove raw fields - only store encrypted versions
+    for field in ["password", "oauth_token"]:
+        if field in data:
+            del data[field]
     
     try:
         if existing:

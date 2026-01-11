@@ -6,8 +6,59 @@ from datetime import datetime
 from app.database import supabase
 from app.services.analytics_service import AnalyticsService
 from app.services.cache_service import cache
+import logging
+
+logger = logging.getLogger(__name__)
+
+# SECURITY: File upload constraints
+MAX_FILE_SIZE_MB = 10
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {'.csv', '.xlsx', '.xls'}
+ALLOWED_MIME_TYPES = {
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/octet-stream',  # Sometimes CSV files come with this
+}
+
+
+async def validate_upload_file(file: UploadFile) -> bytes:
+    """
+    Validate uploaded file for security.
+    Returns file contents if valid, raises HTTPException otherwise.
+    """
+    # Check filename extension
+    if not file.filename:
+        raise HTTPException(400, "Filename is required")
+    
+    ext = '.' + file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else ''
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            400, 
+            f"Invalid file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+    
+    # Check MIME type (if provided)
+    if file.content_type and file.content_type not in ALLOWED_MIME_TYPES:
+        logger.warning(f"Suspicious MIME type: {file.content_type} for file {file.filename}")
+        # Don't reject outright, but log it
+    
+    # Read and check file size
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            400, 
+            f"File too large. Maximum size: {MAX_FILE_SIZE_MB}MB"
+        )
+    
+    if len(contents) == 0:
+        raise HTTPException(400, "Empty file")
+    
+    return contents
+
 
 router = APIRouter(prefix="/api/data", tags=["Data Integration"])
+
 
 @router.post("/upload/sales")
 async def upload_sales(
@@ -16,7 +67,8 @@ async def upload_sales(
 ):
     """Upload sales CSV"""
     try:
-        contents = await file.read()
+        # SECURITY: Validate file before processing
+        contents = await validate_upload_file(file)
         df = pd.read_csv(io.BytesIO(contents))
         
         required_cols = ['date', 'customer_name', 'product_name', 'quantity', 'price', 'amount']
@@ -100,7 +152,8 @@ async def upload_products(
 ):
     """Upload products CSV"""
     try:
-        contents = await file.read()
+        # SECURITY: Validate file before processing
+        contents = await validate_upload_file(file)
         df = pd.read_csv(io.BytesIO(contents))
         
         if mode == "replace":
@@ -131,7 +184,8 @@ async def upload_customers(
 ):
     """Upload customers CSV"""
     try:
-        contents = await file.read()
+        # SECURITY: Validate file before processing
+        contents = await validate_upload_file(file)
         df = pd.read_csv(io.BytesIO(contents))
         
         if mode == "replace":
