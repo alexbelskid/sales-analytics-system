@@ -268,16 +268,29 @@ async def import_from_excel(
         elif filename.lower().endswith(('.xlsx', '.xls')):
             # Parse Excel file
             try:
-                workbook = openpyxl.load_workbook(io.BytesIO(contents), data_only=True)
-                sheet = workbook.active
-                for row in sheet.iter_rows(values_only=True):
-                    data.append(list(row))
+                if filename.lower().endswith('.xlsx'):
+                    # Use openpyxl for new format
+                    workbook = openpyxl.load_workbook(io.BytesIO(contents), data_only=True)
+                    sheet = workbook.active
+                    for row in sheet.iter_rows(values_only=True):
+                        data.append(list(row))
+                else:
+                    # Use xlrd for old .xls format
+                    import xlrd
+                    workbook = xlrd.open_workbook(file_contents=contents)
+                    sheet = workbook.sheet_by_index(0)
+                    for row_idx in range(sheet.nrows):
+                        row_data = []
+                        for col_idx in range(sheet.ncols):
+                            cell = sheet.cell(row_idx, col_idx)
+                            row_data.append(cell.value)
+                        data.append(row_data)
                 logger.info(f"Parsed Excel with {len(data)} rows")
             except Exception as excel_error:
                 logger.error(f"Excel parse error: {excel_error}")
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Ошибка чтения Excel файла. Убедитесь, что файл имеет формат .xlsx. Ошибка: {str(excel_error)}"
+                    detail=f"Ошибка чтения Excel файла. Убедитесь, что файл имеет формат .xlsx или .xls. Ошибка: {str(excel_error)}"
                 )
         else:
             # Try to auto-detect format

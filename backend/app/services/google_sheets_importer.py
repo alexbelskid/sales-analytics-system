@@ -1,6 +1,6 @@
 """
 Google Sheets Importer Service
-Imports agent sales data from Google Sheets (Daily Sales-Out format)
+Imports agent sales data from Google Sheets (Продажи ТМ format)
 """
 
 from typing import List, Dict, Any, Tuple
@@ -15,20 +15,32 @@ logger = logging.getLogger(__name__)
 
 
 class GoogleSheetsImporter:
-    """Service for importing agent data from Google Sheets"""
+    """Service for importing agent data from Google Sheets (Продажи ТМ format)"""
     
-    # Regional headers - настоящие регионы Беларуси (не компании!)
-    REGIONAL_HEADERS = [
+    # Географические регионы Беларуси
+    REGIONS = [
         'БРЕСТ', 
         'ВИТЕБСК', 
         'ГОМЕЛЬ', 
         'ГРОДНО', 
         'МИНСК',
-        'МОГИЛЕВ'
+        'МИНСКАЯ ОБЛАСТЬ',
+        'МОГИЛЕВ',
+        'МОГИЛЁВ'
     ]
     
-    # Компании/клиенты, которые НЕ являются регионами
-    NON_REGION_KEYWORDS = ['КАМ РЕКИТТ', 'ЮМСА', 'РЕКИТТ', 'ЮМС']
+    # Команды/подразделения (НЕ географические регионы)
+    TEAMS = [
+        'КАМ РЕКИТТ',
+        'МИНСК КА',
+        'МИНСК МФЗ',
+        'ЮМС',
+        'ЮМСА',
+        'ГУМИНСКАЯ ЕВГ'
+    ]
+    
+    # Все допустимые значения для поля "регион" (включая команды)
+    ALL_REGION_HEADERS = REGIONS + TEAMS
     
     def __init__(self):
         self.supabase = supabase
@@ -42,154 +54,168 @@ class GoogleSheetsImporter:
         """
         Import agent data from parsed Google Sheets data
         
-        Expected format (from "Daily Sales-Out"):
-        Row with region header (e.g., "БРЕСТ")
-        Then rows with: Agent Name | Sales | Plan | Fulfillment % | Forecast % | ... (categories) | 1 | 2 | 3 | ...
+        Expected format (from "Продажи ТМ"):
+        Таблица "Торговые марки пользователей по регионам" (строки ~71-364)
+        
+        Иерархия:
+        - РЕГИОН (жёлтый фон): колонка A = название региона/команды, колонка B = пусто
+        - Агент (голубой фон): колонка A = имя агента, колонка B = пусто, есть данные плана/продаж
+        - Бренд (белый фон): колонка A = пусто, колонка B = название бренда
+        
+        Columns:
+        A: Регион / Пользователь
+        B: Торговая марка
+        C: План продаж
+        D: Продажи
+        E: % выполнения
+        F+: Дополнительные данные
         """
         try:
             agents_imported = 0
             plans_imported = 0
             daily_sales_imported = 0
+            brands_imported = 0
             errors = []
-            processed_names = set()
+            processed_agents = {}  # {agent_name: {region, total_plan, total_sales, brands: []}}
             
             current_region = None
-            header_row_idx = None
+            current_agent = None
             
             logger.info(f"Starting import of {len(data)} rows")
             
+            # Find the header row first
+            header_row_idx = None
             for row_idx, row in enumerate(data):
                 if not row or len(row) == 0:
                     continue
-                
-                # Get first cell
-                first_cell = str(row[0]).strip() if row[0] else ""
-                first_cell_upper = first_cell.upper()
-                
-                # Skip completely empty or very short cells
-                if len(first_cell) < 2:
-                    continue
-                
-                # Проверяем что это НЕ компания/клиент
-                is_non_region = any(keyword in first_cell_upper for keyword in self.NON_REGION_KEYWORDS)
-                if is_non_region:
-                    logger.debug(f"Row {row_idx}: Skipping non-region company: {first_cell}")
-                    continue
-                
-                # Check if this is a regional header
-                # Региональная строка - это строка, которая содержит ТОЛЬКО название региона
-                # и не содержит числовых данных в колонках B-H (продажи, план и т.д.)
-                is_region_header = False
-                if any(reg in first_cell_upper for reg in self.REGIONAL_HEADERS):
-                    # Проверяем что в колонках B-H нет данных (это признак региональной строки)
-                    has_sales_data = any(
-                        self._parse_float(row[i]) is not None 
-                        for i in range(1, min(8, len(row)))
-                    )
-                    if not has_sales_data:
-                        is_region_header = True
-                        # Сохраняем полное название региона
-                        current_region = first_cell
-                        logger.info(f"Row {row_idx}: Found region header: {current_region}")
-                        continue
-                
-                # Skip column header rows (contain column titles like "Район / Ответственный", "Продажи", etc.)
-                skip_keywords = ['РАЙОН', 'ОТВЕТСТВЕННЫЙ', 'ПРОДАЖИ', 'ПЛАН', 'ВЫПОЛНЕНИЕ', 
-                                'ПРОГНОЗ', 'БЕЛПОЧТА', 'ПОТРЕБКООП', 'ПИРОТЕХНИКА',
-                                'РЕГИОН', 'ПОЛЬЗОВАТЕЛЬ', 'ТОРГОВАЯ МАРКА']
-                if any(kw in first_cell_upper for kw in skip_keywords):
+                first_cell = str(row[0]).strip().upper() if row[0] else ""
+                if 'РЕГИОН' in first_cell or 'ПОЛЬЗОВАТЕЛЬ' in first_cell:
                     header_row_idx = row_idx
-                    logger.info(f"Row {row_idx}: Skipping header row")
+                    logger.info(f"Found header row at index {row_idx}")
+                    break
+            
+            if header_row_idx is None:
+                logger.warning("Header row not found, starting from row 0")
+                header_row_idx = 0
+            
+            # Process data starting after header
+            for row_idx in range(header_row_idx + 1, len(data)):
+                row = data[row_idx]
+                
+                if not row or len(row) < 2:
                     continue
                 
-                # Skip summary/total rows
-                if any(word in first_cell_upper for word in ['ИТОГО', 'TOTAL', 'ВСЕГО', 'ОБЩИЙ']):
-                    logger.info(f"Row {row_idx}: Skipping summary row: {first_cell}")
+                col_a = str(row[0]).strip() if row[0] else ""
+                col_b = str(row[1]).strip() if row[1] else ""
+                
+                # Skip empty rows
+                if not col_a and not col_b:
                     continue
                 
-                # Skip if first cell is a number (likely data cell, not agent name)
-                if self._parse_float(first_cell) is not None and first_cell.replace('.', '').replace(',', '').isdigit():
-                    continue
+                col_a_upper = col_a.upper()
                 
-                # This should be an agent row - agent name should be a text string with letters
-                # Check if it looks like a name (contains Cyrillic or Latin letters)
-                has_letters = any(c.isalpha() for c in first_cell)
-                if not has_letters:
-                    continue
-                
-                agent_name = first_cell
-                
-                # Skip duplicate names in same import
-                if agent_name in processed_names:
-                    continue
-                processed_names.add(agent_name)
-                
-                # Try to parse agent row
-                try:
-                    # Parse sales data - columns B, C, D, E
-                    sales = self._parse_float(row[1] if len(row) > 1 else None)
-                    plan = self._parse_float(row[2] if len(row) > 2 else None)
-                    fulfillment_pct = self._parse_float(row[3] if len(row) > 3 else None)
-                    forecast_pct = self._parse_float(row[4] if len(row) > 4 else None)
+                # ========================================
+                # Case 1: REGION/TEAM header row
+                # Условие: колонка A заполнена, колонка B пустая, и содержит название региона/команды
+                # ========================================
+                if col_a and not col_b:
+                    # Check if it's a region or team header
+                    is_region_header = any(region in col_a_upper for region in self.ALL_REGION_HEADERS)
                     
-                    # Skip if no sales data at all
-                    if sales is None and plan is None:
-                        logger.debug(f"Row {row_idx}: Skipping {agent_name} - no sales/plan data")
+                    if is_region_header:
+                        # Save current agent before switching regions
+                        if current_agent:
+                            await self._save_agent_data(
+                                current_agent, 
+                                processed_agents, 
+                                period_start, 
+                                period_end
+                            )
+                            current_agent = None
+                        
+                        current_region = col_a
+                        logger.info(f"Row {row_idx}: Found region/team header: {current_region}")
                         continue
                     
-                    # Parse special categories (БелПочта, Потребкооперация, ПИРОТЕХНИКА) - columns F, G, H
-                    belpochta = self._parse_float(row[5] if len(row) > 5 else None) or 0
-                    potrebkoop = self._parse_float(row[6] if len(row) > 6 else None) or 0
-                    pyrotech = self._parse_float(row[7] if len(row) > 7 else None) or 0
+                    # Check if it's an AGENT row
+                    # Агент: колонка A заполнена, колонка B пустая, есть данные плана/продаж
+                    plan = self._parse_float(row[2] if len(row) > 2 else None)
+                    sales = self._parse_float(row[3] if len(row) > 3 else None)
                     
-                    logger.info(f"Row {row_idx}: Importing agent '{agent_name}' - region: {current_region}, sales: {sales}, plan: {plan}")
+                    # Skip if it looks like a header or summary row
+                    skip_keywords = ['ИТОГО', 'TOTAL', 'ВСЕГО', 'ОБЩИЙ', 'ПЛАН', 'ПРОДАЖИ', 
+                                   'РЕГИОН', 'ПОЛЬЗОВАТЕЛЬ', 'ВЫПОЛНЕНИЕ', 'МАРКА']
+                    if any(kw in col_a_upper for kw in skip_keywords):
+                        logger.debug(f"Row {row_idx}: Skipping header/summary: {col_a}")
+                        continue
                     
-                    # Create or update agent
-                    agent_id = await self._upsert_agent(agent_name, current_region or 'Unknown')
-                    if agent_id:
-                        agents_imported += 1
-                        
-                        # Create sales plan
-                        if plan and plan > 0:
-                            await self._upsert_sales_plan(
-                                agent_id, period_start, period_end, plan, current_region
+                    # Check if it has letters (is a name)
+                    has_letters = any(c.isalpha() for c in col_a)
+                    if not has_letters:
+                        continue
+                    
+                    # This is an AGENT row
+                    if plan is not None or sales is not None:
+                        # Save previous agent
+                        if current_agent:
+                            await self._save_agent_data(
+                                current_agent, 
+                                processed_agents, 
+                                period_start, 
+                                period_end
                             )
-                            plans_imported += 1
                         
-                        # Create daily sales entry (current sales as of today)
-                        if sales and sales > 0:
-                            today = date.today()
-                            await self._upsert_daily_sales(
-                                agent_id, today, sales, current_region, 'General'
-                            )
-                            daily_sales_imported += 1
+                        agent_name = col_a
+                        current_agent = {
+                            'name': agent_name,
+                            'region': current_region or 'Unknown',
+                            'total_plan': plan or 0,
+                            'total_sales': sales or 0,
+                            'brands': []
+                        }
                         
-                        # Create category sales
-                        if belpochta > 0:
-                            await self._upsert_daily_sales(
-                                agent_id, date.today(), belpochta, current_region, 'БелПочта'
-                            )
-                            daily_sales_imported += 1
-                        
-                        if potrebkoop > 0:
-                            await self._upsert_daily_sales(
-                                agent_id, date.today(), potrebkoop, current_region, 'Потребкооперация'
-                            )
-                            daily_sales_imported += 1
-                        
-                        if pyrotech > 0:
-                            await self._upsert_daily_sales(
-                                agent_id, date.today(), pyrotech, current_region, 'ПИРОТЕХНИКА'
-                            )
-                            daily_sales_imported += 1
+                        logger.info(f"Row {row_idx}: Found agent '{agent_name}' in {current_region}, plan={plan}, sales={sales}")
+                        continue
                 
-                except Exception as row_error:
-                    error_msg = f"Error processing row {row_idx} ({agent_name}): {str(row_error)}"
-                    logger.error(error_msg)
-                    errors.append(error_msg)
-                    continue
+                # ========================================
+                # Case 2: BRAND row
+                # Условие: колонка A пустая, колонка B заполнена
+                # ========================================
+                elif not col_a and col_b:
+                    # This is a brand row under the current agent
+                    if current_agent:
+                        brand_name = col_b
+                        brand_plan = self._parse_float(row[2] if len(row) > 2 else None) or 0
+                        brand_sales = self._parse_float(row[3] if len(row) > 3 else None) or 0
+                        
+                        current_agent['brands'].append({
+                            'name': brand_name,
+                            'plan': brand_plan,
+                            'sales': brand_sales
+                        })
+                        
+                        logger.debug(f"Row {row_idx}: Brand '{brand_name}' for agent {current_agent['name']}, sales={brand_sales}")
+                        brands_imported += 1
+                    else:
+                        logger.warning(f"Row {row_idx}: Found brand '{col_b}' but no current agent")
             
-            logger.info(f"Import complete: {agents_imported} agents, {plans_imported} plans, {daily_sales_imported} sales")
+            # Save last agent
+            if current_agent:
+                await self._save_agent_data(
+                    current_agent, 
+                    processed_agents, 
+                    period_start, 
+                    period_end
+                )
+            
+            # Count results
+            agents_imported = len(processed_agents)
+            for agent_data in processed_agents.values():
+                if agent_data.get('plan_saved'):
+                    plans_imported += 1
+                daily_sales_imported += agent_data.get('sales_records_count', 0)
+            
+            logger.info(f"Import complete: {agents_imported} agents, {plans_imported} plans, {daily_sales_imported} sales, {brands_imported} brands")
             
             return GoogleSheetsImportResult(
                 success=True,
@@ -197,7 +223,7 @@ class GoogleSheetsImporter:
                 plans_imported=plans_imported,
                 daily_sales_imported=daily_sales_imported,
                 errors=errors,
-                message=f"Успешно импортировано: {agents_imported} агентов, {plans_imported} планов, {daily_sales_imported} записей продаж"
+                message=f"Успешно импортировано: {agents_imported} агентов, {plans_imported} планов, {daily_sales_imported} записей продаж, {brands_imported} брендов"
             )
         
         except Exception as e:
@@ -207,6 +233,79 @@ class GoogleSheetsImporter:
                 errors=[str(e)],
                 message=f"Ошибка импорта: {str(e)}"
             )
+    
+    async def _save_agent_data(
+        self, 
+        agent_data: Dict[str, Any], 
+        processed_agents: Dict[str, Any],
+        period_start: date,
+        period_end: date
+    ):
+        """Save agent data to database"""
+        agent_name = agent_data['name']
+        
+        # Skip if already processed
+        if agent_name in processed_agents:
+            logger.warning(f"Agent {agent_name} already processed, skipping")
+            return
+        
+        try:
+            # Create or update agent
+            agent_id = await self._upsert_agent(agent_name, agent_data['region'])
+            if not agent_id:
+                logger.error(f"Failed to upsert agent {agent_name}")
+                return
+            
+            # Save sales plan
+            plan_saved = False
+            if agent_data['total_plan'] and agent_data['total_plan'] > 0:
+                await self._upsert_sales_plan(
+                    agent_id, 
+                    period_start, 
+                    period_end, 
+                    agent_data['total_plan'], 
+                    agent_data['region']
+                )
+                plan_saved = True
+            
+            # Save daily sales records for each brand
+            sales_records_count = 0
+            today = date.today()
+            
+            for brand in agent_data['brands']:
+                if brand['sales'] and brand['sales'] > 0:
+                    await self._upsert_daily_sales(
+                        agent_id,
+                        today,
+                        brand['sales'],
+                        agent_data['region'],
+                        brand['name']
+                    )
+                    sales_records_count += 1
+            
+            # Also save total sales if we have it
+            if agent_data['total_sales'] and agent_data['total_sales'] > 0:
+                await self._upsert_daily_sales(
+                    agent_id,
+                    today,
+                    agent_data['total_sales'],
+                    agent_data['region'],
+                    'General'
+                )
+                sales_records_count += 1
+            
+            # Mark as processed
+            processed_agents[agent_name] = {
+                **agent_data,
+                'agent_id': agent_id,
+                'plan_saved': plan_saved,
+                'sales_records_count': sales_records_count
+            }
+            
+            logger.info(f"Saved agent {agent_name}: {sales_records_count} sales records")
+        
+        except Exception as e:
+            logger.error(f"Error saving agent {agent_name}: {e}")
     
     # ========================================================================
     # Helper Methods
