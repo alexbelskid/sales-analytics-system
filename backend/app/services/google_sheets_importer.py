@@ -116,14 +116,21 @@ class GoogleSheetsImporter:
                     continue
                 
                 col_a_upper = col_a.upper()
+                col_b_upper = col_b.upper()
                 
                 # ========================================
                 # Case 1: REGION/TEAM header row
-                # Условие: колонка A заполнена, колонка B пустая, и содержит название региона/команды
+                # Either: (col_a filled + col_b empty) OR (col_a empty + col_b filled + col_c empty)
                 # ========================================
-                if col_a and not col_b:
+                if (col_a and not col_b) or (not col_a and col_b and (len(row) <= 2 or not row[2])):
+                    # Determine which column has the data
+                    data_col = col_a if col_a else col_b
+                    data_col_upper = data_col.upper()
+                    # Column offset: if data in col_b, plan/sales are in cols D/E (indices 3/4)
+                    col_offset = 1 if not col_a and col_b else 0
+                    
                     # Check if it's a region or team header
-                    is_region_header = any(region in col_a_upper for region in self.ALL_REGION_HEADERS)
+                    is_region_header = any(region in data_col_upper for region in self.ALL_REGION_HEADERS)
                     
                     if is_region_header:
                         # Save current agent before switching regions
@@ -136,24 +143,23 @@ class GoogleSheetsImporter:
                             )
                             current_agent = None
                         
-                        current_region = col_a
+                        current_region = data_col
                         logger.info(f"Row {row_idx}: Found region/team header: {current_region}")
                         continue
                     
                     # Check if it's an AGENT row
-                    # Агент: колонка A заполнена, колонка B пустая, есть данные плана/продаж
-                    plan = self._parse_float(row[2] if len(row) > 2 else None)
-                    sales = self._parse_float(row[3] if len(row) > 3 else None)
+                    plan = self._parse_float(row[2 + col_offset] if len(row) > 2 + col_offset else None)
+                    sales = self._parse_float(row[3 + col_offset] if len(row) > 3 + col_offset else None)
                     
                     # Skip if it looks like a header or summary row
                     skip_keywords = ['ИТОГО', 'TOTAL', 'ВСЕГО', 'ОБЩИЙ', 'ПЛАН', 'ПРОДАЖИ', 
                                    'РЕГИОН', 'ПОЛЬЗОВАТЕЛЬ', 'ВЫПОЛНЕНИЕ', 'МАРКА']
-                    if any(kw in col_a_upper for kw in skip_keywords):
-                        logger.debug(f"Row {row_idx}: Skipping header/summary: {col_a}")
+                    if any(kw in data_col_upper for kw in skip_keywords):
+                        logger.debug(f"Row {row_idx}: Skipping header/summary: {data_col}")
                         continue
                     
                     # Check if it has letters (is a name)
-                    has_letters = any(c.isalpha() for c in col_a)
+                    has_letters = any(c.isalpha() for c in data_col)
                     if not has_letters:
                         continue
                     
@@ -168,13 +174,14 @@ class GoogleSheetsImporter:
                                 period_end
                             )
                         
-                        agent_name = col_a
+                        agent_name = data_col
                         current_agent = {
                             'name': agent_name,
                             'region': current_region or 'Unknown',
                             'total_plan': plan or 0,
                             'total_sales': sales or 0,
-                            'brands': []
+                            'brands': [],
+                            'col_offset': col_offset  # Store for brand parsing
                         }
                         
                         logger.info(f"Row {row_idx}: Found agent '{agent_name}' in {current_region}, plan={plan}, sales={sales}")
@@ -182,14 +189,18 @@ class GoogleSheetsImporter:
                 
                 # ========================================
                 # Case 2: BRAND row
-                # Условие: колонка A пустая, колонка B заполнена
+                # Brand in col_b (if col_a has data) OR col_c (if col_b has data)
                 # ========================================
-                elif not col_a and col_b:
-                    # This is a brand row under the current agent
-                    if current_agent:
-                        brand_name = col_b
-                        brand_plan = self._parse_float(row[2] if len(row) > 2 else None) or 0
-                        brand_sales = self._parse_float(row[3] if len(row) > 3 else None) or 0
+                elif not col_a and col_b or (col_a and col_b):
+                    # Determine brand column based on data structure
+                    col_offset = current_agent.get('col_offset', 0) if current_agent else 0
+                    brand_col_idx = 1 + col_offset
+                    brand_name = row[brand_col_idx] if len(row) > brand_col_idx and row[brand_col_idx] else None
+                    
+                    if brand_name and current_agent:
+                        brand_name = str(brand_name).strip()
+                        brand_plan = self._parse_float(row[2 + col_offset] if len(row) > 2 + col_offset else None) or 0
+                        brand_sales = self._parse_float(row[3 + col_offset] if len(row) > 3 + col_offset else None) or 0
                         
                         current_agent['brands'].append({
                             'name': brand_name,
@@ -199,8 +210,8 @@ class GoogleSheetsImporter:
                         
                         logger.debug(f"Row {row_idx}: Brand '{brand_name}' for agent {current_agent['name']}, sales={brand_sales}")
                         brands_imported += 1
-                    else:
-                        logger.warning(f"Row {row_idx}: Found brand '{col_b}' but no current agent")
+                    elif brand_name:
+                        logger.warning(f"Row {row_idx}: Found brand '{brand_name}' but no current agent")
             
             # Save last agent
             if current_agent:
