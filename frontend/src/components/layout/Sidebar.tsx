@@ -19,9 +19,10 @@ import {
 } from 'lucide-react';
 
 const navigation = [
-    { name: 'Дашборд', href: '/', icon: LayoutDashboard },
+    { name: 'Аналитика агентов', href: '/', icon: TrendingUp },
+    { name: 'Обзор продаж', href: '/sales-dashboard', icon: LayoutDashboard },
     { name: 'Автоответы', href: '/emails', icon: Mail },
-    { name: 'AI Ассистент', href: '/ai-assistant', icon: TrendingUp },
+    { name: 'AI Ассистент', href: '/ai-assistant', icon: Sparkles },
     { name: 'КП', href: '/proposals', icon: FileText },
     { name: 'Зарплаты', href: '/salary', icon: Calculator },
     { name: 'Файлы', href: '/files', icon: FileSpreadsheet },
