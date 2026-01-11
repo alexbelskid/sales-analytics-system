@@ -4,37 +4,38 @@
 
 @layer base {
   :root {
-    /* Dark Gray Theme */
-    --background: 0 0% 12.5%;
-    /* #202020 - Dark Gray */
-    --foreground: 40 10% 90%;
-    /* #E5E5DC - Light beige */
-    --card: 0 0% 15%;
-    /* #262626 */
-    --card-foreground: 40 10% 90%;
-    /* #E5E5DC */
-    --popover: 0 0% 15%;
-    --popover-foreground: 40 10% 90%;
-    --primary: 40 10% 90%;
-    /* Beige primary */
+    /* Kortix Dark Theme */
+    --background: 0 0% 4%;
+    /* #0A0A0A - Very dark, almost black */
+    --foreground: 0 0% 100%;
+    /* #FFFFFF - Pure white */
+    --card: 0 0% 8%;
+    /* #141414 - Dark gray cards */
+    --card-foreground: 0 0% 100%;
+    /* #FFFFFF */
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    /* White primary */
     --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 20%;
-    /* #333333 */
-    --secondary-foreground: 40 10% 90%;
-    --muted: 0 0% 20%;
+    /* Black text on white */
+    --secondary: 0 0% 12%;
+    /* #1F1F1F */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 12%;
     --muted-foreground: 0 0% 50%;
-    /* #808080 */
+    /* #808080 - Gray */
     --accent: 348 70% 36%;
     /* Burgundy accent #9B1B30 */
-    --accent-foreground: 40 10% 90%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 80% 55%;
-    --destructive-foreground: 40 10% 90%;
-    --border: 0 0% 20%;
-    /* #333333 */
-    --input: 0 0% 20%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100% / 0.08;
+    /* rgba(255, 255, 255, 0.08) - Semi-transparent white */
+    --input: 0 0% 12%;
     --ring: 348 70% 36%;
-    --radius: 0.75rem;
-    /* 12px - rounded */
+    --radius: 1.5rem;
+    /* 24px - Kortix style large radius */
   }
 }
 
@@ -55,54 +56,52 @@
   h4,
   h5,
   h6 {
-    font-weight: 600;
-    letter-spacing: -0.01em;
+    font-weight: 500;
+    /* Medium weight like Kortix */
+    letter-spacing: -0.02em;
+    /* Tighter letter spacing */
   }
 }
 
 @layer components {
   .metric-card {
-    @apply bg-card border border-border rounded-xl p-6 transition-all duration-300 ease-out hover:border-white/20 hover:scale-[1.01];
+    @apply bg-card border border-border rounded-3xl p-6 transition-all duration-150 ease-[cubic-bezier(0.4, 0, 0.2, 1)] hover:border-white/20;
   }
 
-  /* Universal card/block component */
+  /* Universal card/block component - Kortix style */
   .ui-card {
-    @apply bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl p-6 transition-all duration-300 ease-out;
+    @apply bg-card border border-border rounded-3xl p-6 transition-all duration-150 ease-[cubic-bezier(0.4, 0, 0.2, 1)];
   }
 
   .ui-card:hover {
-    @apply border-[#404040] scale-[1.01] shadow-lg shadow-black/20;
-  }
-
-  .ui-card:active {
-    @apply scale-[0.99];
+    @apply opacity-90;
   }
 
   /* Compact card variant */
   .ui-card-compact {
-    @apply bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg p-4 transition-all duration-300 ease-out;
+    @apply bg-card border border-border rounded-2xl p-4 transition-all duration-150 ease-[cubic-bezier(0.4, 0, 0.2, 1)];
   }
 
   .ui-card-compact:hover {
-    @apply border-[#404040] scale-[1.01];
+    @apply opacity-90;
   }
 
-  /* Global button styles */
+  /* Global button styles - Kortix style */
   button {
-    @apply rounded-full transition-all duration-300 ease-out;
+    @apply rounded-2xl transition-all duration-150 ease-[cubic-bezier(0.4, 0, 0.2, 1)];
   }
 
   button:hover {
-    @apply transform scale-[1.02];
+    @apply opacity-90;
   }
 
   button:active {
-    @apply transform scale-[0.98];
+    @apply opacity-80;
   }
 
   /* Accent button variant */
   .btn-accent {
-    @apply bg-[hsl(348, 70%, 36%)] hover:bg-[hsl(348, 70%, 42%)] text-white;
+    @apply bg-[hsl(348, 70%, 36%)] hover:opacity-90 text-white;
   }
 }
 
