@@ -58,10 +58,36 @@ async def upload_excel(
         
         # Create import record first to get ID
         from app.database import supabase
+        from app.config import settings
+        from datetime import datetime
+        
+        # Upload file to Supabase Storage
+        storage_path = None
+        try:
+            # Generate unique storage path
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            storage_filename = f"{timestamp}_{file.filename}"
+            storage_path = f"imports/{storage_filename}"
+            
+            # Upload to Supabase Storage
+            with open(temp_path, 'rb') as f:
+                file_bytes = f.read()
+                supabase.storage.from_(settings.storage_bucket).upload(
+                    path=storage_path,
+                    file=file_bytes,
+                    file_options={"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}
+                )
+            logger.info(f"Uploaded to storage: {storage_path}")
+        except Exception as e:
+            logger.warning(f"Storage upload failed: {e}. Continuing with import...")
+            storage_path = None
+        
+        # Create import record
         import_result = supabase.table('import_history').insert({
             'filename': file.filename,
             'file_size': file_size,
-            'status': 'pending'
+            'status': 'pending',
+            'storage_path': storage_path
         }).execute()
         
         import_id = import_result.data[0]['id']
@@ -247,7 +273,7 @@ async def run_import_background(
         }).eq('id', import_id).execute()
     
     finally:
-        # Cleanup temp files
+        # Cleanup temp files (but keep file in Storage)
         try:
             os.remove(file_path)
             os.rmdir(temp_dir)
@@ -281,3 +307,52 @@ async def get_import_history(limit: int = 20):
     """
     history = await ImportService.get_import_history(limit)
     return {'imports': history}
+
+
+@router.get("/download/{import_id}")
+async def download_file(import_id: str):
+    """
+    Download the original uploaded file from Supabase Storage
+    
+    Returns the file as a downloadable attachment
+    """
+    from app.database import supabase
+    from app.config import settings
+    from fastapi.responses import StreamingResponse
+    import io
+    
+    try:
+        # Get import record to find storage_path
+        result = supabase.table('import_history').select('filename, storage_path').eq('id', import_id).execute()
+        
+        if not result.data:
+            raise HTTPException(404, "Импорт не найден")
+        
+        import_record = result.data[0]
+        storage_path = import_record.get('storage_path')
+        filename = import_record.get('filename', 'download.xlsx')
+        
+        if not storage_path:
+            raise HTTPException(404, "Файл не сохранён в хранилище")
+        
+        # Download file from Supabase Storage
+        file_data = supabase.storage.from_(settings.storage_bucket).download(storage_path)
+        
+        if not file_data:
+            raise HTTPException(404, "Файл не найден в хранилище")
+        
+        # Return as streaming response
+        return StreamingResponse(
+            io.BytesIO(file_data),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Download error: {e}")
+        raise HTTPException(500, f"Ошибка скачивания: {str(e)}")
+

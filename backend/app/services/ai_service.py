@@ -292,3 +292,123 @@ def _generate_simple_proposal(customer: str, products: List[Dict], conditions: s
 
 С уважением,
 Отдел продаж"""
+
+
+async def get_files_context() -> str:
+    """
+    Читает все загруженные Excel файлы из Storage
+    и создает текстовый контекст для AI
+    
+    Returns:
+        Текстовый контекст с данными из файлов
+    """
+    import pandas as pd
+    import io
+    
+    if not supabase:
+        return ""
+    
+    try:
+        # Получить список файлов из import_history
+        imports = supabase.table("import_history")\
+            .select("id, filename, storage_path, status, imported_rows")\
+            .eq("status", "completed")\
+            .not_.is_("storage_path", "null")\
+            .order("uploaded_at", desc=True)\
+            .limit(5)\
+            .execute()
+        
+        if not imports.data:
+            return "Нет загруженных файлов в системе."
+        
+        context_parts = [f"Загружено файлов: {len(imports.data)}"]
+        
+        for imp in imports.data:
+            filename = imp.get("filename", "Unknown")
+            storage_path = imp.get("storage_path")
+            imported_rows = imp.get("imported_rows", 0)
+            
+            context_parts.append(f"\n📄 Файл: {filename}")
+            context_parts.append(f"   Строк импортировано: {imported_rows}")
+            
+            # Попытаться прочитать файл из Storage
+            if storage_path:
+                try:
+                    file_data = supabase.storage.from_(settings.storage_bucket).download(storage_path)
+                    
+                    if file_data:
+                        # Парсить Excel файл
+                        df = pd.read_excel(io.BytesIO(file_data))
+                        
+                        # Получить базовую статистику
+                        context_parts.append(f"   Колонок: {len(df.columns)}")
+                        context_parts.append(f"   Колонки: {', '.join(df.columns.tolist()[:10])}")
+                        
+                        # Если есть колонка с агентами
+                        if 'agent_name' in df.columns or 'Агент' in df.columns:
+                            agent_col = 'agent_name' if 'agent_name' in df.columns else 'Агент'
+                            unique_agents = df[agent_col].nunique()
+                            context_parts.append(f"   Уникальных агентов: {unique_agents}")
+                        
+                        # Если есть колонка с суммами
+                        amount_cols = ['amount', 'total', 'сумма', 'Amount', 'Total']
+                        for col in amount_cols:
+                            if col in df.columns:
+                                total_amount = df[col].sum()
+                                context_parts.append(f"   Общая сумма: {total_amount:,.0f}")
+                                break
+                        
+                except Exception as e:
+                    context_parts.append(f"   ⚠️ Ошибка чтения файла: {str(e)[:50]}")
+        
+        return "\n".join(context_parts)
+    
+    except Exception as e:
+        print(f"Error getting files context: {e}")
+        return f"Ошибка получения контекста файлов: {str(e)}"
+
+
+async def generate_ai_response_with_files(question: str) -> str:
+    """
+    Генерирует ответ AI с учетом данных из загруженных файлов
+    
+    Args:
+        question: Вопрос пользователя
+        
+    Returns:
+        Ответ AI
+    """
+    if not client:
+        return "AI не настроен. Пожалуйста, добавьте OPENAI_API_KEY в настройки."
+    
+    # Получить контекст из файлов
+    files_context = await get_files_context()
+    
+    system_prompt = f"""Ты - AI ассистент для системы аналитики продаж.
+У тебя есть доступ к данным из загруженных Excel файлов.
+
+Данные из файлов:
+{files_context}
+
+Правила:
+1. Отвечай на русском языке
+2. Используй данные из файлов для ответа
+3. Если данных недостаточно - скажи об этом
+4. Будь конкретным и точным
+"""
+    
+    try:
+        response = client.chat.completions.create(
+            model=settings.openai_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"OpenAI error: {e}")
+        return f"Ошибка AI: {str(e)}"

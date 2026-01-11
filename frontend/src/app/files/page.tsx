@@ -25,6 +25,7 @@ interface ImportFile {
     progress: number;
     period: string;
     error?: string;
+    storage_path?: string;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
@@ -69,6 +70,31 @@ export default function FilesPage() {
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
+        }
+    };
+
+    const handleDownload = async (id: string, filename: string) => {
+        try {
+            const response = await fetch(`${API_BASE}/api/import/download/${id}`);
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ detail: 'Ошибка скачивания' }));
+                alert(error.detail || 'Файл не найден');
+                return;
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error('Download failed:', err);
+            alert('Ошибка при скачивании файла');
         }
     };
 
@@ -282,6 +308,15 @@ export default function FilesPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
+                                                {file.storage_path && (
+                                                    <button
+                                                        onClick={() => handleDownload(file.id, file.filename)}
+                                                        className="p-2.5 hover:bg-green-500/20 rounded-full transition-all duration-300 hover:scale-110"
+                                                        title="Скачать файл"
+                                                    >
+                                                        <Download size={16} className="text-green-400" />
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => setSelectedFile(file)}
                                                     className="p-2.5 hover:bg-rose-800/20 rounded-full transition-all duration-300 hover:scale-110"

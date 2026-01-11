@@ -79,6 +79,7 @@ async def delete_all_sales_data():
     Use with caution! This also clears import history.
     """
     from app.database import get_supabase_admin
+    from app.config import settings
     
     db = get_supabase_admin()
     if db is None:
@@ -86,9 +87,24 @@ async def delete_all_sales_data():
     
     deleted_sales = 0
     deleted_imports = 0
+    deleted_files = 0
     
     try:
-        # Try RPC first for efficiency
+        # 1. Delete all files from Storage
+        try:
+            # Get all files from import_history
+            imports = db.table("import_history").select("storage_path").execute()
+            for imp in imports.data:
+                if imp.get("storage_path"):
+                    try:
+                        db.storage.from_(settings.storage_bucket).remove([imp["storage_path"]])
+                        deleted_files += 1
+                    except Exception as e:
+                        logger.warning(f"Failed to delete file {imp['storage_path']}: {e}")
+        except Exception as e:
+            logger.error(f"Storage cleanup error: {e}")
+        
+        # 2. Try RPC first for efficiency
         rpc_error = None
         try:
             db.rpc('reset_analytics_data').execute()
@@ -115,7 +131,21 @@ async def delete_all_sales_data():
             # Fallback: Delete import_history
             db.table("import_history").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
         
-        # 1. Clear In-Memory Cache (Dashboard)
+        # 3. Delete agent analytics data
+        try:
+            # Delete agent analytics tables (use gte to delete all records)
+            db.table("agent_daily_sales").delete().gte("id", "00000000-0000-0000-0000-000000000000").execute()
+            db.table("agent_sales_plans").delete().gte("id", "00000000-0000-0000-0000-000000000000").execute()
+            db.table("agent_performance_forecasts").delete().gte("id", "00000000-0000-0000-0000-000000000000").execute()
+            
+            # Delete agents table
+            db.table("agents").delete().gte("id", "00000000-0000-0000-0000-000000000000").execute()
+            
+            logger.info("Agent analytics data and agents cleared")
+        except Exception as e:
+            logger.error(f"Agent analytics cleanup error: {e}")
+        
+        # 4. Clear In-Memory Cache (Dashboard)
         try:
             from app.services.cache_service import cache
             # Clear ALL analytics keys - new patterns
@@ -127,7 +157,7 @@ async def delete_all_sales_data():
         except Exception as e:
             logger.error(f"Cache clear error: {e}")
             
-        # 2. Reset Forecast Model (Prophet)
+        # 5. Reset Forecast Model (Prophet)
         try:
             from app.services.forecast_service import ForecastService
             # Get or create a fresh instance and reset it
@@ -137,7 +167,7 @@ async def delete_all_sales_data():
         except Exception as e:
             logger.error(f"Forecast reset error: {e}")
 
-        # 3. Clear Knowledge Base (RAG) manually if RPC didn't
+        # 6. Clear Knowledge Base (RAG) manually if RPC didn't
         if rpc_error:
             try:
                 db.table("knowledge_base").delete().in_("category", ["sales_insight", "auto_generated"]).execute()
@@ -148,7 +178,8 @@ async def delete_all_sales_data():
             "success": True,
             "message": "All analytics data deleted and caches cleared",
             "type": "rpc" if deleted_sales == -1 else "batch",
-            "details": "Dashboard and AI context have been reset"
+            "details": f"Dashboard and AI context have been reset. Deleted {deleted_files} files from storage.",
+            "deleted_files": deleted_files
         }
     
     except Exception as e:
@@ -158,6 +189,7 @@ async def delete_all_sales_data():
             "message": f"Delete failed: {str(e)}",
             "error": str(e)
         }
+
 
 
 @router.get("/{file_id}")
@@ -214,18 +246,29 @@ async def get_file_details(file_id: str):
 @router.delete("/{file_id}")
 async def delete_file(file_id: str, delete_data: bool = Query(False)):
     """
-    Delete an import record and optionally its data
+    Delete an import record and its file from Storage
     """
     if supabase is None:
         raise HTTPException(500, "Database not connected")
     
+    from app.config import settings
+    
     try:
-        # Check if file exists
-        result = supabase.table("import_history").select("id, filename").eq("id", file_id).execute()
+        # Check if file exists and get storage_path
+        result = supabase.table("import_history").select("id, filename, storage_path").eq("id", file_id).execute()
         if not result.data:
             raise HTTPException(404, "File not found")
         
         filename = result.data[0]["filename"]
+        storage_path = result.data[0].get("storage_path")
+        
+        # Delete file from Storage if exists
+        if storage_path:
+            try:
+                supabase.storage.from_(settings.storage_bucket).remove([storage_path])
+                logger.info(f"Deleted file from storage: {storage_path}")
+            except Exception as e:
+                logger.warning(f"Failed to delete file from storage: {e}")
         
         # Delete import record
         supabase.table("import_history").delete().eq("id", file_id).execute()
@@ -234,6 +277,8 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
         try:
             from app.services.cache_service import cache
             cache.invalidate_pattern("analytics:")
+            cache.invalidate_pattern("dashboard:")
+            cache.invalidate_pattern("agent:")
             cache.clear()
             logger.info("Cache cleared after file deletion")
         except Exception as e:
@@ -242,7 +287,7 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
         return {
             "success": True,
             "message": f"Import '{filename}' deleted",
-            "deleted_data": delete_data
+            "deleted_from_storage": storage_path is not None
         }
     
     except HTTPException:

@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     supabase_key: str = ""
     supabase_service_key: str = ""  # Service role key for bypassing RLS
     database_url: str = ""
+    storage_bucket: str = "import-files"  # Supabase Storage bucket for uploaded files
     
     # AI APIs
     openai_api_key: str = ""
