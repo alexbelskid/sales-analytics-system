@@ -88,8 +88,11 @@ class GoogleSheetsImporter:
             for row_idx, row in enumerate(data):
                 if not row or len(row) == 0:
                     continue
+                # Check both first and second columns for header keywords
                 first_cell = str(row[0]).strip().upper() if row[0] else ""
-                if 'РЕГИОН' in first_cell or 'ПОЛЬЗОВАТЕЛЬ' in first_cell:
+                second_cell = str(row[1]).strip().upper() if len(row) > 1 and row[1] else ""
+                if ('РЕГИОН' in first_cell or 'ПОЛЬЗОВАТЕЛЬ' in first_cell or
+                    'РЕГИОН' in second_cell or 'ПОЛЬЗОВАТЕЛЬ' in second_cell):
                     header_row_idx = row_idx
                     logger.info(f"Found header row at index {row_idx}")
                     break
