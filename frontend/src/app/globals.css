@@ -74,7 +74,7 @@
   }
 
   .ui-card:hover {
-    @apply opacity-90;
+    @apply opacity-90 scale-[1.01];
   }
 
   /* Compact card variant */

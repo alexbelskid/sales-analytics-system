@@ -192,28 +192,28 @@ export default function FilesPage() {
                     <div className="flex gap-3 flex-wrap">
                         <button
                             onClick={resetStuck}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/25"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-amber-500/25"
                         >
                             <AlertTriangle size={16} />
                             Сбросить застрявшие
                         </button>
                         <button
                             onClick={confirmDeleteAll}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-400 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-red-500/25"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-400 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-red-500/25"
                         >
                             <Trash2 size={16} />
                             Удалить ВСЕ данные
                         </button>
                         <button
                             onClick={clearCache}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-full transition-all duration-300 hover:shadow-lg"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-2xl transition-all duration-150 hover:shadow-lg"
                         >
                             <RefreshCw size={16} />
                             Очистить кэш
                         </button>
                         <button
                             onClick={fetchFiles}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-800 hover:bg-rose-700 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-800 hover:bg-rose-700 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-rose-800/25"
                         >
                             <RefreshCw size={16} />
                             Обновить
@@ -226,7 +226,7 @@ export default function FilesPage() {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm transition-all duration-300 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                        className="bg-input border border-border rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                     >
                         <option value="">Все статусы</option>
                         <option value="completed">Завершённые</option>
@@ -236,7 +236,7 @@ export default function FilesPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-gray-800 rounded-xl overflow-hidden">
+                <div className="bg-card border border-border rounded-3xl overflow-hidden">
                     <table className="w-full">
                         <thead className="bg-gray-700/50">
                             <tr>
@@ -343,7 +343,7 @@ export default function FilesPage() {
                 {/* Details Modal */}
                 {selectedFile && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
-                        <div className="bg-gray-800 rounded-2xl p-6 max-w-lg w-full mx-4 animate-scale-in shadow-2xl shadow-rose-800/10">
+                        <div className="bg-card border border-border rounded-3xl p-6 max-w-lg w-full mx-4 animate-scale-in shadow-2xl shadow-rose-800/10">
                             <h3 className="text-xl font-bold mb-4">Детали импорта</h3>
 
                             <div className="space-y-3 text-sm">
@@ -380,7 +380,7 @@ export default function FilesPage() {
 
                             <button
                                 onClick={() => setSelectedFile(null)}
-                                className="mt-6 w-full py-3 bg-rose-800 hover:bg-rose-700 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25 font-medium"
+                                className="mt-6 w-full py-3 bg-rose-800 hover:bg-rose-700 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-rose-800/25 font-medium"
                             >
                                 Закрыть
                             </button>
@@ -391,7 +391,7 @@ export default function FilesPage() {
                 {/* Delete Confirmation Modal */}
                 {showDeleteModal && (
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
-                        <div className="bg-gray-800 rounded-2xl p-6 max-w-md w-full mx-4 border border-red-500/50 animate-scale-in shadow-2xl shadow-red-500/10">
+                        <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full mx-4 border-red-500/50 animate-scale-in shadow-2xl shadow-red-500/10">
                             <div className="flex items-center gap-3 mb-4">
                                 <AlertTriangle className="text-red-500" size={32} />
                                 <h3 className="text-xl font-bold text-red-400">Удаление данных</h3>
@@ -410,14 +410,14 @@ export default function FilesPage() {
                                 <button
                                     onClick={() => setShowDeleteModal(false)}
                                     disabled={isDeleting}
-                                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-full transition-all duration-300 disabled:opacity-50 font-medium"
+                                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-2xl transition-all duration-150 disabled:opacity-50 font-medium"
                                 >
                                     Отмена
                                 </button>
                                 <button
                                     onClick={executeDeleteAll}
                                     disabled={isDeleting}
-                                    className="flex-1 py-3 bg-red-500 hover:bg-red-400 rounded-full transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg hover:shadow-red-500/25 font-medium"
+                                    className="flex-1 py-3 bg-red-500 hover:bg-red-400 rounded-2xl transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg hover:shadow-red-500/25 font-medium"
                                 >
                                     {isDeleting ? (
                                         <>
