@@ -17,8 +17,18 @@ logger = logging.getLogger(__name__)
 class GoogleSheetsImporter:
     """Service for importing agent data from Google Sheets"""
     
-    # Regional headers that indicate new region section
-    REGIONAL_HEADERS = ['БРЕСТ', 'ВИТЕБСК', 'ГОМЕЛЬ', 'ГРОДНО', 'МИНСК', 'МИН']
+    # Regional headers - настоящие регионы Беларуси (не компании!)
+    REGIONAL_HEADERS = [
+        'БРЕСТ', 
+        'ВИТЕБСК', 
+        'ГОМЕЛЬ', 
+        'ГРОДНО', 
+        'МИНСК',
+        'МОГИЛЕВ'
+    ]
+    
+    # Компании/клиенты, которые НЕ являются регионами
+    NON_REGION_KEYWORDS = ['КАМ РЕКИТТ', 'ЮМСА', 'РЕКИТТ', 'ЮМС']
     
     def __init__(self):
         self.supabase = supabase
@@ -60,17 +70,28 @@ class GoogleSheetsImporter:
                 if len(first_cell) < 2:
                     continue
                 
-                # Check if this is a regional header (colored row with region name)
-                is_region_header = any(reg in first_cell_upper for reg in self.REGIONAL_HEADERS)
-                if is_region_header:
-                    current_region = first_cell_upper
-                    # Normalize region name
-                    for reg in self.REGIONAL_HEADERS:
-                        if reg in current_region:
-                            current_region = reg
-                            break
-                    logger.info(f"Row {row_idx}: Found region header: {current_region}")
+                # Проверяем что это НЕ компания/клиент
+                is_non_region = any(keyword in first_cell_upper for keyword in self.NON_REGION_KEYWORDS)
+                if is_non_region:
+                    logger.debug(f"Row {row_idx}: Skipping non-region company: {first_cell}")
                     continue
+                
+                # Check if this is a regional header
+                # Региональная строка - это строка, которая содержит ТОЛЬКО название региона
+                # и не содержит числовых данных в колонках B-H (продажи, план и т.д.)
+                is_region_header = False
+                if any(reg in first_cell_upper for reg in self.REGIONAL_HEADERS):
+                    # Проверяем что в колонках B-H нет данных (это признак региональной строки)
+                    has_sales_data = any(
+                        self._parse_float(row[i]) is not None 
+                        for i in range(1, min(8, len(row)))
+                    )
+                    if not has_sales_data:
+                        is_region_header = True
+                        # Сохраняем полное название региона
+                        current_region = first_cell
+                        logger.info(f"Row {row_idx}: Found region header: {current_region}")
+                        continue
                 
                 # Skip column header rows (contain column titles like "Район / Ответственный", "Продажи", etc.)
                 skip_keywords = ['РАЙОН', 'ОТВЕТСТВЕННЫЙ', 'ПРОДАЖИ', 'ПЛАН', 'ВЫПОЛНЕНИЕ', 
