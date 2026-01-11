@@ -275,16 +275,13 @@ async def import_from_excel(
                     for row in sheet.iter_rows(values_only=True):
                         data.append(list(row))
                 else:
-                    # Use xlrd for old .xls format
-                    import xlrd
-                    workbook = xlrd.open_workbook(file_contents=contents)
-                    sheet = workbook.sheet_by_index(0)
-                    for row_idx in range(sheet.nrows):
-                        row_data = []
-                        for col_idx in range(sheet.ncols):
-                            cell = sheet.cell(row_idx, col_idx)
-                            row_data.append(cell.value)
-                        data.append(row_data)
+                    # Use python-calamine for old .xls format
+                    from python_calamine import CalamineWorkbook
+                    workbook = CalamineWorkbook.from_filelike(io.BytesIO(contents))
+                    sheet_names = workbook.sheet_names
+                    if sheet_names:
+                        rows = workbook.get_sheet_by_name(sheet_names[0]).to_python()
+                        data = rows
                 logger.info(f"Parsed Excel with {len(data)} rows")
             except Exception as excel_error:
                 logger.error(f"Excel parse error: {excel_error}")
