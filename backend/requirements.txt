@@ -1,4 +1,4 @@
-# REBUILD TRIGGER: 2026-01-12-02:38 - Force Railway to reinstall deps
+# REBUILD TRIGGER: 2026-01-12-02:59 - Force Railway to reinstall deps (slowapi fix)
 # FastAPI and Server
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
