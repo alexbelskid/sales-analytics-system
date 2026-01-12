@@ -128,8 +128,8 @@ export default function UploadPage() {
                     {/* Drag and Drop Zone */}
                     <div
                         className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${dragActive
-                                ? 'border-rose-500 bg-rose-500/10'
-                                : 'border-gray-600 hover:border-rose-500/50'
+                            ? 'border-rose-500 bg-rose-500/10'
+                            : 'border-gray-600 hover:border-rose-500/50'
                             }`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
@@ -284,8 +284,8 @@ export default function UploadPage() {
                 {result && (
                     <div
                         className={`border rounded-3xl p-6 ${result.success
-                                ? 'bg-green-500/10 border-green-500/50'
-                                : 'bg-red-500/10 border-red-500/50'
+                            ? 'bg-green-500/10 border-green-500/50'
+                            : 'bg-red-500/10 border-red-500/50'
                             }`}
                     >
                         <div className="flex items-start gap-3">
@@ -311,7 +311,7 @@ export default function UploadPage() {
                                             <span className="text-gray-400">Imported Rows:</span>
                                             <span className="ml-2 font-medium text-green-400">{result.imported_rows}</span>
                                         </div>
-                                        {result.failed_rows > 0 && (
+                                        {(result.failed_rows ?? 0) > 0 && (
                                             <div>
                                                 <span className="text-gray-400">Failed Rows:</span>
                                                 <span className="ml-2 font-medium text-red-400">{result.failed_rows}</span>
