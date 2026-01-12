@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Mail, MessageSquare, Lock } from "lucide-react";
+import { Mail, MessageSquare, Lock, FileSpreadsheet } from "lucide-react";
 
 const SETTINGS_CARDS = [
     {
@@ -16,6 +16,13 @@ const SETTINGS_CARDS = [
         description: "Настройка стилей общения, приветствий и подписей",
         icon: MessageSquare,
         href: "/settings/response-tone",
+        color: "text-white"
+    },
+    {
+        title: "Файлы",
+        description: "Управление загруженными файлами и документами",
+        icon: FileSpreadsheet,
+        href: "/files",
         color: "text-white"
     },
     {

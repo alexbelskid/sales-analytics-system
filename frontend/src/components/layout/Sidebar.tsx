@@ -16,43 +16,129 @@ import {
     X,
     Menu,
     FileSpreadsheet,
-    BarChart3
+    BarChart3,
+    Package,
+    ChevronDown
 } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Assuming you have a utility for merging classes, if not i will use template literals
 
-const navigation = [
+type NavItemType = {
+    name: string;
+    href?: string;
+    icon: any;
+    children?: NavItemType[];
+};
+
+const navigation: NavItemType[] = [
     { name: 'Аналитика агентов', href: '/', icon: TrendingUp },
     { name: 'Обзор продаж', href: '/sales-dashboard', icon: LayoutDashboard },
     { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3 },
-    { name: 'Автоответы', href: '/emails', icon: Mail },
-    { name: 'AI Ассистент', href: '/ai-assistant', icon: Sparkles },
-    { name: 'КП', href: '/proposals', icon: FileText },
-    { name: 'Зарплаты', href: '/salary', icon: Calculator },
-    { name: 'Файлы', href: '/files', icon: FileSpreadsheet },
+    {
+        name: 'Дополнительные инструменты',
+        icon: Package,
+        children: [
+            { name: 'Автоответы', href: '/emails', icon: Mail },
+            { name: 'AI Ассистент', href: '/ai-assistant', icon: Sparkles },
+            { name: 'КП', href: '/proposals', icon: FileText },
+            { name: 'Зарплаты', href: '/salary', icon: Calculator },
+        ]
+    }
 ];
 
+const settingsNav: NavItemType = {
+    name: 'Настройки',
+    href: '/settings',
+    icon: Settings
+};
+
 interface NavItemProps {
-    item: { name: string; href: string; icon: any };
+    item: NavItemType;
     isActive: boolean;
     isCollapsed: boolean;
     onClick?: () => void;
+    currentPath: string;
+    level?: number;
 }
 
-const NavItem = memo(({ item, isActive, isCollapsed, onClick }: NavItemProps) => (
-    <Link
-        href={item.href}
-        onClick={onClick}
-        title={isCollapsed ? item.name : ''}
-        className={`flex items-center gap-3 px-3 py-3 text-sm rounded-2xl transition-all duration-150 min-h-[44px] ${isActive
-            ? 'bg-white text-black font-medium shadow-sm'
-            : 'text-muted-foreground hover:text-foreground hover:opacity-90'
-            } ${isCollapsed ? 'justify-center px-2' : ''}`}
-    >
-        <item.icon className="h-5 w-5 shrink-0" />
-        {!isCollapsed && <span className="truncate">{item.name}</span>}
-    </Link>
-));
+const NavItem = memo(({ item, isActive, isCollapsed, onClick, currentPath, level = 0 }: NavItemProps) => {
+    const defaultOpen = item.children ? item.children.some(child => child.href === currentPath) : false;
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+
+    useEffect(() => {
+        if (item.children && item.children.some(child => child.href === currentPath)) {
+            setIsOpen(true);
+        }
+    }, [currentPath, item.children]);
+
+    const handleToggle = (e: React.MouseEvent) => {
+        if (item.children) {
+            e.preventDefault();
+            setIsOpen(!isOpen);
+        } else if (onClick) {
+            onClick();
+        }
+    };
+
+    const isChildActive = item.children ? item.children.some(child => child.href === currentPath) : false;
+
+    if (item.children) {
+        return (
+            <div className="mb-1">
+                <button
+                    onClick={handleToggle}
+                    title={isCollapsed ? item.name : ''}
+                    className={`w-full flex items-center gap-3 px-3 py-3 text-sm rounded-2xl transition-all duration-150 min-h-[44px] ${isChildActive || isOpen
+                        ? 'text-white'
+                        : 'text-muted-foreground hover:text-foreground hover:opacity-90'
+                        } ${isCollapsed ? 'justify-center px-2' : ''}`}
+                >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    {!isCollapsed && (
+                        <>
+                            <span className="truncate flex-1 text-left">{item.name}</span>
+                            <ChevronDown
+                                className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                            />
+                        </>
+                    )}
+                </button>
+                {!isCollapsed && isOpen && (
+                    <div className="ml-4 space-y-1 mt-1 border-l border-[#333333] pl-2">
+                        {item.children.map((child) => (
+                            <NavItem
+                                key={child.name}
+                                item={child}
+                                isActive={currentPath === child.href}
+                                isCollapsed={isCollapsed}
+                                onClick={onClick}
+                                currentPath={currentPath}
+                                level={level + 1}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <Link
+            href={item.href!}
+            onClick={onClick}
+            title={isCollapsed ? item.name : ''}
+            className={`flex items-center gap-3 px-3 py-3 text-sm rounded-2xl transition-all duration-150 min-h-[44px] ${isActive
+                ? 'bg-white text-black font-medium shadow-sm'
+                : 'text-muted-foreground hover:text-foreground hover:opacity-90'
+                } ${isCollapsed ? 'justify-center px-2' : ''}`}
+        >
+            <item.icon className="h-5 w-5 shrink-0" />
+            {!isCollapsed && <span className="truncate">{item.name}</span>}
+        </Link>
+    );
+});
 
 NavItem.displayName = 'NavItem';
+// ... (NavItem component remains same)
 
 interface SidebarProps {
     isMobileOpen?: boolean;
@@ -140,6 +226,7 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
                         isActive={pathname === item.href}
                         isCollapsed={isCollapsed}
                         onClick={handleNavClick}
+                        currentPath={pathname}
                     />
                 ))}
             </nav>
@@ -147,10 +234,11 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
             {/* Settings */}
             <div className="border-t border-[#333333] p-3 shrink-0">
                 <NavItem
-                    item={{ name: 'Настройки', href: '/settings', icon: Settings }}
+                    item={settingsNav}
                     isActive={pathname === '/settings'}
                     isCollapsed={isCollapsed}
                     onClick={handleNavClick}
+                    currentPath={pathname}
                 />
             </div>
         </div>

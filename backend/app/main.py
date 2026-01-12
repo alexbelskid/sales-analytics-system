@@ -122,6 +122,10 @@ app.include_router(data_upload.router)
 from app.routers import import_router
 app.include_router(import_router.router)
 
+# Unified Import Router (Single endpoint for all uploads)
+from app.routers import unified_import
+app.include_router(unified_import.router)
+
 # Extended Analytics Router
 from app.routers import extended_analytics
 app.include_router(extended_analytics.router)
