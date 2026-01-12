@@ -224,26 +224,43 @@ class UnifiedImporter:
                         }).execute()
                         customer_id = new_customer.data[0]["id"]
                     
+                    # Parse date with GUARANTEED fallback values
+                    sale_date = None
+                    year = None
+                    month = None
                     
-                    # Parse date
-                    sale_date = row.get('date', datetime.now().date())
-                    if isinstance(sale_date, str):
-                        sale_date_obj = pd.to_datetime(sale_date).date()
-                        sale_date = sale_date_obj.isoformat()
-                        year = sale_date_obj.year
-                        month = sale_date_obj.month
-                    elif hasattr(sale_date, 'isoformat'):
-                        year = sale_date.year if hasattr(sale_date, 'year') else datetime.now().year
-                        month = sale_date.month if hasattr(sale_date, 'month') else datetime.now().month
-                        sale_date = sale_date.isoformat()
-                    else:
-                        year = datetime.now().year
-                        month = datetime.now().month
-                        sale_date = datetime.now().date().isoformat()
+                    try:
+                        raw_date = row.get('date')
+                        if raw_date is not None and raw_date != '':
+                            if isinstance(raw_date, str):
+                                # String date
+                                sale_date_obj = pd.to_datetime(raw_date).date()
+                                sale_date = sale_date_obj.isoformat()
+                                year = sale_date_obj.year
+                                month = sale_date_obj.month
+                            elif hasattr(raw_date, 'year') and hasattr(raw_date, 'month'):
+                                # Date/datetime object
+                                if hasattr(raw_date, 'date'):
+                                    sale_date_obj = raw_date.date()
+                                else:
+                                    sale_date_obj = raw_date
+                                sale_date = sale_date_obj.isoformat()
+                                year = sale_date_obj.year
+                                month = sale_date_obj.month
+                    except Exception as date_error:
+                        logger.warning(f"Date parsing failed: {date_error}, using current date")
                     
+                    # GUARANTEED fallback to current date if parsing failed
+                    if sale_date is None or year is None or month is None:
+                        now = datetime.now()
+                        sale_date = now.date().isoformat()
+                        year = now.year
+                        month = now.month
+                    
+                    # Get total amount with fallback
                     total = float(row.get('amount', row.get('total', 0)))
                     
-                    # Create sale
+                    # Create sale with ALL required fields
                     sale = supabase.table("sales").insert({
                         "customer_id": customer_id,
                         "sale_date": sale_date,
