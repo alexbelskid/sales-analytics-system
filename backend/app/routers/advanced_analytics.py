@@ -155,3 +155,123 @@ async def get_lfl_comparison(
     except Exception as e:
         logger.error(f"LFL comparison error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/abc-xyz")
+async def get_abc_xyz_matrix(
+    days: int = Query(default=90, ge=7, le=365, description="Период анализа в днях"),
+    min_revenue: float = Query(default=0, ge=0, description="Минимальная выручка для включения")
+):
+    """
+    ABC-XYZ матрица для классификации товаров.
+    
+    ABC: По выручке (Pareto 80/20)
+    - A: Топ 80% выручки
+    - B: Следующие 15% выручки
+    - C: Последние 5% выручки
+    
+    XYZ: По стабильности спроса (коэффициент вариации)
+    - X: CV < 10% (стабильный спрос)
+    - Y: 10% <= CV < 25% (умеренная вариативность)
+    - Z: CV >= 25% (высокая вариативность)
+    """
+    if supabase is None:
+        return {"matrix": {}, "summary": {}}
+    
+    try:
+        from app.services.abc_xyz_service import (
+            calculate_abc_classification,
+            calculate_xyz_classification,
+            combine_abc_xyz
+        )
+        
+        cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
+        
+        # Get sales data aggregated by product
+        sales_result = supabase.table("sales").select(
+            "product_id, total_amount, quantity, sale_date"
+        ).gte("sale_date", cutoff_date).execute()
+        
+        if not sales_result.data:
+            return {"matrix": {}, "summary": {"total_products": 0}}
+        
+        # Aggregate by product
+        product_data = {}
+        sales_history = []
+        
+        for sale in sales_result.data:
+            pid = sale.get("product_id")
+            if not pid:
+                continue
+            
+            amount = float(sale.get("total_amount", 0) or 0)
+            qty = float(sale.get("quantity", 0) or 0)
+            
+            if pid not in product_data:
+                product_data[pid] = {"product_id": pid, "revenue": 0, "quantity": 0}
+            
+            product_data[pid]["revenue"] += amount
+            product_data[pid]["quantity"] += qty
+            
+            # Track for XYZ calculation (monthly periods)
+            period = sale.get("sale_date", "")[:7]  # YYYY-MM
+            sales_history.append({"product_id": pid, "period": period, "quantity": qty})
+        
+        # Filter by min_revenue
+        products = [p for p in product_data.values() if p["revenue"] >= min_revenue]
+        
+        if not products:
+            return {"matrix": {}, "summary": {"total_products": 0}}
+        
+        # Get product names
+        product_ids = [p["product_id"] for p in products]
+        products_result = supabase.table("products").select("id, name, category").in_("id", product_ids).execute()
+        
+        # Add names to products
+        name_lookup = {p["id"]: {"name": p.get("name", "Unknown"), "category": p.get("category")} 
+                      for p in (products_result.data or [])}
+        
+        for p in products:
+            info = name_lookup.get(p["product_id"], {})
+            p["name"] = info.get("name", "Unknown")
+            p["category"] = info.get("category")
+        
+        # Calculate ABC classification
+        products = calculate_abc_classification(products, value_key="revenue")
+        
+        # Calculate XYZ classification
+        products = calculate_xyz_classification(products, sales_history)
+        
+        # Combine into matrix
+        matrix = combine_abc_xyz(products)
+        
+        # Calculate summary statistics
+        summary = {
+            "total_products": len(products),
+            "total_revenue": sum(p["revenue"] for p in products),
+            "matrix_counts": {k: len(v) for k, v in matrix.items()},
+            "abc_distribution": {
+                "A": len([p for p in products if p.get("abc_class") == "A"]),
+                "B": len([p for p in products if p.get("abc_class") == "B"]),
+                "C": len([p for p in products if p.get("abc_class") == "C"])
+            },
+            "xyz_distribution": {
+                "X": len([p for p in products if p.get("xyz_class") == "X"]),
+                "Y": len([p for p in products if p.get("xyz_class") == "Y"]),
+                "Z": len([p for p in products if p.get("xyz_class") == "Z"])
+            }
+        }
+        
+        # Limit items per cell to top 10 for response size
+        for key in matrix:
+            matrix[key] = sorted(matrix[key], key=lambda x: x["revenue"], reverse=True)[:10]
+        
+        return {
+            "matrix": matrix,
+            "summary": summary,
+            "period_days": days
+        }
+        
+    except Exception as e:
+        logger.error(f"ABC-XYZ matrix error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
