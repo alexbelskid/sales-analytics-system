@@ -20,9 +20,11 @@ export default function MobileHeader({ onMenuClick }: MobileHeaderProps) {
             </button>
 
             {/* Logo */}
-            <div className="flex items-center gap-2">
-                <Image src="/belai_logo.png" alt="belAI Logo" width={24} height={24} className="h-6 w-6 object-contain" />
-                <span className="text-lg font-bold text-white">belAI</span>
+            <div className="flex items-center gap-3">
+                <div className="relative h-8 w-8">
+                    <Image src="/belai_logo.png" alt="belAI Logo" fill className="object-contain" />
+                </div>
+                <span className="text-2xl font-bold text-white tracking-wide mt-1">belAI</span>
             </div>
 
             {/* Spacer for centering logo */}

@@ -192,13 +192,17 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
             <div className={`flex h-16 items-center border-b border-[#333333] shrink-0 px-4 ${isCollapsed ? 'justify-center' : 'justify-between'
                 }`}>
                 {!isCollapsed && (
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Image src="/belai_logo.png" alt="belAI Logo" width={24} height={24} className="h-6 w-6 object-contain" />
-                        <span className="text-lg font-bold text-white truncate">belAI</span>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="relative h-8 w-8 shrink-0">
+                            <Image src="/belai_logo.png" alt="belAI Logo" fill className="object-contain" />
+                        </div>
+                        <span className="text-2xl font-bold text-white tracking-wide truncate mt-1">belAI</span>
                     </div>
                 )}
                 {isCollapsed && (
-                    <Image src="/belai_logo.png" alt="belAI Logo" width={24} height={24} className="h-8 w-8 object-contain" />
+                    <div className="relative h-8 w-8">
+                        <Image src="/belai_logo.png" alt="belAI Logo" fill className="object-contain" />
+                    </div>
                 )}
 
                 {/* Collapse button - only on desktop */}
