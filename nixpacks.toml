@@ -1,12 +1,19 @@
 # Railway / Nixpacks configuration for Backend
+# REBUILD: 2026-01-12-11:49
+
 [phases.setup]
-nixPkgs = ["python311", "gcc", "libffi", "stdenv.cc.cc"]
+nixPkgs = ["python311", "gcc", "libffi", "stdenv.cc.cc.lib", "zlib", "glibc"]
 
 [phases.install]
-cmds = ["python -m venv /opt/venv && /opt/venv/bin/pip install -r backend/requirements.txt"]
+cmds = [
+    "python -m venv /opt/venv",
+    "/opt/venv/bin/pip install --upgrade pip",
+    "/opt/venv/bin/pip install -r backend/requirements.txt"
+]
 
 [start]
-cmd = "cd backend && /opt/venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+cmd = "cd backend && LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/nix/store/*-gcc-*/lib /opt/venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
 
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
+LD_LIBRARY_PATH = "/lib:/usr/lib"
