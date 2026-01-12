@@ -50,7 +50,8 @@ class GoogleSheetsImporter:
         self,
         data: List[List[Any]],
         period_start: date,
-        period_end: date
+        period_end: date,
+        filename: str = None
     ) -> GoogleSheetsImportResult:
         """
         Import agent data from parsed Google Sheets data
@@ -232,13 +233,63 @@ class GoogleSheetsImporter:
             
             logger.info(f"Import complete: {agents_imported} agents, {plans_imported} plans, {daily_sales_imported} sales, {brands_imported} brands")
             
+            # Create import_history record for tracking
+            import_id = None
+            try:
+                from datetime import datetime
+                
+                # Collect all agent IDs
+                agent_ids = [agent_data.get('agent_id') for agent_data in processed_agents.values() if agent_data.get('agent_id')]
+                
+                # Collect unique regions
+                regions = list(set(agent_data.get('region', 'Unknown') for agent_data in processed_agents.values()))
+                
+                # Create metadata
+                metadata = {
+                    'period_start': period_start.isoformat(),
+                    'period_end': period_end.isoformat(),
+                    'regions': regions,
+                    'brands_count': brands_imported,
+                    'total_rows_processed': len(data)
+                }
+                
+                # Generate filename if not provided
+                if not filename:
+                    filename = f"Google Sheets Import - {period_start} to {period_end}"
+                
+                # Insert into import_history
+                result = self.supabase.table('import_history').insert({
+                    'filename': filename,
+                    'file_size': 0,  # Not applicable for Google Sheets
+                    'total_rows': len(data),
+                    'imported_rows': daily_sales_imported,
+                    'failed_rows': 0,
+                    'status': 'completed',
+                    'progress_percent': 100,
+                    'import_source': 'google_sheets',
+                    'import_type': 'agents',
+                    'metadata': metadata,
+                    'related_agent_ids': agent_ids,
+                    'started_at': datetime.now().isoformat(),
+                    'completed_at': datetime.now().isoformat()
+                }).execute()
+                
+                if result.data and len(result.data) > 0:
+                    import_id = result.data[0]['id']
+                    logger.info(f"Created import_history record: {import_id}")
+            
+            except Exception as e:
+                logger.error(f"Failed to create import_history record: {e}")
+                # Don't fail the import if history creation fails
+            
             return GoogleSheetsImportResult(
                 success=True,
                 agents_imported=agents_imported,
                 plans_imported=plans_imported,
                 daily_sales_imported=daily_sales_imported,
                 errors=errors,
-                message=f"Успешно импортировано: {agents_imported} агентов, {plans_imported} планов, {daily_sales_imported} записей продаж, {brands_imported} брендов"
+                message=f"Успешно импортировано: {agents_imported} агентов, {plans_imported} планов, {daily_sales_imported} записей продаж, {brands_imported} брендов",
+                import_id=import_id
             )
         
         except Exception as e:
@@ -246,7 +297,8 @@ class GoogleSheetsImporter:
             return GoogleSheetsImportResult(
                 success=False,
                 errors=[str(e)],
-                message=f"Ошибка импорта: {str(e)}"
+                message=f"Ошибка импорта: {str(e)}",
+                import_id=None
             )
     
     async def _save_agent_data(

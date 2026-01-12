@@ -17,6 +17,8 @@ router = APIRouter(prefix="/api/files", tags=["Files"])
 async def list_files(
     status: Optional[str] = Query(None, description="Filter by status"),
     year: Optional[int] = Query(None, description="Filter by year"),
+    import_source: Optional[str] = Query(None, description="Filter by import source"),
+    import_type: Optional[str] = Query(None, description="Filter by import type"),
     sort_by: str = Query("date", description="Sort by: date, size, records"),
     order: str = Query("desc", description="Order: asc, desc")
 ):
@@ -32,6 +34,12 @@ async def list_files(
         if status:
             query = query.eq("status", status)
         
+        if import_source:
+            query = query.eq("import_source", import_source)
+        
+        if import_type:
+            query = query.eq("import_type", import_type)
+        
         # Apply sorting
         sort_column = "started_at"
         if sort_by == "size":
@@ -43,12 +51,34 @@ async def list_files(
         
         result = query.limit(100).execute()
         
+        # Human-readable labels
+        source_labels = {
+            'excel_upload': 'Excel Upload',
+            'google_sheets': 'Google Sheets',
+            'csv_upload': 'CSV Upload',
+            'manual': 'Manual Entry'
+        }
+        
+        type_labels = {
+            'sales': 'Sales',
+            'agents': 'Agents',
+            'customers': 'Customers',
+            'products': 'Products'
+        }
+        
         files = []
         for f in result.data:
-            # Determine period from data if available
+            # Determine period from metadata or direct fields
             period = "—"
-            if f.get("period_start") and f.get("period_end"):
+            metadata = f.get("metadata", {})
+            if metadata and isinstance(metadata, dict):
+                if 'period_start' in metadata and 'period_end' in metadata:
+                    period = f"{metadata['period_start']} → {metadata['period_end']}"
+            elif f.get("period_start") and f.get("period_end"):
                 period = f"{f['period_start']} → {f['period_end']}"
+            
+            import_source = f.get('import_source', 'excel_upload')
+            import_type = f.get('import_type', 'sales')
             
             files.append({
                 "id": f["id"],
@@ -61,7 +91,12 @@ async def list_files(
                 "failed_rows": f.get("failed_rows", 0),
                 "progress": f.get("progress_percent", 0),
                 "period": period,
-                "error": f.get("error_log")
+                "error": f.get("error_log"),
+                "import_source": import_source,
+                "import_source_label": source_labels.get(import_source, import_source),
+                "import_type": import_type,
+                "import_type_label": type_labels.get(import_type, import_type),
+                "metadata": metadata
             })
         
         return {"files": files, "total": len(files)}
@@ -246,7 +281,11 @@ async def get_file_details(file_id: str):
 @router.delete("/{file_id}")
 async def delete_file(file_id: str, delete_data: bool = Query(False)):
     """
-    Delete an import record and its file from Storage
+    Delete an import record and optionally its associated data
+    
+    Args:
+        file_id: Import history record ID
+        delete_data: If True, also delete all data imported from this file (CASCADE)
     """
     if supabase is None:
         raise HTTPException(500, "Database not connected")
@@ -254,15 +293,61 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
     from app.config import settings
     
     try:
-        # Check if file exists and get storage_path
-        result = supabase.table("import_history").select("id, filename, storage_path").eq("id", file_id).execute()
+        # Get import record first
+        result = supabase.table("import_history").select("*").eq("id", file_id).execute()
+        
         if not result.data:
-            raise HTTPException(404, "File not found")
+            raise HTTPException(404, "Import not found")
         
-        filename = result.data[0]["filename"]
-        storage_path = result.data[0].get("storage_path")
+        import_record = result.data[0]
+        import_source = import_record.get('import_source', 'excel_upload')
+        import_type = import_record.get('import_type', 'sales')
+        storage_path = import_record.get('storage_path')
+        filename = import_record.get('filename', 'Unknown')
         
-        # Delete file from Storage if exists
+        logger.info(f"Deleting import {file_id}: source={import_source}, type={import_type}, delete_data={delete_data}")
+        
+        # CASCADE DELETION: Delete associated data if requested
+        deleted_counts = {}
+        if delete_data:
+            try:
+                if import_type == 'agents':
+                    # Delete agent-related data
+                    related_agent_ids = import_record.get('related_agent_ids', [])
+                    
+                    if related_agent_ids and len(related_agent_ids) > 0:
+                        # Delete daily sales for these agents
+                        sales_result = supabase.table("agent_daily_sales").delete().in_("agent_id", related_agent_ids).execute()
+                        deleted_counts['agent_daily_sales'] = len(sales_result.data) if sales_result.data else 0
+                        
+                        # Delete sales plans for these agents
+                        plans_result = supabase.table("agent_sales_plans").delete().in_("agent_id", related_agent_ids).execute()
+                        deleted_counts['agent_sales_plans'] = len(plans_result.data) if plans_result.data else 0
+                        
+                        logger.info(f"Cascade deleted agent data: {deleted_counts}")
+                
+                elif import_type == 'sales':
+                    # Delete sales data
+                    related_sale_ids = import_record.get('related_sale_ids', [])
+                    
+                    if related_sale_ids and len(related_sale_ids) > 0:
+                        # Delete sale items first (FK constraint)
+                        items_result = supabase.table("sale_items").delete().in_("sale_id", related_sale_ids).execute()
+                        deleted_counts['sale_items'] = len(items_result.data) if items_result.data else 0
+                        
+                        # Delete sales
+                        sales_result = supabase.table("sales").delete().in_("id", related_sale_ids).execute()
+                        deleted_counts['sales'] = len(sales_result.data) if sales_result.data else 0
+                        
+                        logger.info(f"Cascade deleted sales data: {deleted_counts}")
+                    else:
+                        logger.warning(f"No related_sale_ids for import {file_id}, cannot cascade delete sales")
+            
+            except Exception as e:
+                logger.error(f"Cascade deletion error: {e}")
+                raise HTTPException(500, f"Failed to delete associated data: {str(e)}")
+        
+        # Delete file from Storage if it exists
         if storage_path:
             try:
                 supabase.storage.from_(settings.storage_bucket).remove([storage_path])
@@ -270,10 +355,10 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
             except Exception as e:
                 logger.warning(f"Failed to delete file from storage: {e}")
         
-        # Delete import record
+        # Delete import_history record
         supabase.table("import_history").delete().eq("id", file_id).execute()
         
-        # Clear cache so dashboard updates immediately
+        # Clear cache
         try:
             from app.services.cache_service import cache
             cache.invalidate_pattern("analytics:")
@@ -287,7 +372,8 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
         return {
             "success": True,
             "message": f"Import '{filename}' deleted",
-            "deleted_from_storage": storage_path is not None
+            "deleted_from_storage": storage_path is not None,
+            "deleted_data": deleted_counts if delete_data else None
         }
     
     except HTTPException:

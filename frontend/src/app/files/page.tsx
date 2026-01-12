@@ -26,6 +26,11 @@ interface ImportFile {
     period: string;
     error?: string;
     storage_path?: string;
+    import_source?: string;
+    import_source_label?: string;
+    import_type?: string;
+    import_type_label?: string;
+    metadata?: any;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
@@ -35,11 +40,15 @@ export default function FilesPage() {
     const [loading, setLoading] = useState(true);
     const [selectedFile, setSelectedFile] = useState<ImportFile | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>('');
+    const [sourceFilter, setSourceFilter] = useState<string>('');
+    const [typeFilter, setTypeFilter] = useState<string>('');
 
     const fetchFiles = async () => {
         try {
             const params = new URLSearchParams();
             if (statusFilter) params.append('status', statusFilter);
+            if (sourceFilter) params.append('import_source', sourceFilter);
+            if (typeFilter) params.append('import_type', typeFilter);
 
             const res = await fetch(`${API_BASE}/api/files/list?${params}`);
             const data = await res.json();
@@ -60,7 +69,7 @@ export default function FilesPage() {
             }
         }, 5000);
         return () => clearInterval(interval);
-    }, [statusFilter]);
+    }, [statusFilter, sourceFilter, typeFilter]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Удалить запись об импорте?')) return;
@@ -233,6 +242,27 @@ export default function FilesPage() {
                         <option value="failed">С ошибками</option>
                         <option value="processing">В процессе</option>
                     </select>
+                    <select
+                        value={sourceFilter}
+                        onChange={(e) => setSourceFilter(e.target.value)}
+                        className="bg-input border border-border rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                    >
+                        <option value="">Все источники</option>
+                        <option value="google_sheets">Google Sheets</option>
+                        <option value="excel_upload">Excel Upload</option>
+                        <option value="csv_upload">CSV Upload</option>
+                    </select>
+                    <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="bg-input border border-border rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                    >
+                        <option value="">Все типы</option>
+                        <option value="agents">Агенты</option>
+                        <option value="sales">Продажи</option>
+                        <option value="customers">Клиенты</option>
+                        <option value="products">Товары</option>
+                    </select>
                 </div>
 
                 {/* Table */}
@@ -241,6 +271,8 @@ export default function FilesPage() {
                         <thead className="bg-gray-700/50">
                             <tr>
                                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-400">Файл</th>
+                                <th className="text-left px-6 py-4 text-sm font-medium text-gray-400">Источник</th>
+                                <th className="text-left px-6 py-4 text-sm font-medium text-gray-400">Тип</th>
                                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-400">Дата</th>
                                 <th className="text-left px-6 py-4 text-sm font-medium text-gray-400">Статус</th>
                                 <th className="text-right px-6 py-4 text-sm font-medium text-gray-400">Размер</th>
@@ -251,14 +283,14 @@ export default function FilesPage() {
                         <tbody className="divide-y divide-gray-700">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                                         <RefreshCw className="animate-spin mx-auto mb-2" />
                                         Загрузка...
                                     </td>
                                 </tr>
                             ) : files.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400">
+                                    <td colSpan={8} className="px-6 py-12 text-center text-gray-400">
                                         Нет загруженных файлов
                                     </td>
                                 </tr>
@@ -272,6 +304,11 @@ export default function FilesPage() {
                                                     <div className="font-medium truncate max-w-[200px]" title={file.filename}>
                                                         {file.filename}
                                                     </div>
+                                                    {file.period && file.period !== '—' && (
+                                                        <div className="text-xs text-gray-500 mt-1">
+                                                            {file.period}
+                                                        </div>
+                                                    )}
                                                     {file.error && (
                                                         <div className="text-xs text-red-400 flex items-center gap-1 mt-1">
                                                             <AlertTriangle size={12} />
@@ -280,6 +317,16 @@ export default function FilesPage() {
                                                     )}
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm">
+                                            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs">
+                                                {file.import_source_label || file.import_source || 'Excel'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm">
+                                            <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded text-xs">
+                                                {file.import_type_label || file.import_type || 'Sales'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-400">
                                             {formatDate(file.uploaded_at)}

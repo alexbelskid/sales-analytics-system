@@ -316,7 +316,7 @@ async def import_from_excel(
         
         # Import using the importer service
         result = await google_sheets_importer.import_from_data(
-            data, period_start, period_end
+            data, period_start, period_end, filename=file.filename
         )
         
         # Invalidate cache after successful import

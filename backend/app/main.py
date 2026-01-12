@@ -38,7 +38,9 @@ _extra_origins = [o.strip() for o in _extra_origins if o.strip()]
 
 ALLOWED_ORIGINS = [
     "http://localhost:3000",      # Local development
+    "http://localhost:3001",      # Local development (npm run dev)
     "http://127.0.0.1:3000",      # Local development alt
+    "http://127.0.0.1:3001",      # Local development alt (npm run dev)
     "https://sales-analytics-system-psi.vercel.app",  # Vercel production
 ] + _extra_origins
 

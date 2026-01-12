@@ -191,6 +191,7 @@ class GoogleSheetsImportResult(BaseModel):
     daily_sales_imported: int = 0
     errors: List[str] = Field(default_factory=list)
     message: str
+    import_id: Optional[str] = None  # ID of created import_history record
 
 
 # ============================================================================
