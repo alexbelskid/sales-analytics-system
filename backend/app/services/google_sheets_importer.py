@@ -3,6 +3,7 @@ Google Sheets Importer Service
 Imports agent sales data from Google Sheets (Продажи ТМ format)
 """
 
+from __future__ import annotations
 from typing import List, Dict, Any, Tuple
 from datetime import date, datetime, timedelta
 import logging

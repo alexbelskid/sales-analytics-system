@@ -3,7 +3,8 @@ Agent Analytics Service
 Business logic for agent performance tracking, forecasting, and analysis
 """
 
-from typing import List, Optional, Dict, Any, Tuple
+from __future__ import annotations
+from typing import List, Optional, Dict, Any, Tuple, Union
 from datetime import date, datetime, timedelta
 from uuid import UUID
 import logging
@@ -139,7 +140,7 @@ class AgentAnalyticsService:
         period_start: date,
         period_end: date,
         detailed: bool = False
-    ) -> AgentPerformance | AgentPerformanceDetailed:
+    ) -> Union[AgentPerformance, AgentPerformanceDetailed]:
         """Get performance metrics for a specific agent"""
         try:
             # Check cache first

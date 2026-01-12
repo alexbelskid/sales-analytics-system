@@ -10,6 +10,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.routers import analytics, upload, proposals, forecast, salary
 from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training, data_upload, advanced_analytics, plan_fact, pivot
+from app.routers import geo_analytics, boston_matrix, what_if
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -139,6 +140,15 @@ app.include_router(plan_fact.router, prefix="/api/analytics", tags=["Plan-Fact"]
 
 # Pivot Table Router
 app.include_router(pivot.router, prefix="/api/analytics", tags=["Pivot"])
+
+# Phase 3: Geo Analytics Router
+app.include_router(geo_analytics.router, prefix="/api/analytics", tags=["Geo"])
+
+# Phase 3: Boston Matrix Router
+app.include_router(boston_matrix.router, prefix="/api/analytics", tags=["Boston Matrix"])
+
+# Phase 3: What-If Scenarios Router
+app.include_router(what_if.router, prefix="/api/analytics", tags=["What-If"])
 
 
 @app.get("/", tags=["Health"])
