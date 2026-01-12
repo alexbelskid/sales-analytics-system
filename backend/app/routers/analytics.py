@@ -22,14 +22,20 @@ async def get_dashboard(
     end_date: Optional[date] = Query(None, description="Конец периода"),
     customer_id: Optional[str] = Query(None, description="ID клиента"),
     agent_id: Optional[str] = Query(None, description="ID агента"),
+    product_id: Optional[str] = Query(None, description="ID продукта"),
+    region: Optional[str] = Query(None, description="Регион"),
+    category: Optional[str] = Query(None, description="Категория товара"),
     force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
     """Основные метрики дашборда с кэшированием - использует RPC для эффективности"""
     
-    # Try cache first (only for requests without filters)
-    cache_key = CACHE_DASHBOARD
-    if not any([start_date, end_date, customer_id, agent_id]) and not force_refresh:
-        cached = cache.get(cache_key)
+    # Build cache key with all filters
+    filters = [start_date, end_date, customer_id, agent_id, product_id, region, category]
+    has_filters = any(filters)
+    cache_key = f"{CACHE_DASHBOARD}:{hash(tuple(str(f) for f in filters))}"
+    
+    if not has_filters and not force_refresh:
+        cached = cache.get(CACHE_DASHBOARD)
         if cached:
             return DashboardMetrics(**cached)
     
@@ -111,6 +117,8 @@ async def get_dashboard(
 async def get_top_customers(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
     days: int = Query(default=7300, ge=1, le=73000, description="За последние N дней"),
+    region: Optional[str] = Query(None, description="Фильтр по региону"),
+    agent_id: Optional[str] = Query(None, description="Фильтр по агенту"),
     force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
     """Топ клиентов по выручке - использует RPC для эффективности"""
@@ -211,6 +219,8 @@ async def get_top_customers(
 async def get_top_products(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
     days: int = Query(default=7300, ge=1, le=73000, description="За последние N дней"),
+    category: Optional[str] = Query(None, description="Фильтр по категории"),
+    region: Optional[str] = Query(None, description="Фильтр по региону"),
     force_refresh: bool = Query(False, description="Принудительное обновление")
 ):
     """Топ товаров по продажам с кэшированием"""

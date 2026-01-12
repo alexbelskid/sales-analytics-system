@@ -9,7 +9,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.routers import analytics, upload, proposals, forecast, salary
-from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training, data_upload
+from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training, data_upload, advanced_analytics
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -130,6 +130,9 @@ app.include_router(files_router.router)
 # Agent Analytics Router
 from app.routers import agent_analytics
 app.include_router(agent_analytics.router, prefix="/api")
+
+# Advanced Analytics Router (LFL, Filters)
+app.include_router(advanced_analytics.router, prefix="/api/analytics", tags=["Advanced Analytics"])
 
 
 @app.get("/", tags=["Health"])
