@@ -1,6 +1,6 @@
 # Railway / Nixpacks configuration for Backend
 [phases.setup]
-nixPkgs = ["python311", "gcc", "libffi"]
+nixPkgs = ["python311", "gcc", "libffi", "stdenv.cc.cc"]
 
 [phases.install]
 cmds = ["python -m venv /opt/venv && /opt/venv/bin/pip install -r backend/requirements.txt"]
