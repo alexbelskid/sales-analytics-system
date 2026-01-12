@@ -224,12 +224,19 @@ class UnifiedImporter:
                         }).execute()
                         customer_id = new_customer.data[0]["id"]
                     
+                    
                     # Parse date
                     sale_date = row.get('date', datetime.now().date())
                     if isinstance(sale_date, str):
-                        sale_date = pd.to_datetime(sale_date).date().isoformat()
+                        sale_date_obj = pd.to_datetime(sale_date).date()
+                        sale_date = sale_date_obj.isoformat()
+                        year = sale_date_obj.year
                     elif hasattr(sale_date, 'isoformat'):
+                        year = sale_date.year if hasattr(sale_date, 'year') else datetime.now().year
                         sale_date = sale_date.isoformat()
+                    else:
+                        year = datetime.now().year
+                        sale_date = datetime.now().date().isoformat()
                     
                     total = float(row.get('amount', row.get('total', 0)))
                     
@@ -237,6 +244,7 @@ class UnifiedImporter:
                     sale = supabase.table("sales").insert({
                         "customer_id": customer_id,
                         "sale_date": sale_date,
+                        "year": year,
                         "total_amount": total
                     }).execute()
                     
