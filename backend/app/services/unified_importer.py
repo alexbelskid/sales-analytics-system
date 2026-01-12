@@ -284,6 +284,8 @@ class UnifiedImporter:
                 
                 except Exception as e:
                     logger.error(f"Error importing sale row: {e}")
+                    logger.error(f"Row data: customer_name={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
+                    logger.error(f"Parsed values: sale_date={sale_date if 'sale_date' in locals() else 'N/A'}, year={year if 'year' in locals() else 'N/A'}, month={month if 'month' in locals() else 'N/A'}")
                     failed += 1
             
             return {
@@ -291,11 +293,12 @@ class UnifiedImporter:
                 'imported_rows': imported,
                 'failed_rows': failed,
                 'related_sale_ids': sale_ids,
-                'message': f"Imported {imported} sales records"
+                'message': f"Imported {imported} sales records, {failed} failed"
             }
         
         except Exception as e:
             logger.error(f"Sales import error: {e}")
+            logger.exception("Full traceback:")
             return {
                 'success': False,
                 'imported_rows': 0,
