@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata: Metadata = {
-    title: 'Alterini AI - Аналитика продаж',
+    title: 'belAI - Аналитика продаж',
     description: 'Система аналитики продаж с AI-автоответами и прогнозированием',
 };
 

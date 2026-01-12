@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, memo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
@@ -11,8 +12,8 @@ import {
     Calculator,
     Settings,
     ChevronLeft,
-    ChevronRight,
     Sparkles,
+    ChevronRight,
     X,
     Menu,
     FileSpreadsheet,
@@ -192,11 +193,13 @@ export default function Sidebar({ isMobileOpen = false, onMobileClose }: Sidebar
                 }`}>
                 {!isCollapsed && (
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <Sparkles className="h-5 w-5 text-white shrink-0" />
-                        <span className="text-lg font-bold text-white truncate">Alterini AI</span>
+                        <Image src="/belai_logo.png" alt="belAI Logo" width={24} height={24} className="h-6 w-6 object-contain" />
+                        <span className="text-lg font-bold text-white truncate">belAI</span>
                     </div>
                 )}
-                {isCollapsed && <Sparkles className="h-6 w-6 text-white" />}
+                {isCollapsed && (
+                    <Image src="/belai_logo.png" alt="belAI Logo" width={24} height={24} className="h-8 w-8 object-contain" />
+                )}
 
                 {/* Collapse button - only on desktop */}
                 <button
