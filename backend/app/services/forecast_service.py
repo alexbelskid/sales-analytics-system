@@ -56,66 +56,76 @@ class ForecastService:
                 "metrics": {}
             }
         
-        # Получаем исторические данные
-        query = supabase.table("sales").select("sale_date, total_amount")
-        
-        if product_id:
-            # Фильтр по товару через sale_items
-            sales_with_product = supabase.table("sale_items")\
-                .select("sale_id")\
-                .eq("product_id", product_id)\
-                .execute()
-            if sales_with_product.data:
-                sale_ids = [s["sale_id"] for s in sales_with_product.data]
-                query = query.in_("id", sale_ids)
-        
-        if customer_id:
-            query = query.eq("customer_id", customer_id)
-        
-        result = query.execute()
-        
-        if not result.data or len(result.data) < 10:
+        try:
+            # Получаем исторические данные
+            query = supabase.table("sales").select("sale_date, total_amount")
+            
+            if product_id:
+                # Фильтр по товару через sale_items
+                sales_with_product = supabase.table("sale_items")\
+                    .select("sale_id")\
+                    .eq("product_id", product_id)\
+                    .execute()
+                if sales_with_product.data:
+                    sale_ids = [s["sale_id"] for s in sales_with_product.data]
+                    query = query.in_("id", sale_ids)
+            
+            if customer_id:
+                query = query.eq("customer_id", customer_id)
+            
+            result = query.execute()
+            
+            if not result.data or len(result.data) < 10:
+                return {
+                    "status": "error",
+                    "message": "Недостаточно данных для обучения (минимум 10 записей)",
+                    "records_used": len(result.data) if result.data else 0,
+                    "metrics": {}
+                }
+            
+            # Подготовка данных для Prophet
+            df = pd.DataFrame(result.data)
+            df['ds'] = pd.to_datetime(df['sale_date'])
+            df['y'] = df['total_amount'].astype(float)
+            
+            # Агрегация по дням
+            df = df.groupby('ds')['y'].sum().reset_index()
+            
+            # Обучаем Prophet
+            self.model = Prophet(
+                yearly_seasonality=True,
+                weekly_seasonality=True,
+                daily_seasonality=False,
+                changepoint_prior_scale=0.05,
+                seasonality_prior_scale=10.0
+            )
+            
+            self.model.fit(df)
+            self.last_trained = datetime.now()
+            self.training_data = df
+            
+            return {
+                "status": "success",
+                "records_used": len(df),
+                "date_range": {
+                    "from": df['ds'].min().strftime('%Y-%m-%d'),
+                    "to": df['ds'].max().strftime('%Y-%m-%d')
+                },
+                "metrics": {
+                    "total_days": len(df),
+                    "avg_daily_sales": round(df['y'].mean(), 2),
+                    "max_daily_sales": round(df['y'].max(), 2)
+                }
+            }
+        except Exception as e:
+            import logging
+            logging.error(f"Error training Prophet model: {str(e)}")
             return {
                 "status": "error",
-                "message": "Недостаточно данных для обучения (минимум 10 записей)",
-                "records_used": len(result.data) if result.data else 0,
+                "message": f"Ошибка обучения: {str(e)}",
+                "records_used": 0,
                 "metrics": {}
             }
-        
-        # Подготовка данных для Prophet
-        df = pd.DataFrame(result.data)
-        df['ds'] = pd.to_datetime(df['sale_date'])
-        df['y'] = df['total_amount'].astype(float)
-        
-        # Агрегация по дням
-        df = df.groupby('ds')['y'].sum().reset_index()
-        
-        # Обучаем Prophet
-        self.model = Prophet(
-            yearly_seasonality=True,
-            weekly_seasonality=True,
-            daily_seasonality=False,
-            changepoint_prior_scale=0.05,
-            seasonality_prior_scale=10.0
-        )
-        
-        self.model.fit(df)
-        self.last_trained = datetime.now()
-        self.training_data = df
-        
-        return {
-            "status": "success",
-            "records_used": len(df),
-            "date_range": {
-                "from": df['ds'].min().strftime('%Y-%m-%d'),
-                "to": df['ds'].max().strftime('%Y-%m-%d')
-            },
-            "metrics": {
-                "total_days": len(df),
-                "avg_daily_sales": round(df['y'].mean(), 2),
-                "max_daily_sales": round(df['y'].max(), 2)
-            }
-        }
     
     async def predict(
         self,
