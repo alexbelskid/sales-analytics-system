@@ -3,17 +3,22 @@ AI Router - Groq Integration
 Handles AI-powered email response generation
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional
 import logging
 
 from app.services.groq_service import GroqService
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 groq_service = GroqService()
+
+# Rate limiter for AI endpoints (expensive operations)
+limiter = Limiter(key_func=get_remote_address)
 
 
 class GenerateRequest(BaseModel):
@@ -35,7 +40,8 @@ class GenerateResponse(BaseModel):
 
 
 @router.post("/generate-response", response_model=GenerateResponse)
-async def generate_ai_response(request: GenerateRequest):
+@limiter.limit("20/minute")
+async def generate_ai_response(request: Request, gen_request: GenerateRequest):
     """
     Generate AI-powered email response using Groq
     
@@ -56,11 +62,11 @@ async def generate_ai_response(request: GenerateRequest):
         
         # Pass all details to service which handles context fetching
         response_text = await groq_service.generate_response(
-            email_from=request.email_from,
-            email_subject=request.email_subject,
-            email_body=request.email_body,
-            tone=request.tone,
-            knowledge_base=request.context,
+            email_from=gen_request.email_from,
+            email_subject=gen_request.email_subject,
+            email_body=gen_request.email_body,
+            tone=gen_request.tone,
+            knowledge_base=gen_request.context,
             training_examples=None,
             include_analytics=True
         )

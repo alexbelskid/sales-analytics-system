@@ -1,16 +1,23 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Request
 from typing import Optional
 import pandas as pd
 from io import BytesIO
 from uuid import uuid4
 from datetime import datetime
 from app.database import supabase
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
 
+# Rate limiter for upload endpoints
+limiter = Limiter(key_func=get_remote_address)
+
 
 @router.post("/excel")
+@limiter.limit("10/minute")
 async def upload_excel(
+    request: Request,
     file: UploadFile = File(...),
     data_type: str = Form(default="sales", description="Тип данных: sales, customers, products"),
     mode: str = Form(default="append", description="Режим: append (добавить) или replace (заменить)")
