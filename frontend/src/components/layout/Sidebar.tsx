@@ -15,12 +15,14 @@ import {
     Sparkles,
     X,
     Menu,
-    FileSpreadsheet
+    FileSpreadsheet,
+    BarChart3
 } from 'lucide-react';
 
 const navigation = [
     { name: 'Аналитика агентов', href: '/', icon: TrendingUp },
     { name: 'Обзор продаж', href: '/sales-dashboard', icon: LayoutDashboard },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3 },
     { name: 'Автоответы', href: '/emails', icon: Mail },
     { name: 'AI Ассистент', href: '/ai-assistant', icon: Sparkles },
     { name: 'КП', href: '/proposals', icon: FileText },
