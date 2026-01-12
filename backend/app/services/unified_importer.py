@@ -231,11 +231,14 @@ class UnifiedImporter:
                         sale_date_obj = pd.to_datetime(sale_date).date()
                         sale_date = sale_date_obj.isoformat()
                         year = sale_date_obj.year
+                        month = sale_date_obj.month
                     elif hasattr(sale_date, 'isoformat'):
                         year = sale_date.year if hasattr(sale_date, 'year') else datetime.now().year
+                        month = sale_date.month if hasattr(sale_date, 'month') else datetime.now().month
                         sale_date = sale_date.isoformat()
                     else:
                         year = datetime.now().year
+                        month = datetime.now().month
                         sale_date = datetime.now().date().isoformat()
                     
                     total = float(row.get('amount', row.get('total', 0)))
@@ -245,6 +248,7 @@ class UnifiedImporter:
                         "customer_id": customer_id,
                         "sale_date": sale_date,
                         "year": year,
+                        "month": month,
                         "total_amount": total
                     }).execute()
                     
