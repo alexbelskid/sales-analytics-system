@@ -216,7 +216,12 @@ class UnifiedImporter:
                     if customer_result.data:
                         customer_id = customer_result.data[0]["id"]
                     else:
-                        new_customer = supabase.table("customers").insert({"name": customer_name}).execute()
+                        # Create normalized name (lowercase, stripped)
+                        normalized_name = customer_name.lower().strip()
+                        new_customer = supabase.table("customers").insert({
+                            "name": customer_name,
+                            "normalized_name": normalized_name
+                        }).execute()
                         customer_id = new_customer.data[0]["id"]
                     
                     # Parse date
@@ -345,8 +350,12 @@ class UnifiedImporter:
                             failed += 1
                             continue
                     
+                    # Create normalized name
+                    normalized_name = customer_name.lower().strip()
+                    
                     supabase.table("customers").insert({
                         "name": customer_name,
+                        "normalized_name": normalized_name,
                         "email": str(row.get('email', '')) or None,
                         "phone": str(row.get('phone', '')) or None,
                         "company": str(row.get('company', '')) or None
