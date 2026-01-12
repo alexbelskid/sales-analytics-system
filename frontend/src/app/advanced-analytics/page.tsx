@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { AdvancedFilters, FilterChip } from "@/components/analytics/AdvancedFilters";
 import { ABCXYZMatrix } from "@/components/analytics/ABCXYZMatrix";
 import { PlanFactGauge } from "@/components/analytics/PlanFactGauge";
+import { GeoMap } from "@/components/analytics/GeoMap";
+import { BostonMatrix } from "@/components/analytics/BostonMatrix";
+import { WhatIfSimulator } from "@/components/analytics/WhatIfSimulator";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
@@ -21,6 +24,8 @@ export default function AdvancedAnalyticsPage() {
     const [abcXyzData, setAbcXyzData] = useState<any>(null);
     const [planFactData, setPlanFactData] = useState<any>(null);
     const [lflData, setLflData] = useState<any>(null);
+    const [geoData, setGeoData] = useState<any>(null);
+    const [bostonData, setBostonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     // Fetch filter options
@@ -61,6 +66,16 @@ export default function AdvancedAnalyticsPage() {
                 );
                 const lfl = await lflRes.json();
                 setLflData(lfl);
+
+                // Geo Visualization
+                const geoRes = await fetch(`${API_BASE_URL}/api/analytics/geo?days=90`);
+                const geo = await geoRes.json();
+                setGeoData(geo);
+
+                // Boston Matrix
+                const bostonRes = await fetch(`${API_BASE_URL}/api/analytics/boston-matrix?days=90`);
+                const boston = await bostonRes.json();
+                setBostonData(boston);
             } catch (err) {
                 console.error("Failed to fetch analytics data:", err);
             } finally {
@@ -136,7 +151,7 @@ export default function AdvancedAnalyticsPage() {
                     </div>
                 )}
 
-                {/* Bento Grid Layout */}
+                {/* Bento Grid Layout - Phase 2 */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* ABC-XYZ Matrix - Takes 2 columns */}
                     <div className="lg:col-span-2">
@@ -161,51 +176,41 @@ export default function AdvancedAnalyticsPage() {
                     </div>
                 </div>
 
-                {/* Pivot Table Placeholder */}
-                <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-sm rounded-3xl p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
-                                <svg
-                                    className="w-5 h-5 text-cyan-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-white">Comprehensive Sales Pivot</h3>
-                                <p className="text-xs text-zinc-500">Drag dimensions to reorganize data</p>
-                            </div>
-                        </div>
+                {/* Phase 3: Geo + Boston Matrix */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Geo Visualization */}
+                    <div>
+                        {geoData && !loading ? (
+                            <GeoMap data={geoData} />
+                        ) : (
+                            <Card className="bg-zinc-900/50 border-zinc-800 rounded-3xl p-6 h-[400px] flex items-center justify-center">
+                                <div className="text-zinc-500">Loading Geography...</div>
+                            </Card>
+                        )}
                     </div>
 
-                    {/* Dimension Pills */}
-                    <div className="flex flex-wrap gap-2 mb-4">
-                        {["Category", "Region", "Sales Rep", "Product Group", "Time Period"].map((dim) => (
-                            <Badge
-                                key={dim}
-                                variant="secondary"
-                                className="rounded-full bg-purple-500/20 text-purple-300 border-purple-500/30 px-3 py-1.5 cursor-move hover:bg-purple-500/30 transition-colors"
-                            >
-                                {dim}
-                            </Badge>
-                        ))}
+                    {/* Boston Matrix */}
+                    <div>
+                        {bostonData && !loading ? (
+                            <BostonMatrix data={bostonData} />
+                        ) : (
+                            <Card className="bg-zinc-900/50 border-zinc-800 rounded-3xl p-6 h-[400px] flex items-center justify-center">
+                                <div className="text-zinc-500">Loading Boston Matrix...</div>
+                            </Card>
+                        )}
                     </div>
+                </div>
 
-                    {/* Placeholder Table */}
-                    <div className="text-center text-zinc-600 py-12">
-                        <p className="text-sm">Pivot Table component coming soon...</p>
-                        <p className="text-xs mt-2">Will support multi-dimensional data aggregation</p>
-                    </div>
-                </Card>
+                {/* Phase 3: What-If Simulator */}
+                <WhatIfSimulator
+                    baseMetrics={{
+                        revenue: lflData?.[0]?.period2_value || 0,
+                        orders: 0,
+                        quantity: 0,
+                        customers: 0,
+                        avg_check: 0,
+                    }}
+                />
             </div>
         </div>
     );
