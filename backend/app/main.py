@@ -8,7 +8,7 @@ import uuid
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from app.routers import analytics, upload, email, proposals, forecast, salary
+from app.routers import analytics, upload, proposals, forecast, salary
 from app.routers import email_settings, inbox, tone_settings, templates, google_auth, ai, knowledge, training, data_upload
 
 # Configure logging
@@ -94,7 +94,6 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Include routers
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(upload.router, prefix="/api/upload", tags=["Upload"])
-app.include_router(email.router, prefix="/api/email", tags=["Legacy Email"])
 app.include_router(proposals.router, prefix="/api/proposals", tags=["Proposals"])
 app.include_router(forecast.router, prefix="/api/forecast", tags=["Forecast"])
 app.include_router(salary.router, prefix="/api/salary", tags=["Salary"])

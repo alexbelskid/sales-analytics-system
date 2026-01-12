@@ -36,6 +36,11 @@ async def upload_excel(
     try:
         content = await file.read()
         
+        # SECURITY: Limit file size to 10MB to prevent DoS
+        MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(413, f"Файл слишком большой. Максимум: 10MB, получено: {len(content) / 1024 / 1024:.1f}MB")
+        
         if file.filename.endswith('.csv'):
             df = pd.read_csv(BytesIO(content))
         else:

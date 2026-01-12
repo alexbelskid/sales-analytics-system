@@ -1,8 +1,0 @@
-[build]
-builder = "nixpacks"
-
-[build.env]
-NIXPACKS_PYTHON_VERSION = "3.11"
-
-[start]
-cmd = "pip install -r requirements.txt && cd backend && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
