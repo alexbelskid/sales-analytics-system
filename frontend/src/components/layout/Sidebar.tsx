@@ -19,7 +19,8 @@ import {
     FileSpreadsheet,
     BarChart3,
     Package,
-    ChevronDown
+    ChevronDown,
+    Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Assuming you have a utility for merging classes, if not i will use template literals
 
