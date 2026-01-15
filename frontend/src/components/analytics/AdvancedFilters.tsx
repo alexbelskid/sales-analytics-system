@@ -108,7 +108,7 @@ export function AdvancedFilters({
 
                     <Input
                         type="text"
-                        placeholder="Search for insights, metrics, or reports..."
+                        placeholder="Поиск аналитики, метрик или отчётов..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="flex-1 border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-500"
@@ -126,7 +126,7 @@ export function AdvancedFilters({
                                 className="rounded-full h-8 px-3 text-xs bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30"
                             >
                                 <Calendar className="h-3 w-3 mr-1" />
-                                Date
+                                Дата
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-800">
@@ -148,7 +148,7 @@ export function AdvancedFilters({
                                     className="rounded-full h-8 px-3 text-xs bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30"
                                 >
                                     <MapPin className="h-3 w-3 mr-1" />
-                                    Region
+                                    Регион
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-48 bg-zinc-900 border-zinc-800">
@@ -184,7 +184,7 @@ export function AdvancedFilters({
                                     className="rounded-full h-8 px-3 text-xs bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30"
                                 >
                                     <User className="h-3 w-3 mr-1" />
-                                    Agent
+                                    Агент
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-48 bg-zinc-900 border-zinc-800">

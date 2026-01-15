@@ -48,7 +48,7 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
                         <Target className="w-5 h-5 text-purple-400" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-white">Plan-Fact</h3>
+                        <h3 className="text-lg font-semibold text-white">План-Факт</h3>
                         <p className="text-xs text-zinc-500">
                             {new Date(data.period_start).toLocaleDateString()} -{" "}
                             {new Date(data.period_end).toLocaleDateString()}
@@ -93,7 +93,7 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
                         <div className="text-4xl font-bold text-white">
                             {completion.toFixed(1)}%
                         </div>
-                        <div className="text-xs text-zinc-500 mt-1">Completion</div>
+                        <div className="text-xs text-zinc-500 mt-1">Выполнение</div>
                     </div>
                 </div>
             </div>
@@ -104,8 +104,8 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
                     <Badge
                         variant="secondary"
                         className={`rounded-full px-3 py-1 ${revenueMetric.variance_pct > 0
-                                ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                : "bg-red-500/20 text-red-300 border-red-500/30"
+                            ? "bg-green-500/20 text-green-300 border-green-500/30"
+                            : "bg-red-500/20 text-red-300 border-red-500/30"
                             }`}
                     >
                         {revenueMetric.variance_pct > 0 ? (
@@ -115,7 +115,7 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
                         )}
                         <span className="text-xs font-medium">
                             {revenueMetric.variance_pct > 0 ? "+" : ""}
-                            {revenueMetric.variance_pct.toFixed(1)}% vs LY
+                            {revenueMetric.variance_pct.toFixed(1)}% vs ПГ
                         </span>
                     </Badge>
                 </div>
@@ -126,15 +126,15 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
                 {revenueMetric && (
                     <>
                         <div className="flex items-center justify-between text-sm">
-                            <span className="text-zinc-400">Plan:</span>
+                            <span className="text-zinc-400">План:</span>
                             <span className="text-white font-semibold">
-                                ${revenueMetric.planned.toLocaleString()}
+                                {revenueMetric.planned.toLocaleString()} ₽
                             </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
-                            <span className="text-zinc-400">Fact:</span>
+                            <span className="text-zinc-400">Факт:</span>
                             <span className="text-white font-semibold">
-                                ${revenueMetric.actual.toLocaleString()}
+                                {revenueMetric.actual.toLocaleString()} ₽
                             </span>
                         </div>
                         {/* Progress Bar */}
@@ -154,7 +154,7 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
             {/* No Plan Warning */}
             {!data.has_plan && (
                 <div className="mt-4 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
-                    <p className="text-xs text-orange-300">No plan data available for this period</p>
+                    <p className="text-xs text-orange-300">Нет данных плана для этого периода</p>
                 </div>
             )}
         </Card>

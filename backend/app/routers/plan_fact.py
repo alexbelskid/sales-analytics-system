@@ -51,30 +51,39 @@ async def get_plan_fact_analysis(
         raise HTTPException(status_code=500, detail="Database not available")
     
     try:
-        # 1. Get planned metrics
-        plan_query = supabase.table("sales_plans").select("*")
-        plan_query = plan_query.gte("period_start", period_start.isoformat())
-        plan_query = plan_query.lte("period_end", period_end.isoformat())
+        # 1. Get planned metrics - handle schema variations gracefully
+        planned_revenue = 0
+        planned_quantity = 0
+        planned_orders = 0
+        has_plan = False
         
-        if product_id:
-            plan_query = plan_query.eq("product_id", product_id)
-        if customer_id:
-            plan_query = plan_query.eq("customer_id", customer_id)
-        if agent_id:
-            plan_query = plan_query.eq("agent_id", agent_id)
-        if region:
-            plan_query = plan_query.eq("region", region)
-        if category:
-            plan_query = plan_query.eq("category", category)
-        
-        plan_result = plan_query.execute()
-        
-        # Aggregate planned metrics
-        planned_revenue = sum(float(p.get("planned_revenue", 0) or 0) for p in plan_result.data)
-        planned_quantity = sum(int(p.get("planned_quantity", 0) or 0) for p in plan_result.data)
-        planned_orders = sum(int(p.get("planned_orders", 0) or 0) for p in plan_result.data)
-        
-        has_plan = len(plan_result.data) > 0
+        try:
+            # Try to query sales_plans table (handles both schema variants)
+            plan_result = supabase.table("sales_plans").select("*").execute()
+            
+            # Filter by period manually since column names may vary
+            for p in plan_result.data:
+                plan_period = p.get("period") or p.get("period_start")
+                if plan_period:
+                    from datetime import datetime as dt
+                    if isinstance(plan_period, str):
+                        try:
+                            plan_date = dt.fromisoformat(plan_period.replace("Z", "")).date()
+                        except:
+                            continue
+                    else:
+                        plan_date = plan_period
+                    
+                    if period_start <= plan_date <= period_end:
+                        # Handle both column naming conventions
+                        planned_revenue += float(p.get("planned_amount", 0) or p.get("planned_revenue", 0) or 0)
+                        planned_quantity += int(p.get("planned_quantity", 0) or 0)
+                        planned_orders += int(p.get("planned_orders", 0) or 0)
+                        has_plan = True
+        except Exception as plan_error:
+            # sales_plans table may not exist or have different schema - continue with defaults
+            logger.warning(f"Could not query sales_plans: {plan_error}")
+            has_plan = False
         
         # 2. Get actual metrics
         actual_query = supabase.table("sales").select("total_amount, quantity")

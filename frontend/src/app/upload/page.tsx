@@ -102,7 +102,7 @@ export default function UploadPage() {
         } catch (error) {
             setResult({
                 success: false,
-                message: `Upload failed: ${error}`
+                message: `Ошибка загрузки: ${error}`
             });
         } finally {
             setUploading(false);
@@ -116,10 +116,10 @@ export default function UploadPage() {
                 <div className="mb-8">
                     <h1 className="text-2xl font-bold flex items-center gap-3">
                         <Upload className="text-white" />
-                        Upload Data
+                        Загрузка данных
                     </h1>
                     <p className="text-gray-400 mt-1">
-                        Upload sales, agents, customers, or products data from Excel or CSV files
+                        Загрузите данные о продажах, агентах, клиентах или товарах из файлов Excel или CSV
                     </p>
                 </div>
 
@@ -150,19 +150,19 @@ export default function UploadPage() {
                                     onClick={() => setFile(null)}
                                     className="mt-4 text-sm text-red-400 hover:text-red-300"
                                 >
-                                    Remove file
+                                    Удалить файл
                                 </button>
                             </div>
                         ) : (
                             <div>
                                 <p className="text-lg mb-2">
-                                    Drag and drop your file here
+                                    Перетащите файл сюда
                                 </p>
                                 <p className="text-sm text-gray-400 mb-4">
-                                    or
+                                    или
                                 </p>
                                 <label className="inline-block px-6 py-3 bg-rose-800 hover:bg-rose-700 rounded-2xl cursor-pointer transition-all duration-150 hover:shadow-lg hover:shadow-rose-800/25">
-                                    <span>Browse Files</span>
+                                    <span>Выбрать файл</span>
                                     <input
                                         type="file"
                                         accept=".xlsx,.xls,.csv"
@@ -171,7 +171,7 @@ export default function UploadPage() {
                                     />
                                 </label>
                                 <p className="text-xs text-gray-500 mt-4">
-                                    Supported formats: Excel (.xlsx, .xls), CSV (.csv)
+                                    Поддерживаемые форматы: Excel (.xlsx, .xls), CSV (.csv)
                                 </p>
                             </div>
                         )}
@@ -183,28 +183,28 @@ export default function UploadPage() {
                             {/* Data Type Selection */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Data Type
+                                    Тип данных
                                 </label>
                                 <select
                                     value={dataType}
                                     onChange={(e) => setDataType(e.target.value)}
                                     className="w-full bg-input border border-border rounded-2xl px-4 py-2.5 transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                                 >
-                                    <option value="auto">Auto-detect</option>
-                                    <option value="sales">Sales</option>
-                                    <option value="agents">Agents</option>
-                                    <option value="customers">Customers</option>
-                                    <option value="products">Products</option>
+                                    <option value="auto">Автоопределение</option>
+                                    <option value="sales">Продажи</option>
+                                    <option value="agents">Агенты</option>
+                                    <option value="customers">Клиенты</option>
+                                    <option value="products">Товары</option>
                                 </select>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Auto-detect will analyze your file structure to determine the data type
+                                    Автоопределение проанализирует структуру файла для определения типа данных
                                 </p>
                             </div>
 
                             {/* Mode Selection */}
                             <div>
                                 <label className="block text-sm font-medium mb-2">
-                                    Import Mode
+                                    Режим импорта
                                 </label>
                                 <div className="flex gap-4">
                                     <label className="flex items-center gap-2 cursor-pointer">
@@ -215,7 +215,7 @@ export default function UploadPage() {
                                             onChange={(e) => setMode(e.target.value)}
                                             className="text-rose-800 focus:ring-rose-800"
                                         />
-                                        <span>Append (add to existing data)</span>
+                                        <span>Добавить (к существующим данным)</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input
@@ -225,7 +225,7 @@ export default function UploadPage() {
                                             onChange={(e) => setMode(e.target.value)}
                                             className="text-rose-800 focus:ring-rose-800"
                                         />
-                                        <span>Replace (clear existing data)</span>
+                                        <span>Заменить (очистить существующие данные)</span>
                                     </label>
                                 </div>
                             </div>
@@ -235,7 +235,7 @@ export default function UploadPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium mb-2">
-                                            Period Start (for agents)
+                                            Начало периода (для агентов)
                                         </label>
                                         <input
                                             type="date"
@@ -246,7 +246,7 @@ export default function UploadPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-2">
-                                            Period End (for agents)
+                                            Конец периода (для агентов)
                                         </label>
                                         <input
                                             type="date"
@@ -267,12 +267,12 @@ export default function UploadPage() {
                                 {uploading ? (
                                     <>
                                         <RefreshCw size={20} className="animate-spin" />
-                                        Uploading...
+                                        Загрузка...
                                     </>
                                 ) : (
                                     <>
                                         <Upload size={20} />
-                                        Upload File
+                                        Загрузить файл
                                     </>
                                 )}
                             </button>
@@ -296,7 +296,7 @@ export default function UploadPage() {
                             )}
                             <div className="flex-1">
                                 <h3 className={`font-medium mb-2 ${result.success ? 'text-green-400' : 'text-red-400'}`}>
-                                    {result.success ? 'Upload Successful' : 'Upload Failed'}
+                                    {result.success ? 'Загрузка успешна' : 'Ошибка загрузки'}
                                 </h3>
                                 <p className="text-sm text-gray-300 mb-3">
                                     {result.message}
@@ -304,22 +304,22 @@ export default function UploadPage() {
                                 {result.success && (
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
-                                            <span className="text-gray-400">Data Type:</span>
+                                            <span className="text-gray-400">Тип данных:</span>
                                             <span className="ml-2 font-medium capitalize">{result.data_type}</span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-400">Imported Rows:</span>
+                                            <span className="text-gray-400">Импортировано строк:</span>
                                             <span className="ml-2 font-medium text-green-400">{result.imported_rows}</span>
                                         </div>
                                         {(result.failed_rows ?? 0) > 0 && (
                                             <div>
-                                                <span className="text-gray-400">Failed Rows:</span>
+                                                <span className="text-gray-400">Ошибки:</span>
                                                 <span className="ml-2 font-medium text-red-400">{result.failed_rows}</span>
                                             </div>
                                         )}
                                         {result.import_id && (
                                             <div className="col-span-2">
-                                                <span className="text-gray-400">Import ID:</span>
+                                                <span className="text-gray-400">ID импорта:</span>
                                                 <span className="ml-2 font-mono text-xs">{result.import_id}</span>
                                             </div>
                                         )}
@@ -327,7 +327,7 @@ export default function UploadPage() {
                                 )}
                                 {result.errors && result.errors.length > 0 && (
                                     <div className="mt-3">
-                                        <p className="text-sm text-red-400 font-medium mb-1">Errors:</p>
+                                        <p className="text-sm text-red-400 font-medium mb-1">Ошибки:</p>
                                         <ul className="text-xs text-gray-400 list-disc list-inside">
                                             {result.errors.map((error, idx) => (
                                                 <li key={idx}>{error}</li>
@@ -345,13 +345,13 @@ export default function UploadPage() {
                     <div className="flex items-start gap-3">
                         <Info className="text-blue-400 flex-shrink-0" size={20} />
                         <div className="text-sm text-gray-300">
-                            <p className="font-medium text-blue-400 mb-2">How it works:</p>
+                            <p className="font-medium text-blue-400 mb-2">Как это работает:</p>
                             <ul className="space-y-1 list-disc list-inside">
-                                <li>Upload Excel or CSV files with your data</li>
-                                <li>Auto-detect feature analyzes your file structure</li>
-                                <li>All uploads are tracked in the file manager</li>
-                                <li>Choose append to add data or replace to start fresh</li>
-                                <li>View upload history in the <a href="/files" className="text-rose-400 hover:underline">File Manager</a></li>
+                                <li>Загрузите файлы Excel или CSV с вашими данными</li>
+                                <li>Функция автоопределения анализирует структуру файла</li>
+                                <li>Все загрузки отслеживаются в менеджере файлов</li>
+                                <li>Выберите «Добавить» для добавления данных или «Заменить» для полной замены</li>
+                                <li>Просмотрите историю загрузок в <a href="/files" className="text-rose-400 hover:underline">Менеджере файлов</a></li>
                             </ul>
                         </div>
                     </div>

@@ -34,7 +34,7 @@ type NavItemType = {
 const navigation: NavItemType[] = [
     { name: 'Аналитика агентов', href: '/', icon: TrendingUp },
     { name: 'Обзор продаж', href: '/sales-dashboard', icon: LayoutDashboard },
-    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3 },
+    { name: 'Расширенная аналитика', href: '/advanced-analytics', icon: BarChart3 },
     { name: 'AI Ассистент', href: '/ai-assistant', icon: Sparkles },
     {
         name: 'Дополнительные инструменты',

@@ -1,0 +1,122 @@
+{
+    "analytics_audit": {
+        "version": "1.0",
+        "created_at": "2026-01-15",
+        "description": "Tracking file for advanced analytics audit and verification",
+        "endpoints": [
+            {
+                "id": "E001",
+                "name": "ABC-XYZ Matrix",
+                "path": "/api/analytics/abc-xyz",
+                "method": "GET",
+                "status": "pending",
+                "router": "advanced_analytics.py",
+                "expected_params": [
+                    "days",
+                    "min_revenue"
+                ],
+                "tests": []
+            },
+            {
+                "id": "E002",
+                "name": "LFL Comparison",
+                "path": "/api/analytics/lfl",
+                "method": "GET",
+                "status": "pending",
+                "router": "advanced_analytics.py",
+                "expected_params": [
+                    "period1_start",
+                    "period1_end",
+                    "period2_start",
+                    "period2_end"
+                ],
+                "tests": []
+            },
+            {
+                "id": "E003",
+                "name": "Filter Options",
+                "path": "/api/analytics/filter-options",
+                "method": "GET",
+                "status": "pending",
+                "router": "advanced_analytics.py",
+                "expected_params": [],
+                "tests": []
+            },
+            {
+                "id": "E004",
+                "name": "Plan-Fact Analysis",
+                "path": "/api/analytics/plan-fact",
+                "method": "GET",
+                "status": "bug_found",
+                "router": "plan_fact.py",
+                "expected_params": [
+                    "period_start",
+                    "period_end"
+                ],
+                "bug": "Schema mismatch: router queries period_start/period_end but sales_plans table has only 'period' column",
+                "tests": []
+            },
+            {
+                "id": "E005",
+                "name": "Geo Analytics",
+                "path": "/api/analytics/geo",
+                "method": "GET",
+                "status": "pending",
+                "router": "geo_analytics.py",
+                "expected_params": [
+                    "days",
+                    "period_start",
+                    "period_end"
+                ],
+                "tests": []
+            },
+            {
+                "id": "E006",
+                "name": "Boston Matrix",
+                "path": "/api/analytics/boston-matrix",
+                "method": "GET",
+                "status": "pending",
+                "router": "boston_matrix.py",
+                "expected_params": [
+                    "days",
+                    "growth_threshold",
+                    "share_threshold"
+                ],
+                "tests": []
+            },
+            {
+                "id": "E007",
+                "name": "What-If Analysis",
+                "path": "/api/analytics/what-if",
+                "method": "POST",
+                "status": "pending",
+                "router": "what_if.py",
+                "expected_params": [
+                    "scenario",
+                    "days"
+                ],
+                "tests": []
+            }
+        ],
+        "frontend_issues": [
+            {
+                "id": "FE001",
+                "file": "frontend/src/app/advanced-analytics/page.tsx",
+                "line": 124,
+                "issue": "Uses 'metric_name' but LFL endpoint returns 'metric' field",
+                "status": "bug_found",
+                "severity": "high"
+            }
+        ],
+        "schema_issues": [
+            {
+                "id": "SC001",
+                "table": "sales_plans",
+                "issue": "Schema mismatch between migration and plan_fact router",
+                "details": "Migration creates 'period' column (DATE), but router expects 'period_start' and 'period_end'",
+                "status": "bug_found",
+                "severity": "critical"
+            }
+        ]
+    }
+}

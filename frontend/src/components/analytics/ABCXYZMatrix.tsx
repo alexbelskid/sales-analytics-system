@@ -100,9 +100,9 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                                             <div className="space-y-1">
                                                 <p className="font-semibold text-sm">{product.name}</p>
                                                 <p className="text-xs text-zinc-400">
-                                                    Revenue: ${product.revenue.toLocaleString()}
+                                                    Выручка: {product.revenue.toLocaleString()} ₽
                                                 </p>
-                                                <p className="text-xs text-zinc-400">CV: {product.cv}%</p>
+                                                <p className="text-xs text-zinc-400">КВ: {product.cv}%</p>
                                             </div>
                                         </TooltipContent>
                                     </Tooltip>
@@ -110,14 +110,14 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                             );
                         })
                     ) : (
-                        <div className="text-xs text-zinc-600 text-center">No products</div>
+                        <div className="text-xs text-zinc-600 text-center">Нет продуктов</div>
                     )}
                 </div>
 
                 {/* Product Count */}
                 {products.length > 0 && (
                     <div className="text-[10px] text-zinc-500 text-center mt-2">
-                        {products.length} product{products.length !== 1 ? "s" : ""}
+                        {products.length} продукт{products.length === 1 ? "" : products.length >= 2 && products.length <= 4 ? "а" : "ов"}
                     </div>
                 )}
             </div>
@@ -145,9 +145,9 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-white">ABC-XYZ Product Matrix</h3>
+                        <h3 className="text-lg font-semibold text-white">Матрица ABC-XYZ продуктов</h3>
                         <p className="text-xs text-zinc-500">
-                            {data.summary.total_products} products classified
+                            {data.summary.total_products} продуктов классифицировано
                         </p>
                     </div>
                 </div>
@@ -176,9 +176,9 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
 
             {/* Axis Labels */}
             <div className="grid grid-cols-3 gap-3 mt-2">
-                <div className="text-center text-xs font-medium text-zinc-500">X (Stable)</div>
-                <div className="text-center text-xs font-medium text-zinc-500">Y (Moderate)</div>
-                <div className="text-center text-xs font-medium text-zinc-500">Z (Variable)</div>
+                <div className="text-center text-xs font-medium text-zinc-500">X (Стабильный)</div>
+                <div className="text-center text-xs font-medium text-zinc-500">Y (Умеренный)</div>
+                <div className="text-center text-xs font-medium text-zinc-500">Z (Переменный)</div>
             </div>
 
             {/* Legend */}
@@ -186,15 +186,15 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                        <span className="text-zinc-400">A: Top 80% revenue</span>
+                        <span className="text-zinc-400">A: Топ 80% выручки</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
-                        <span className="text-zinc-400">B: Next 15% revenue</span>
+                        <span className="text-zinc-400">B: Следующие 15% выручки</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-zinc-600"></div>
-                        <span className="text-zinc-400">C: Last 5% revenue</span>
+                        <span className="text-zinc-400">C: Последние 5% выручки</span>
                     </div>
                 </div>
             </div>
