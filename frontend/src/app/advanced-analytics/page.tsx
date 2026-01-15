@@ -96,7 +96,7 @@ export default function AdvancedAnalyticsPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Расширенная аналитика</h1>
+                        <h1 className="text-3xl font-bold text-white">Аналитика</h1>
                         <p className="text-zinc-500 mt-1">
                             Комплексный анализ продаж: ABC-XYZ, План-Факт и LFL метрики
                         </p>

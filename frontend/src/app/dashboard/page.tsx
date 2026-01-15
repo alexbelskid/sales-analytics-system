@@ -18,7 +18,7 @@ export default function DashboardPage() {
                         : 'text-[#808080] hover:text-white'
                         }`}
                 >
-                    Обзор продаж
+                    Продажи
                 </button>
                 <button
                     onClick={() => setActiveTab('agents')}
@@ -27,7 +27,7 @@ export default function DashboardPage() {
                         : 'text-[#808080] hover:text-white'
                         }`}
                 >
-                    Аналитика агентов
+                    Агенты
                 </button>
             </div>
 

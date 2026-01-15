@@ -219,14 +219,14 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                         <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
                             <p className="text-xs text-zinc-500 mb-1">Базовая выручка</p>
                             <p className="text-lg font-bold text-white">
-                                ₽{result.base_revenue.toLocaleString()}
+                                {result.base_revenue.toLocaleString()} Br
                             </p>
                         </div>
 
                         <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
                             <p className="text-xs text-zinc-500 mb-1">Прогноз выручки</p>
                             <p className="text-lg font-bold text-white">
-                                ₽{result.projected_revenue.toLocaleString()}
+                                {result.projected_revenue.toLocaleString()} Br
                             </p>
                         </div>
                     </div>
@@ -251,7 +251,7 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                             </Badge>
                         </div>
                         <p className="text-2xl font-bold text-white mt-2">
-                            {result.revenue_change >= 0 ? "+" : ""}₽{Math.abs(result.revenue_change).toLocaleString()}
+                            {result.revenue_change >= 0 ? "+" : ""}{Math.abs(result.revenue_change).toLocaleString()} Br
                         </p>
                     </div>
                 </div>

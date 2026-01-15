@@ -100,7 +100,7 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                                             <div className="space-y-1">
                                                 <p className="font-semibold text-sm">{product.name}</p>
                                                 <p className="text-xs text-zinc-400">
-                                                    Выручка: {product.revenue.toLocaleString()} ₽
+                                                    Выручка: {product.revenue.toLocaleString()} Br
                                                 </p>
                                                 <p className="text-xs text-zinc-400">КВ: {product.cv}%</p>
                                             </div>

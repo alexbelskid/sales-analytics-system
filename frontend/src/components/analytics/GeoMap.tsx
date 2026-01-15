@@ -48,7 +48,7 @@ export function GeoMap({ data }: GeoMapProps) {
                     <div>
                         <h3 className="text-lg font-semibold text-white">География продаж</h3>
                         <p className="text-xs text-zinc-500">
-                            {points.length} регион{points.length !== 1 ? "ов" : ""} • ₽{total_revenue.toLocaleString()}
+                            {points.length} регион{points.length !== 1 ? "ов" : ""} • {total_revenue.toLocaleString()} Br
                         </p>
                     </div>
                 </div>
@@ -78,7 +78,7 @@ export function GeoMap({ data }: GeoMapProps) {
                                             {point.region}
                                         </TableCell>
                                         <TableCell className="text-right text-white">
-                                            ₽{point.revenue.toLocaleString()}
+                                            {point.revenue.toLocaleString()} Br
                                         </TableCell>
                                         <TableCell className="text-right text-zinc-400">
                                             {point.orders}
@@ -87,16 +87,16 @@ export function GeoMap({ data }: GeoMapProps) {
                                             {point.customers}
                                         </TableCell>
                                         <TableCell className="text-right text-zinc-400">
-                                            ₽{point.avg_check.toLocaleString()}
+                                            {point.avg_check.toLocaleString()} Br
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <Badge
                                                 variant="secondary"
                                                 className={`rounded-full ${share >= 20
-                                                        ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
-                                                        : share >= 10
-                                                            ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                                                            : "bg-zinc-600/20 text-zinc-400 border-zinc-600/30"
+                                                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
+                                                    : share >= 10
+                                                        ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                                                        : "bg-zinc-600/20 text-zinc-400 border-zinc-600/30"
                                                     }`}
                                             >
                                                 {share.toFixed(1)}%

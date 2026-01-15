@@ -130,7 +130,7 @@ export default function AgentDashboard() {
             <div className="flex flex-col gap-4">
                 <div>
                     <h1 className="text-2xl md:text-[40px] font-semibold tracking-tight mb-2">
-                        Аналитика агентов
+                        Агенты
                     </h1>
                     <p className="text-sm text-[#808080]">
                         Отслеживайте выполнение планов и эффективность работы агентов

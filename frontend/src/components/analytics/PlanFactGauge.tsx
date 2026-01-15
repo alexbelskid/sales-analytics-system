@@ -128,13 +128,13 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-zinc-400">План:</span>
                             <span className="text-white font-semibold">
-                                {revenueMetric.planned.toLocaleString()} ₽
+                                {revenueMetric.planned.toLocaleString()} Br
                             </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                             <span className="text-zinc-400">Факт:</span>
                             <span className="text-white font-semibold">
-                                {revenueMetric.actual.toLocaleString()} ₽
+                                {revenueMetric.actual.toLocaleString()} Br
                             </span>
                         </div>
                         {/* Progress Bar */}
