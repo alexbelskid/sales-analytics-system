@@ -5,6 +5,8 @@ This uses the openai library (already installed) pointed to Groq's endpoint
 
 import logging
 from typing import Optional, Dict, Any
+import pandas as pd
+import io
 from openai import OpenAI
 from app.config import get_settings
 from app.database import supabase
@@ -73,11 +75,12 @@ class GroqService:
             knowledge_text = self._get_knowledge_context(knowledge_base)
             training_text = self._get_training_context(training_examples)
             analytics_text = self._get_analytics_context(include_analytics)
+            files_text = self._get_files_context()
             
             # 2. Build Prompt
             prompt = self._build_prompt(
                 email_from, email_subject, email_body, tone,
-                knowledge_text, training_text, analytics_text
+                knowledge_text, training_text, analytics_text, files_text
             )
             
             # 3. Generate using OpenAI-compatible endpoint
@@ -95,6 +98,67 @@ class GroqService:
         except Exception as e:
             logger.error(f"Groq API error: {str(e)}")
             raise Exception(f"Groq API error: {str(e)}")
+
+    def _get_files_context(self) -> str:
+        """
+        Reads uploaded Excel files from Storage to provide context.
+        """
+        if not supabase:
+            return ""
+            
+        try:
+            settings = get_settings()
+            # Get list of files from import_history
+            imports = supabase.table("import_history")\
+                .select("id, filename, storage_path, status, imported_rows")\
+                .eq("status", "completed")\
+                .not_.is_("storage_path", "null")\
+                .order("uploaded_at", desc=True)\
+                .limit(3)\
+                .execute()
+            
+            if not imports.data:
+                return ""
+            
+            context_parts = [f"UPLOADED FILES ({len(imports.data)}):"]
+            
+            for imp in imports.data:
+                filename = imp.get("filename", "Unknown")
+                storage_path = imp.get("storage_path")
+                imported_rows = imp.get("imported_rows", 0)
+                
+                context_parts.append(f"\n📂 File: {filename} ({imported_rows} rows)")
+                
+                # Try to read file from Storage
+                if storage_path:
+                    try:
+                        file_data = supabase.storage.from_(settings.storage_bucket).download(storage_path)
+                        
+                        if file_data:
+                            # Parse Excel/CSV
+                            if filename.endswith('.csv'):
+                                df = pd.read_csv(io.BytesIO(file_data))
+                            else:
+                                df = pd.read_excel(io.BytesIO(file_data))
+                            
+                            # Basic stats
+                            context_parts.append(f"   Columns: {', '.join(df.columns.tolist()[:10])}...")
+                            
+                            # Summarize numeric columns
+                            numerics = df.select_dtypes(include=['number'])
+                            if not numerics.empty:
+                                for col in numerics.columns[:3]: # Limit to top 3 numeric cols
+                                    total = numerics[col].sum()
+                                    context_parts.append(f"   Total {col}: {total:,.2f}")
+                                    
+                    except Exception as e:
+                        context_parts.append(f"   (Error reading content: {str(e)[:50]})")
+            
+            return "\n".join(context_parts)
+        
+        except Exception as e:
+            logger.warning(f"Failed to fetch file context: {e}")
+            return ""
 
     def _get_knowledge_context(self, provided_kb: Optional[str]) -> str:
         if provided_kb:
@@ -161,7 +225,7 @@ class GroqService:
             logger.warning(f"Failed to fetch analytics: {e}")
             return ""
 
-    def _build_prompt(self, email_from, email_subject, email_body, tone, knowledge, training, analytics):
+    def _build_prompt(self, email_from, email_subject, email_body, tone, knowledge, training, analytics, files_text):
         return f"""
 TONE: {tone}
 
@@ -170,6 +234,9 @@ TONE: {tone}
 
 ===== CURRENT STATS & DATA =====
 {analytics or "No analytics available."}
+
+===== UPLOADED FILES DATA =====
+{files_text or "No files uploaded."}
 
 ===== EXAMPLES =====
 {training or "No examples available."}

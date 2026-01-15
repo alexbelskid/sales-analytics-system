@@ -92,7 +92,7 @@ async def upload_sales(
         )
         
         # Clear cache
-        cache.clear_all()
+        cache.clear()
         
         if not result.success:
             raise HTTPException(400, result.message)
@@ -136,7 +136,7 @@ async def upload_products(
             mode=mode
         )
         
-        cache.clear_all()
+        cache.clear()
         
         if not result.success:
             raise HTTPException(400, result.message)
@@ -179,7 +179,7 @@ async def upload_customers(
             mode=mode
         )
         
-        cache.clear_all()
+        cache.clear()
         
         if not result.success:
             raise HTTPException(400, result.message)

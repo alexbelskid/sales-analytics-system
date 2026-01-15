@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,16 +65,8 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
         },
     ];
 
-    const handleSimulate = () => {
-        if (onSimulate) {
-            onSimulate({
-                price_change_pct: priceChange,
-                volume_change_pct: volumeChange,
-                new_customers_pct: customerChange,
-            });
-        }
-
-        // Mock calculation for demo
+    // Reactive calculation
+    useEffect(() => {
         const base = baseMetrics?.revenue || 0;
         const projected = base * (1 + priceChange / 100) * (1 + volumeChange / 100) * (1 + customerChange / 100);
         const change = projected - base;
@@ -97,7 +89,16 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                 total_impact: change,
             },
         });
-    };
+
+        // Notify parent if needed
+        if (onSimulate) {
+            onSimulate({
+                price_change_pct: priceChange,
+                volume_change_pct: volumeChange,
+                new_customers_pct: customerChange,
+            });
+        }
+    }, [priceChange, volumeChange, customerChange, baseMetrics, onSimulate]);
 
     const applyPreset = (preset: typeof presets[0]) => {
         setPriceChange(preset.params.price_change_pct);
@@ -193,12 +194,6 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                         />
                     </div>
 
-                    <Button
-                        onClick={handleSimulate}
-                        className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
-                    >
-                        Рассчитать влияние
-                    </Button>
                 </TabsContent>
 
                 <TabsContent value="presets" className="space-y-3">
@@ -242,8 +237,8 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                             <Badge
                                 variant="secondary"
                                 className={`rounded-full text-sm px-3 py-1 ${result.revenue_change >= 0
-                                        ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                        : "bg-red-500/20 text-red-300 border-red-500/30"
+                                    ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                    : "bg-red-500/20 text-red-300 border-red-500/30"
                                     }`}
                             >
                                 {result.revenue_change >= 0 ? (

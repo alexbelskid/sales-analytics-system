@@ -10,7 +10,7 @@ from datetime import datetime, date
 from uuid import uuid4
 import logging
 
-from app.database import supabase
+from app.database import supabase_admin as supabase
 from app.services.google_sheets_importer import GoogleSheetsImporter
 
 logger = logging.getLogger(__name__)
@@ -280,9 +280,11 @@ class UnifiedImporter:
                         if product_result.data:
                             product_id = product_result.data[0]["id"]
                         else:
+                            # Create normalized name
+                            normalized_name = product_name.lower().strip()
                             new_product = supabase.table("products").insert({
                                 "name": product_name,
-                                "price": float(row.get('price', 0))
+                                "normalized_name": normalized_name
                             }).execute()
                             product_id = new_product.data[0]["id"]
                         
