@@ -106,6 +106,10 @@ class UnifiedImporter:
             ImportResult with import details
         """
         try:
+            # ========================================
+            # PHASE 1: VALIDATION (BEFORE import_history)
+            # ========================================
+            
             # Validate file size - max 50MB
             MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
             if file_size > MAX_FILE_SIZE:
@@ -116,8 +120,8 @@ class UnifiedImporter:
                     message="File size exceeds maximum limit (50MB)"
                 )
             
-            # Validate row count - max 10000 rows
-            MAX_ROWS = 10000
+            # Validate row count - max 50000 rows (increased from 10000)
+            MAX_ROWS = 50000
             if len(df) > MAX_ROWS:
                 return ImportResult(
                     success=False,
@@ -138,6 +142,10 @@ class UnifiedImporter:
                     errors=["Could not detect data type from file structure"],
                     message="Unable to determine data type. Please specify explicitly."
                 )
+            
+            # ========================================
+            # PHASE 2: CREATE IMPORT_HISTORY (AFTER validation passed)
+            # ========================================
             
             # Create import_history record
             import_id = str(uuid4())
@@ -215,7 +223,12 @@ class UnifiedImporter:
                 message=f"Import failed: {str(e)}"
             )
     
-    async def _import_sales(self, df: pd.DataFrame, mode: str, import_id: str) -> Dict[str, Any]:
+    async def _import_sales(
+        self, 
+        df: pd.DataFrame, 
+        mode: str, 
+        import_id: str  # Added for progress tracking
+    ) -> Dict[str, Any]:
         """Import sales data"""
         try:
             # Replace mode: clear existing sales
@@ -347,7 +360,19 @@ class UnifiedImporter:
                 
                 # Explicit cleanup after each batch
                 del batch_df
-                logger.info(f"Batch {batch_start}-{batch_end} complete: {imported} imported, {failed} failed so far")
+                
+                # ✅ Real-time progress update
+                progress_percent = min(int((batch_end / total_rows) * 100), 99)  # Cap at 99% until completion
+                try:
+                    supabase.table('import_history').update({
+                        'progress_percent': progress_percent,
+                        'imported_rows': imported,
+                        'failed_rows': failed
+                    }).eq('id', import_id).execute()
+                    logger.info(f"Batch {batch_start}-{batch_end} complete: {progress_percent}% ({imported} imported, {failed} failed)")
+                except Exception as update_error:
+                    logger.error(f"Failed to update progress: {update_error}")
+                    # Don't fail import if progress update fails
             
             return {
                 'success': True,
