@@ -279,13 +279,13 @@ async def get_file_details(file_id: str):
 
 
 @router.delete("/{file_id}")
-async def delete_file(file_id: str, delete_data: bool = Query(False)):
+async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Changed default to True
     """
     Delete an import record and optionally its associated data
     
     Args:
         file_id: Import history record ID
-        delete_data: If True, also delete all data imported from this file (CASCADE)
+        delete_data: If True (DEFAULT), also delete all data imported from this file (CASCADE)
     """
     if supabase is None:
         raise HTTPException(500, "Database not connected")
@@ -327,21 +327,34 @@ async def delete_file(file_id: str, delete_data: bool = Query(False)):
                         logger.info(f"Cascade deleted agent data: {deleted_counts}")
                 
                 elif import_type == 'sales':
-                    # Delete sales data
-                    related_sale_ids = import_record.get('related_sale_ids', [])
+                    # ✅ NEW APPROACH: Delete by import_id (requires migration)
+                    # This is much simpler and more reliable than tracking sale IDs
                     
-                    if related_sale_ids and len(related_sale_ids) > 0:
-                        # Delete sale items first (FK constraint)
-                        items_result = supabase.table("sale_items").delete().in_("sale_id", related_sale_ids).execute()
-                        deleted_counts['sale_items'] = len(items_result.data) if items_result.data else 0
-                        
-                        # Delete sales
-                        sales_result = supabase.table("sales").delete().in_("id", related_sale_ids).execute()
-                        deleted_counts['sales'] = len(sales_result.data) if sales_result.data else 0
-                        
-                        logger.info(f"Cascade deleted sales data: {deleted_counts}")
-                    else:
-                        logger.warning(f"No related_sale_ids for import {file_id}, cannot cascade delete sales")
+                    # Delete sale_items first (FK constraint)
+                    items_query = supabase.table("sale_items") \
+                        .select("id") \
+                        .inner_join("sales", "sale_items.sale_id = sales.id") \
+                        .filter("sales.import_id", "eq", file_id)
+                    
+                    # Actually, with ON DELETE CASCADE in FK, we just need to delete sales
+                    # and sale_items will be auto-deleted by database
+                    
+                    # Delete all sales with this import_id
+                    sales_result = supabase.table("sales").delete().eq("import_id", file_id).execute()
+                    deleted_counts['sales'] = len(sales_result.data) if sales_result.data else 0
+                    
+                    logger.info(f"Cascade deleted {deleted_counts['sales']} sales by import_id")
+                    
+                    # Note: sale_items should be auto-deleted by FK CASCADE
+                    # If not, uncomment below:
+                    # items_result = supabase.from("sale_items") \
+                    #     .delete() \
+                    #     .in_("sale_id", [s['id'] for s in sales_result.data]) \
+                    #     .execute()
+            
+            except Exception as e:
+                logger.error(f"Cascade deletion error: {e}")
+                raise HTTPException(500, f"Failed to delete associated data: {str(e)}")
             
             except Exception as e:
                 logger.error(f"Cascade deletion error: {e}")

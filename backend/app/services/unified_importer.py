@@ -306,13 +306,14 @@ class UnifiedImporter:
                         # Get total amount with fallback
                         total = float(row.get('amount', row.get('total', 0)))
                         
-                        # Create sale with ALL required fields
+                        # Create sale with ALL required fields + import_id for tracking
                         sale = supabase.table("sales").insert({
                             "customer_id": customer_id,
                             "sale_date": sale_date,
                             "year": year,
                             "month": month,
-                            "total_amount": total
+                            "total_amount": total,
+                            "import_id": import_id  # ✅ Track which import created this sale
                         }).execute()
                         
                         sale_id = sale.data[0]["id"]
