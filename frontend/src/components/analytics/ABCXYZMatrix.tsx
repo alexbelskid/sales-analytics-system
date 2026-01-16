@@ -156,22 +156,24 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                 </button>
             </div>
 
-            {/* Matrix Grid */}
-            <div className="grid grid-cols-3 gap-3">
-                {/* Row A */}
-                {renderCell("AX", "A", "X")}
-                {renderCell("AY", "A", "Y")}
-                {renderCell("AZ", "A", "Z")}
+            {/* Matrix Grid - horizontal scroll on mobile */}
+            <div className="overflow-x-auto -mx-6 px-6 md:overflow-visible md:mx-0 md:px-0">
+                <div className="grid grid-cols-3 gap-3 min-w-[500px] md:min-w-0">
+                    {/* Row A */}
+                    {renderCell("AX", "A", "X")}
+                    {renderCell("AY", "A", "Y")}
+                    {renderCell("AZ", "A", "Z")}
 
-                {/* Row B */}
-                {renderCell("BX", "B", "X")}
-                {renderCell("BY", "B", "Y")}
-                {renderCell("BZ", "B", "Z")}
+                    {/* Row B */}
+                    {renderCell("BX", "B", "X")}
+                    {renderCell("BY", "B", "Y")}
+                    {renderCell("BZ", "B", "Z")}
 
-                {/* Row C */}
-                {renderCell("CX", "C", "X")}
-                {renderCell("CY", "C", "Y")}
-                {renderCell("CZ", "C", "Z")}
+                    {/* Row C */}
+                    {renderCell("CX", "C", "X")}
+                    {renderCell("CY", "C", "Y")}
+                    {renderCell("CZ", "C", "Z")}
+                </div>
             </div>
 
             {/* Axis Labels */}
@@ -181,20 +183,20 @@ export function ABCXYZMatrix({ data }: ABCXYZMatrixProps) {
                 <div className="text-center text-xs font-medium text-zinc-500">Z (Переменный)</div>
             </div>
 
-            {/* Legend */}
-            <div className="mt-6 pt-4 border-t border-zinc-800 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-4">
+            {/* Legend - wraps on mobile */}
+            <div className="mt-6 pt-4 border-t border-zinc-800">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-purple-500"></div>
-                        <span className="text-zinc-400">A: Топ 80% выручки</span>
+                        <span className="text-zinc-400">A: Топ 80%</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
-                        <span className="text-zinc-400">B: Следующие 15% выручки</span>
+                        <span className="text-zinc-400">B: 15%</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-zinc-600"></div>
-                        <span className="text-zinc-400">C: Последние 5% выручки</span>
+                        <span className="text-zinc-400">C: 5%</span>
                     </div>
                 </div>
             </div>

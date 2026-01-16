@@ -12,7 +12,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <div className="flex h-screen bg-[#202020]">
+        <div className="flex h-screen bg-[#202020] overflow-hidden">
             {/* Sidebar - handles both desktop and mobile */}
             <Sidebar
                 isMobileOpen={isMobileMenuOpen}
@@ -25,7 +25,7 @@ export default function LayoutWrapper({ children }: LayoutWrapperProps) {
                 <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
 
                 {/* Page content */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 mobile-safe">
                     {children}
                 </main>
             </div>

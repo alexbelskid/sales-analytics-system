@@ -122,9 +122,9 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
             </div>
 
             <Tabs defaultValue="custom" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="custom">Настройки</TabsTrigger>
-                    <TabsTrigger value="presets">Готовые</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6 h-auto min-h-[44px]">
+                    <TabsTrigger value="custom" className="min-h-[44px]">Настройки</TabsTrigger>
+                    <TabsTrigger value="presets" className="min-h-[44px]">Готовые</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="custom" className="space-y-6">
@@ -201,7 +201,7 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                         <button
                             key={idx}
                             onClick={() => applyPreset(preset)}
-                            className="w-full p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800/50 transition-colors text-left"
+                            className="w-full p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800/50 transition-colors text-left min-h-[44px]"
                         >
                             <h4 className="font-semibold text-white text-sm mb-1">{preset.name}</h4>
                             <p className="text-xs text-zinc-500">{preset.description}</p>
@@ -215,7 +215,7 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                 <div className="mt-6 pt-6 border-t border-zinc-800 space-y-4">
                     <h4 className="text-sm font-semibold text-white mb-3">Прогноз</h4>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
                             <p className="text-xs text-zinc-500 mb-1">Базовая выручка</p>
                             <p className="text-lg font-bold text-white">

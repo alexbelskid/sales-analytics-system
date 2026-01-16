@@ -91,14 +91,14 @@ export default function AdvancedAnalyticsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 p-6">
-            <div className="max-w-[1600px] mx-auto space-y-6">
+        <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
+            <div className="max-w-full lg:max-w-[1600px] mx-auto space-y-4 md:space-y-6 p-4 md:p-6 mobile-container">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-2">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Аналитика</h1>
-                        <p className="text-zinc-500 mt-1">
-                            Комплексный анализ продаж: ABC-XYZ, План-Факт и LFL метрики
+                        <h1 className="text-2xl md:text-3xl font-bold text-white">Аналитика</h1>
+                        <p className="text-sm text-zinc-500 mt-1">
+                            Комплексный анализ: ABC-XYZ, План-Факт и LFL
                         </p>
                     </div>
                 </div>
