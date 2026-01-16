@@ -338,10 +338,6 @@ async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Cha
             except Exception as e:
                 logger.error(f"Cascade deletion error: {e}")
                 raise HTTPException(500, f"Failed to delete associated data: {str(e)}")
-            
-            except Exception as e:
-                logger.error(f"Cascade deletion error: {e}")
-                raise HTTPException(500, f"Failed to delete associated data: {str(e)}")
         
         # Delete file from Storage if it exists
         if storage_path:

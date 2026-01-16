@@ -113,6 +113,13 @@ async def get_dashboard(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/summary")
+async def get_summary():
+    """Общая статистика - alias для ext-analytics/summary"""
+    from app.services.extended_analytics_service import extended_analytics
+    return extended_analytics.get_summary(year=None, month=None, force_refresh=False)
+
+
 @router.get("/top-customers", response_model=List[TopCustomer])
 async def get_top_customers(
     limit: int = Query(default=10, ge=1, le=50, description="Количество записей"),
