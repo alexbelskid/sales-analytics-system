@@ -327,30 +327,13 @@ async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Cha
                         logger.info(f"Cascade deleted agent data: {deleted_counts}")
                 
                 elif import_type == 'sales':
-                    # ✅ NEW APPROACH: Delete by import_id (requires migration)
-                    # This is much simpler and more reliable than tracking sale IDs
+                    # ✅ Simple approach: Just delete sales by import_id
+                    # Database CASCADE will handle sale_items automatically
                     
-                    # Delete sale_items first (FK constraint)
-                    items_query = supabase.table("sale_items") \
-                        .select("id") \
-                        .inner_join("sales", "sale_items.sale_id = sales.id") \
-                        .filter("sales.import_id", "eq", file_id)
-                    
-                    # Actually, with ON DELETE CASCADE in FK, we just need to delete sales
-                    # and sale_items will be auto-deleted by database
-                    
-                    # Delete all sales with this import_id
                     sales_result = supabase.table("sales").delete().eq("import_id", file_id).execute()
                     deleted_counts['sales'] = len(sales_result.data) if sales_result.data else 0
                     
                     logger.info(f"Cascade deleted {deleted_counts['sales']} sales by import_id")
-                    
-                    # Note: sale_items should be auto-deleted by FK CASCADE
-                    # If not, uncomment below:
-                    # items_result = supabase.from("sale_items") \
-                    #     .delete() \
-                    #     .in_("sale_id", [s['id'] for s in sales_result.data]) \
-                    #     .execute()
             
             except Exception as e:
                 logger.error(f"Cascade deletion error: {e}")
