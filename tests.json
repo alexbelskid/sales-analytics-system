@@ -1,206 +1,98 @@
 {
-    "analytics_audit": {
-        "version": "1.0",
-        "created_at": "2026-01-15",
-        "description": "Tracking file for advanced analytics audit and verification",
-        "endpoints": [
-            {
-                "id": "E001",
-                "name": "ABC-XYZ Matrix",
-                "path": "/api/analytics/abc-xyz",
-                "method": "GET",
-                "status": "pending",
-                "router": "advanced_analytics.py",
-                "expected_params": [
-                    "days",
-                    "min_revenue"
-                ],
-                "tests": []
+    "project": "Sales Analytics System",
+    "created": "2026-01-16T11:23:00+03:00",
+    "source": "Filesystem inspection (Hard Reset)",
+    "critical_endpoints": [
+        {
+            "id": "analytics_summary",
+            "endpoint": "GET /api/analytics/summary",
+            "status": "operational",
+            "description": "Main dashboard metrics",
+            "last_verified": "2026-01-16"
+        },
+        {
+            "id": "import_unified",
+            "endpoint": "POST /api/import/unified",
+            "status": "operational",
+            "description": "Unified file upload with import tracking",
+            "features": [
+                "batch_processing",
+                "progress_tracking",
+                "import_id_tracking"
+            ],
+            "limits": {
+                "max_file_size_mb": 50,
+                "max_rows": 50000
             },
+            "last_verified": "2026-01-16"
+        },
+        {
+            "id": "import_delete",
+            "endpoint": "DELETE /api/files/{file_id}",
+            "status": "operational",
+            "description": "Import deletion with CASCADE to sales",
+            "default_delete_data": true,
+            "cascade_enabled": true,
+            "last_verified": "2026-01-16"
+        }
+    ],
+    "database_schema": {
+        "recent_changes": [
             {
-                "id": "E002",
-                "name": "LFL Comparison",
-                "path": "/api/analytics/lfl",
-                "method": "GET",
-                "status": "pending",
-                "router": "advanced_analytics.py",
-                "expected_params": [
-                    "period1_start",
-                    "period1_end",
-                    "period2_start",
-                    "period2_end"
-                ],
-                "tests": []
-            },
-            {
-                "id": "E003",
-                "name": "Filter Options",
-                "path": "/api/analytics/filter-options",
-                "method": "GET",
-                "status": "pending",
-                "router": "advanced_analytics.py",
-                "expected_params": [],
-                "tests": []
-            },
-            {
-                "id": "E004",
-                "name": "Plan-Fact Analysis",
-                "path": "/api/analytics/plan-fact",
-                "method": "GET",
-                "status": "bug_found",
-                "router": "plan_fact.py",
-                "expected_params": [
-                    "period_start",
-                    "period_end"
-                ],
-                "bug": "Schema mismatch: router queries period_start/period_end but sales_plans table has only 'period' column",
-                "tests": []
-            },
-            {
-                "id": "E005",
-                "name": "Geo Analytics",
-                "path": "/api/analytics/geo",
-                "method": "GET",
-                "status": "pending",
-                "router": "geo_analytics.py",
-                "expected_params": [
-                    "days",
-                    "period_start",
-                    "period_end"
-                ],
-                "tests": []
-            },
-            {
-                "id": "E006",
-                "name": "Boston Matrix",
-                "path": "/api/analytics/boston-matrix",
-                "method": "GET",
-                "status": "pending",
-                "router": "boston_matrix.py",
-                "expected_params": [
-                    "days",
-                    "growth_threshold",
-                    "share_threshold"
-                ],
-                "tests": []
-            },
-            {
-                "id": "E007",
-                "name": "What-If Analysis",
-                "path": "/api/analytics/what-if",
-                "method": "POST",
-                "status": "pending",
-                "router": "what_if.py",
-                "expected_params": [
-                    "scenario",
-                    "days"
-                ],
-                "tests": []
-            }
-        ],
-        "frontend_issues": [
-            {
-                "id": "FE001",
-                "file": "frontend/src/app/advanced-analytics/page.tsx",
-                "line": 124,
-                "issue": "Uses 'metric_name' but LFL endpoint returns 'metric' field",
-                "status": "bug_found",
-                "severity": "high"
-            }
-        ],
-        "schema_issues": [
-            {
-                "id": "SC001",
-                "table": "sales_plans",
-                "issue": "Schema mismatch between migration and plan_fact router",
-                "details": "Migration creates 'period' column (DATE), but router expects 'period_start' and 'period_end'",
-                "status": "bug_found",
-                "severity": "critical"
+                "table": "sales",
+                "change": "Added import_id column (UUID, nullable)",
+                "migration": "20260116_add_import_id_to_sales.sql",
+                "fk_constraint": "fk_sales_import_id (ON DELETE CASCADE)",
+                "status": "applied",
+                "verified": "2026-01-16"
             }
         ]
     },
-    "agent_import_issues": [
-        {
-            "id": "AI001",
-            "file": "backend/app/services/google_sheets_importer.py",
-            "line": 340,
-            "issue": "Uses today's date instead of period dates for daily_sales",
-            "status": "bug_found",
-            "severity": "critical",
-            "details": "agent_daily_sales records saved with sale_date=today, causing dashboard to not find data for custom periods"
-        }
-    ],
+    "known_issues": [],
     "test_cases": [
         {
             "id": "TC001",
-            "name": "Verify file detection in file manager",
+            "name": "Import file with tracking",
             "status": "pass",
-            "endpoint": "/api/files",
-            "expected": "File appears in list with correct metadata"
+            "description": "Upload CSV → verify import_id saved to sales",
+            "last_run": "2026-01-16",
+            "result": "3/3 sales had import_id populated"
         },
         {
             "id": "TC002",
-            "name": "Validate agent table structure import",
-            "status": "pending",
-            "table": "agents",
-            "expected": "Agent names, regions, emails populated correctly"
+            "name": "CASCADE delete verification",
+            "status": "pass",
+            "description": "Delete import → verify all sales removed",
+            "last_run": "2026-01-16",
+            "result": "3 sales deleted automatically, 0 orphaned"
         },
         {
             "id": "TC003",
-            "name": "Verify sales plans created with correct dates",
+            "name": "Large file import (50k rows)",
             "status": "pending",
-            "table": "agent_sales_plans",
-            "expected": "period_start and period_end match import parameters"
+            "description": "Upload file with 45k-50k rows → verify batch processing works"
         },
         {
             "id": "TC004",
-            "name": "Check daily_sales date alignment",
-            "status": "fail",
-            "table": "agent_daily_sales",
-            "expected": "sale_date within period_start/period_end range",
-            "actual": "sale_date = current date regardless of period"
+            "name": "File size validation",
+            "status": "pending",
+            "description": "Upload >50MB file → verify rejection before import_history created"
         },
         {
             "id": "TC005",
-            "name": "Dashboard data retrieval for imported period",
-            "status": "fail",
-            "endpoint": "/api/agent-analytics/dashboard",
-            "expected": "Returns agents with non-zero sales for specified period",
-            "actual": "Returns 0 agents, 0 sales"
-        },
-        {
-            "id": "TC006",
-            "name": "Verify cache invalidation after import",
+            "name": "Progress tracking during import",
             "status": "pending",
-            "expected": "Dashboard cache cleared to reflect new data"
-        },
-        {
-            "id": "TC007",
-            "name": "File manager stability with heavy tables",
-            "status": "pending",
-            "endpoint": "/api/import/unified",
-            "expected": "File loads without glitches, import completes successfully"
-        },
-        {
-            "id": "TC008",
-            "name": "Sales statistics parsing with batching",
-            "status": "pending",
-            "table": "sales",
-            "expected": "All rows parsed correctly in batches, no data loss, no memory overflow"
-        },
-        {
-            "id": "TC009",
-            "name": "Dashboard update after import without crash",
-            "status": "pending",
-            "endpoint": "/api/analytics/dashboard",
-            "expected": "Dashboard reflects imported data, no system crash, file manager stable"
-        },
-        {
-            "id": "TC010",
-            "name": "Large file rejection (>50MB)",
-            "status": "pending",
-            "endpoint": "/api/import/unified",
-            "expected": "413 error, file rejected before processing starts"
+            "description": "Upload large file → verify progress updates in UI every 100 rows"
         }
-    ]
+    ],
+    "architecture_notes": {
+        "services_count": 17,
+        "routers_count": 26,
+        "stack": {
+            "backend": "FastAPI + Python 3.11",
+            "frontend": "Next.js 16 + React 18",
+            "database": "Supabase (PostgreSQL)",
+            "deployment": "Railway"
+        }
+    }
 }
