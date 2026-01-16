@@ -106,6 +106,26 @@ class UnifiedImporter:
             ImportResult with import details
         """
         try:
+            # Validate file size - max 50MB
+            MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+            if file_size > MAX_FILE_SIZE:
+                return ImportResult(
+                    success=False,
+                    data_type='unknown',
+                    errors=[f"File too large: {file_size} bytes. Max allowed: {MAX_FILE_SIZE} bytes"],
+                    message="File size exceeds maximum limit (50MB)"
+                )
+            
+            # Validate row count - max 10000 rows
+            MAX_ROWS = 10000
+            if len(df) > MAX_ROWS:
+                return ImportResult(
+                    success=False,
+                    data_type='unknown',
+                    errors=[f"Too many rows: {len(df)}. Max allowed: {MAX_ROWS}"],
+                    message=f"File has too many rows ({len(df)}). Maximum allowed: {MAX_ROWS}"
+                )
+            
             # Auto-detect data type if not provided
             if not data_type:
                 data_type = self.detect_data_type(df)
@@ -206,112 +226,135 @@ class UnifiedImporter:
             imported = 0
             failed = 0
             sale_ids = []
+            errors = []
             
-            for _, row in df.iterrows():
-                try:
-                    # Get or create customer
-                    customer_name = str(row.get('customer_name', 'Unknown'))
-                    customer_result = supabase.table("customers").select("id").eq("name", customer_name).execute()
-                    
-                    if customer_result.data:
-                        customer_id = customer_result.data[0]["id"]
-                    else:
-                        # Create normalized name (lowercase, stripped)
-                        normalized_name = customer_name.lower().strip()
-                        new_customer = supabase.table("customers").insert({
-                            "name": customer_name,
-                            "normalized_name": normalized_name
-                        }).execute()
-                        customer_id = new_customer.data[0]["id"]
-                    
-                    # Parse date with GUARANTEED fallback values
-                    sale_date = None
-                    year = None
-                    month = None
-                    
+            # Process in batches to prevent memory issues with large files
+            BATCH_SIZE = 100
+            total_rows = len(df)
+            
+            logger.info(f"Processing {total_rows} rows in batches of {BATCH_SIZE}")
+            
+            for batch_start in range(0, total_rows, BATCH_SIZE):
+                batch_end = min(batch_start + BATCH_SIZE, total_rows)
+                batch_df = df.iloc[batch_start:batch_end]
+                
+                logger.info(f"Processing batch {batch_start}-{batch_end} ({len(batch_df)} rows)")
+                
+                for idx, row in batch_df.iterrows():
                     try:
-                        raw_date = row.get('date')
-                        if raw_date is not None and raw_date != '':
-                            if isinstance(raw_date, str):
-                                # String date
-                                sale_date_obj = pd.to_datetime(raw_date).date()
-                                sale_date = sale_date_obj.isoformat()
-                                year = sale_date_obj.year
-                                month = sale_date_obj.month
-                            elif hasattr(raw_date, 'year') and hasattr(raw_date, 'month'):
-                                # Date/datetime object
-                                if hasattr(raw_date, 'date'):
-                                    sale_date_obj = raw_date.date()
-                                else:
-                                    sale_date_obj = raw_date
-                                sale_date = sale_date_obj.isoformat()
-                                year = sale_date_obj.year
-                                month = sale_date_obj.month
-                    except Exception as date_error:
-                        logger.warning(f"Date parsing failed: {date_error}, using current date")
-                    
-                    # GUARANTEED fallback to current date if parsing failed
-                    if sale_date is None or year is None or month is None:
-                        now = datetime.now()
-                        sale_date = now.date().isoformat()
-                        year = now.year
-                        month = now.month
-                    
-                    # Get total amount with fallback
-                    total = float(row.get('amount', row.get('total', 0)))
-                    
-                    # Create sale with ALL required fields
-                    sale = supabase.table("sales").insert({
-                        "customer_id": customer_id,
-                        "sale_date": sale_date,
-                        "year": year,
-                        "month": month,
-                        "total_amount": total
-                    }).execute()
-                    
-                    sale_id = sale.data[0]["id"]
-                    sale_ids.append(sale_id)
-                    
-                    # Add sale items if product info present
-                    if 'product_name' in row and row.get('product_name'):
-                        product_name = str(row['product_name'])
-                        product_result = supabase.table("products").select("id").eq("name", product_name).execute()
+                        # Get or create customer
+                        customer_name = str(row.get('customer_name', 'Unknown'))
+                        customer_result = supabase.table("customers").select("id").eq("name", customer_name).execute()
                         
-                        if product_result.data:
-                            product_id = product_result.data[0]["id"]
+                        if customer_result.data:
+                            customer_id = customer_result.data[0]["id"]
                         else:
-                            # Create normalized name
-                            normalized_name = product_name.lower().strip()
-                            new_product = supabase.table("products").insert({
-                                "name": product_name,
+                            # Create normalized name (lowercase, stripped)
+                            normalized_name = customer_name.lower().strip()
+                            new_customer = supabase.table("customers").insert({
+                                "name": customer_name,
                                 "normalized_name": normalized_name
                             }).execute()
-                            product_id = new_product.data[0]["id"]
+                            customer_id = new_customer.data[0]["id"]
                         
-                        quantity = int(row.get('quantity', 1))
-                        unit_price = float(row.get('price', total / quantity if quantity > 0 else 0))
+                        # Parse date with GUARANTEED fallback values
+                        sale_date = None
+                        year = None
+                        month = None
                         
-                        supabase.table("sale_items").insert({
-                            "sale_id": sale_id,
-                            "product_id": product_id,
-                            "quantity": quantity,
-                            "unit_price": unit_price,
-                            "amount": quantity * unit_price
+                        try:
+                            raw_date = row.get('date')
+                            if raw_date is not None and raw_date != '':
+                                if isinstance(raw_date, str):
+                                    # String date
+                                    sale_date_obj = pd.to_datetime(raw_date).date()
+                                    sale_date = sale_date_obj.isoformat()
+                                    year = sale_date_obj.year
+                                    month = sale_date_obj.month
+                                elif hasattr(raw_date, 'year') and hasattr(raw_date, 'month'):
+                                    # Date/datetime object
+                                    if hasattr(raw_date, 'date'):
+                                        sale_date_obj = raw_date.date()
+                                    else:
+                                        sale_date_obj = raw_date
+                                    sale_date = sale_date_obj.isoformat()
+                                    year = sale_date_obj.year
+                                    month = sale_date_obj.month
+                        except Exception as date_error:
+                            logger.warning(f"Date parsing failed: {date_error}, using current date")
+                        
+                        # GUARANTEED fallback to current date if parsing failed
+                        if sale_date is None or year is None or month is None:
+                            now = datetime.now()
+                            sale_date = now.date().isoformat()
+                            year = now.year
+                            month = now.month
+                        
+                        # Get total amount with fallback
+                        total = float(row.get('amount', row.get('total', 0)))
+                        
+                        # Create sale with ALL required fields
+                        sale = supabase.table("sales").insert({
+                            "customer_id": customer_id,
+                            "sale_date": sale_date,
+                            "year": year,
+                            "month": month,
+                            "total_amount": total
                         }).execute()
+                        
+                        sale_id = sale.data[0]["id"]
+                        sale_ids.append(sale_id)
+                        
+                        # Add sale items if product info present
+                        if 'product_name' in row and row.get('product_name'):
+                            product_name = str(row['product_name'])
+                            product_result = supabase.table("products").select("id").eq("name", product_name).execute()
+                            
+                            if product_result.data:
+                                product_id = product_result.data[0]["id"]
+                            else:
+                                # Create normalized name
+                                normalized_name = product_name.lower().strip()
+                                new_product = supabase.table("products").insert({
+                                    "name": product_name,
+                                    "normalized_name": normalized_name
+                                }).execute()
+                                product_id = new_product.data[0]["id"]
+                            
+                            quantity = int(row.get('quantity', 1))
+                            unit_price = float(row.get('price', total / quantity if quantity > 0 else 0))
+                            
+                            supabase.table("sale_items").insert({
+                                "sale_id": sale_id,
+                                "product_id": product_id,
+                                "quantity": quantity,
+                                "unit_price": unit_price,
+                                "amount": quantity * unit_price
+                            }).execute()
+                        
+                        imported += 1
                     
-                    imported += 1
+                    except Exception as e:
+                        logger.error(f"Error importing sale row {idx}: {e}", exc_info=True)
+                        logger.error(f"Row data: customer_name={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
+                        logger.error(f"Parsed values: sale_date={sale_date if 'sale_date' in locals() else 'N/A'}, year={year if 'year' in locals() else 'N/A'}, month={month if 'month' in locals() else 'N/A'}")
+                        errors.append({
+                            'row': int(idx),
+                            'customer': str(row.get('customer_name', 'Unknown')),
+                            'error': str(e)
+                        })
+                        failed += 1
                 
-                except Exception as e:
-                    logger.error(f"Error importing sale row: {e}")
-                    logger.error(f"Row data: customer_name={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
-                    logger.error(f"Parsed values: sale_date={sale_date if 'sale_date' in locals() else 'N/A'}, year={year if 'year' in locals() else 'N/A'}, month={month if 'month' in locals() else 'N/A'}")
-                    failed += 1
+                # Explicit cleanup after each batch
+                del batch_df
+                logger.info(f"Batch {batch_start}-{batch_end} complete: {imported} imported, {failed} failed so far")
             
             return {
                 'success': True,
                 'imported_rows': imported,
                 'failed_rows': failed,
                 'related_sale_ids': sale_ids,
+                'errors': errors,
                 'message': f"Imported {imported} sales records, {failed} failed"
             }
         

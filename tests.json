@@ -173,6 +173,34 @@
             "name": "Verify cache invalidation after import",
             "status": "pending",
             "expected": "Dashboard cache cleared to reflect new data"
+        },
+        {
+            "id": "TC007",
+            "name": "File manager stability with heavy tables",
+            "status": "pending",
+            "endpoint": "/api/import/unified",
+            "expected": "File loads without glitches, import completes successfully"
+        },
+        {
+            "id": "TC008",
+            "name": "Sales statistics parsing with batching",
+            "status": "pending",
+            "table": "sales",
+            "expected": "All rows parsed correctly in batches, no data loss, no memory overflow"
+        },
+        {
+            "id": "TC009",
+            "name": "Dashboard update after import without crash",
+            "status": "pending",
+            "endpoint": "/api/analytics/dashboard",
+            "expected": "Dashboard reflects imported data, no system crash, file manager stable"
+        },
+        {
+            "id": "TC010",
+            "name": "Large file rejection (>50MB)",
+            "status": "pending",
+            "endpoint": "/api/import/unified",
+            "expected": "413 error, file rejected before processing starts"
         }
     ]
 }

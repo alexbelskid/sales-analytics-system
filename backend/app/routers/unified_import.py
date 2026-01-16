@@ -65,6 +65,14 @@ async def unified_upload(
             temp_path = tmp.name
             file_size = len(content)
         
+        # Validate file size before processing - max 50MB
+        MAX_UPLOAD_SIZE = 50 * 1024 * 1024  # 50MB
+        if file_size > MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large ({file_size} bytes). Maximum allowed: 50MB"
+            )
+        
         # Read file into DataFrame
         if file.filename.endswith('.csv'):
             df = pd.read_csv(temp_path)
@@ -100,10 +108,6 @@ async def unified_upload(
             period_end=period_end_date
         )
         
-        # Clean up temp file
-        if temp_path and os.path.exists(temp_path):
-            os.unlink(temp_path)
-        
         if not result.success:
             return JSONResponse(
                 status_code=400,
@@ -131,11 +135,16 @@ async def unified_upload(
         raise
     except Exception as e:
         logger.error(f"Upload error: {e}", exc_info=True)
-        # Clean up temp file on error
-        if temp_path and os.path.exists(temp_path):
-            os.unlink(temp_path)
-        
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+    
+    finally:
+        # GUARANTEED cleanup of temp file
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.unlink(temp_path)
+                logger.info(f"Cleaned up temp file: {temp_path}")
+            except Exception as cleanup_error:
+                logger.error(f"Failed to cleanup temp file {temp_path}: {cleanup_error}")
 
 
 @router.get("/types")

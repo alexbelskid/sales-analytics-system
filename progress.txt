@@ -1,6 +1,6 @@
 # Agent Dashboard Fix - Verification Progress
 # ==========================================
-# Updated: 2026-01-16 09:20
+# Updated: 2026-01-16 10:02
 
 ## ✅ Completed Steps
 
@@ -15,33 +15,49 @@
 - [x] Created implementation_plan.md with fix details
 - [x] User approved: "LGTM"
 
-### 3. Fix Implementation [DONE]
-- [x] Modified google_sheets_importer.py line 340
-- [x] Changed: today = date.today() → sale_date = period_end
-- [x] Updated _upsert_daily_sales calls to use sale_date
-- [x] Removed duplicate sales_records_count increment
+### 3. Fix Implementation [DONE - Error #2]
+- [x] Fixed memory leak in unified_importer.py with batching (100 rows)
+- [x] Added file size validation (50MB max, 10000 rows max)
+- [x] Guaranteed temp file cleanup with try-finally
+- [x] Improved error handling with detailed logs
+- [x] Added error collection for failed rows
 
-## 🧪 Current Phase: Verification
+## 🧪 Current Phase: Testing & Verification
 
-### Backend Status
-- [x] Backend running in auto-reload mode (13h+ uptime)
-- [ ] Verify health endpoint responds
-- [ ] Check logs for reload confirmation
+### Created Test Files
+- [x] backend/tests/test_unified_importer_batching.py (3 tests)
+- [x] backend/tests/test_file_cleanup.py (4 tests)
+- [x] Updated tests.json with 4 new test cases (TC007-TC010)
 
 ### Test Plan
-1. [ ] Health check API
-2. [ ] Re-import test data with correct period
-3. [ ] Verify agent_daily_sales has correct dates
-4. [ ] Test dashboard API endpoint
-5. [ ] Verify frontend displays data
+1. [ ] Run batching tests: `cd backend && pytest tests/test_unified_importer_batching.py -v`
+2. [ ] Run cleanup tests: `cd backend && pytest tests/test_file_cleanup.py -v`
+3. [ ] User manual verification: Upload heavy sales file (>500 rows)
+4. [ ] Verify dashboard updates without crashes
+5. [ ] Update tests.json status after verification
 
-### Expected Results After Re-import
-- agent_daily_sales.sale_date = 2026-01-31 (period_end)
-- Dashboard shows: agents > 0, sales > 0 Br, fulfillment > 0%
-- All 6 test cases PASS
+### Expected Results After Fixes
+- File manager doesn't glitch with heavy files
+- Import completes without crashing
+- Dashboard updates correctly
+- Temp files cleaned up
+- Large files (>50MB) rejected early
+- Memory usage stable during import
 
-## 📝 Next Steps
-1. Confirm backend picked up changes
-2. User needs to re-import agent data file
-3. Verify dashboard shows data
-4. Update tests.json with PASS status
+## 📝 Applied Fixes Summary
+
+### unified_importer.py
+- Lines 108-128: File size & row count validation
+- Lines 226-241: Batch processing implementation (100 rows)
+- Lines 335-349: Enhanced error logging & batch cleanup
+- Line 357: Added errors to return dict
+
+### unified_import.py router
+- Lines 68-76: Early file size check (50MB)
+- Lines 135-147: Guaranteed cleanup with finally block
+
+## 🎯 Next Steps
+1. Backend auto-reload should pick up changes (already running)
+2. Run test suite to verify fixes
+3. User needs to test with actual import file
+4. Monitor logs for any issues
