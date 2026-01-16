@@ -336,14 +336,15 @@ class GoogleSheetsImporter:
                 plan_saved = True
             
             # Save daily sales records for each brand
+            # FIX: Use period_end instead of today to ensure data is queryable by dashboard
             sales_records_count = 0
-            today = date.today()
+            sale_date = period_end  # Use period end date for sales records
             
             for brand in agent_data['brands']:
                 if brand['sales'] and brand['sales'] > 0:
                     await self._upsert_daily_sales(
                         agent_id,
-                        today,
+                        sale_date,  # Fixed: use period_end instead of today
                         brand['sales'],
                         agent_data['region'],
                         brand['name']
@@ -354,7 +355,7 @@ class GoogleSheetsImporter:
             if agent_data['total_sales'] and agent_data['total_sales'] > 0:
                 await self._upsert_daily_sales(
                     agent_id,
-                    today,
+                    sale_date,  # Fixed: use period_end instead of today
                     agent_data['total_sales'],
                     agent_data['region'],
                     'General'

@@ -118,5 +118,61 @@
                 "severity": "critical"
             }
         ]
-    }
+    },
+    "agent_import_issues": [
+        {
+            "id": "AI001",
+            "file": "backend/app/services/google_sheets_importer.py",
+            "line": 340,
+            "issue": "Uses today's date instead of period dates for daily_sales",
+            "status": "bug_found",
+            "severity": "critical",
+            "details": "agent_daily_sales records saved with sale_date=today, causing dashboard to not find data for custom periods"
+        }
+    ],
+    "test_cases": [
+        {
+            "id": "TC001",
+            "name": "Verify file detection in file manager",
+            "status": "pass",
+            "endpoint": "/api/files",
+            "expected": "File appears in list with correct metadata"
+        },
+        {
+            "id": "TC002",
+            "name": "Validate agent table structure import",
+            "status": "pending",
+            "table": "agents",
+            "expected": "Agent names, regions, emails populated correctly"
+        },
+        {
+            "id": "TC003",
+            "name": "Verify sales plans created with correct dates",
+            "status": "pending",
+            "table": "agent_sales_plans",
+            "expected": "period_start and period_end match import parameters"
+        },
+        {
+            "id": "TC004",
+            "name": "Check daily_sales date alignment",
+            "status": "fail",
+            "table": "agent_daily_sales",
+            "expected": "sale_date within period_start/period_end range",
+            "actual": "sale_date = current date regardless of period"
+        },
+        {
+            "id": "TC005",
+            "name": "Dashboard data retrieval for imported period",
+            "status": "fail",
+            "endpoint": "/api/agent-analytics/dashboard",
+            "expected": "Returns agents with non-zero sales for specified period",
+            "actual": "Returns 0 agents, 0 sales"
+        },
+        {
+            "id": "TC006",
+            "name": "Verify cache invalidation after import",
+            "status": "pending",
+            "expected": "Dashboard cache cleared to reflect new data"
+        }
+    ]
 }

@@ -1,43 +1,47 @@
-# Advanced Analytics Audit Progress
-# =================================
-# Created: 2026-01-15
-# Status: COMPLETED
+# Agent Dashboard Fix - Verification Progress
+# ==========================================
+# Updated: 2026-01-16 09:20
 
-## Phase 1: Investigation [COMPLETED]
-- [x] Mapped project structure
-- [x] Identified all analytics-related files (27 files)
-- [x] Reviewed backend routers
-- [x] Reviewed services
-- [x] Reviewed frontend components
-- [x] Reviewed migrations
+## ✅ Completed Steps
 
-## Phase 2: Issues Found [COMPLETED]
-### Critical Bugs (Fixed):
-1. [SC001] Schema mismatch in plan_fact.py - FIXED
-   - Made router handle schema variations gracefully
-   - Now catches errors and returns defaults vs crashing
+### 1. Investigation Phase [DONE]
+- [x] Analyzed code flow from file upload to dashboard
+- [x] Traced data path: unified_importer → google_sheets_importer → agent_daily_sales → dashboard
+- [x] Identified root cause: date.today() vs period_end mismatch
 
-2. [FE001] Frontend field name mismatch in page.tsx:124 - FIXED
-   - Changed metric_name to metric
+### 2. Documentation Phase [DONE]
+- [x] Updated progress.txt with detailed problem description
+- [x] Added test cases to tests.json (6 new test cases)
+- [x] Created implementation_plan.md with fix details
+- [x] User approved: "LGTM"
 
-## Phase 3: Fixes Applied [COMPLETED]
-- [x] Fix plan_fact.py schema mismatch
-- [x] Fix frontend field name mismatch
-- [x] Verify endpoints return correct data
+### 3. Fix Implementation [DONE]
+- [x] Modified google_sheets_importer.py line 340
+- [x] Changed: today = date.today() → sale_date = period_end
+- [x] Updated _upsert_daily_sales calls to use sale_date
+- [x] Removed duplicate sales_records_count increment
 
-## Phase 4: Verification [COMPLETED]
-### All 7 Analytics Endpoints Tested:
-- [x] /api/analytics/filter-options - Returns regions, categories, agents
-- [x] /api/analytics/lfl - Returns LFL metrics with correct 'metric' field
-- [x] /api/analytics/plan-fact - Returns plan vs actual metrics (graceful handling)
-- [x] /api/analytics/abc-xyz - Returns matrix data
-- [x] /api/analytics/geo - Returns geographic data
-- [x] /api/analytics/boston-matrix - Returns quadrant classification
-- [x] /api/analytics/what-if - Returns scenario analysis
+## 🧪 Current Phase: Verification
 
-### Files Modified:
-- backend/app/routers/plan_fact.py (schema handling fix)
-- frontend/src/app/advanced-analytics/page.tsx (field name fix)
+### Backend Status
+- [x] Backend running in auto-reload mode (13h+ uptime)
+- [ ] Verify health endpoint responds
+- [ ] Check logs for reload confirmation
 
-## Summary
-Audit complete. All bugs identified were fixed and verified.
+### Test Plan
+1. [ ] Health check API
+2. [ ] Re-import test data with correct period
+3. [ ] Verify agent_daily_sales has correct dates
+4. [ ] Test dashboard API endpoint
+5. [ ] Verify frontend displays data
+
+### Expected Results After Re-import
+- agent_daily_sales.sale_date = 2026-01-31 (period_end)
+- Dashboard shows: agents > 0, sales > 0 Br, fulfillment > 0%
+- All 6 test cases PASS
+
+## 📝 Next Steps
+1. Confirm backend picked up changes
+2. User needs to re-import agent data file
+3. Verify dashboard shows data
+4. Update tests.json with PASS status
