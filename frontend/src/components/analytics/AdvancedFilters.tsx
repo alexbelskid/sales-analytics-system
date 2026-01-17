@@ -95,13 +95,13 @@ export function AdvancedFilters({
                             <Badge
                                 key={filter.id}
                                 variant="secondary"
-                                className="rounded-full bg-purple-500/20 text-purple-300 border-purple-500/30 pl-2 pr-1 py-1 flex items-center gap-1 shrink-0"
+                                className="rounded-2xl bg-purple-500/20 text-purple-300 border-purple-500/30 pl-2 pr-1 py-1 flex items-center gap-1 shrink-0"
                             >
                                 {filter.icon}
                                 <span className="text-xs font-medium whitespace-nowrap">{filter.label}</span>
                                 <button
                                     onClick={() => removeFilter(filter.id)}
-                                    className="ml-1 rounded-full hover:bg-purple-500/30 p-0.5 min-h-[24px] min-w-[24px] flex items-center justify-center"
+                                    className="ml-1 rounded-2xl hover:bg-purple-500/30 p-0.5 min-h-[24px] min-w-[24px] flex items-center justify-center"
                                 >
                                     <X className="h-3 w-3" />
                                 </button>
@@ -119,14 +119,14 @@ export function AdvancedFilters({
                 </div>
 
                 {/* Quick Filter Buttons - wrap on mobile */}
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center justify-center gap-2 flex-wrap">
 
                     {/* Date Picker */}
                     <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="ghost"
-                                className="btn-filter"
+                                className="btn-filter min-w-[120px]"
                             >
                                 <Calendar className="h-4 w-4" />
                                 <span className="hidden md:inline">Дата</span>
@@ -147,7 +147,7 @@ export function AdvancedFilters({
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="btn-filter"
+                                    className="btn-filter min-w-[120px]"
                                 >
                                     <MapPin className="h-4 w-4" />
                                     <span className="hidden md:inline">Регион</span>
@@ -182,7 +182,7 @@ export function AdvancedFilters({
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    className="btn-filter"
+                                    className="btn-filter min-w-[120px]"
                                 >
                                     <User className="h-4 w-4" />
                                     <span className="hidden md:inline">Агент</span>

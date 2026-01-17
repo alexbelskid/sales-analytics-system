@@ -109,14 +109,14 @@
      Design Tokens for Consistent UI
      ======================================== */
 
-  /* Primary CTA Buttons - 56px height */
+  /* Primary CTA Buttons - 48px height */
   .btn-primary {
     @apply flex items-center justify-center gap-2;
     @apply rounded-2xl bg-rose-800 text-white;
     @apply px-6 transition-all;
     @apply hover:opacity-90 disabled:opacity-50;
     @apply font-medium text-sm;
-    height: 56px;
+    height: 48px;
     min-width: 120px;
   }
 
