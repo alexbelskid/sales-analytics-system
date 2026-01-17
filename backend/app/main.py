@@ -111,6 +111,10 @@ app.include_router(google_auth.router, prefix="/api/google", tags=["Google Auth"
 # AI System Router
 app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 
+# Intelligent Chat (Core)
+from app.routers import intelligent_chat
+app.include_router(intelligent_chat.router, prefix="/api/ai-chat", tags=["AI Intellect"])
+
 # Knowledge Base & Training
 app.include_router(knowledge.router, prefix="/api/knowledge", tags=["Knowledge Base"])
 app.include_router(training.router, prefix="/api/training", tags=["Training"])

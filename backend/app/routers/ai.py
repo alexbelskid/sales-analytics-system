@@ -5,10 +5,11 @@ Handles AI-powered email response generation
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import logging
 
 from app.services.groq_service import GroqService
+from app.services.company_knowledge_service import company_knowledge_service
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -99,3 +100,101 @@ async def get_ai_status():
         Status information about Groq API
     """
     return groq_service.check_status()
+
+
+class TeachFactRequest(BaseModel):
+    """Request model for teaching the AI a new fact"""
+    fact: str
+    category: str = "other"  # logistics, products, regions, partners, other
+
+
+class TeachFactResponse(BaseModel):
+    """Response model for teach fact"""
+    success: bool
+    fact_id: str
+    message: str
+
+
+@router.post("/teach-fact", response_model=TeachFactResponse)
+async def teach_fact(request: TeachFactRequest):
+    """
+    Teach the AI a new company fact
+    
+    Example: "В Гродно у нас теперь новый склад"
+    
+    Args:
+        request: Fact to teach with optional category
+        
+    Returns:
+        Success status and fact ID
+    """
+    try:
+        new_fact = company_knowledge_service.add_fact(
+            fact=request.fact,
+            category=request.category,
+            created_by="user"
+        )
+        
+        return TeachFactResponse(
+            success=True,
+            fact_id=new_fact["id"],
+            message=f"Факт успешно сохранён в категории '{request.category}'"
+        )
+    except Exception as e:
+        logger.error(f"Failed to teach fact: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка сохранения факта: {str(e)}"
+        )
+
+
+@router.get("/facts")
+async def get_facts(category: Optional[str] = None):
+    """
+    Get all company facts or filter by category
+    
+    Args:
+        category: Optional category filter
+        
+    Returns:
+        List of facts
+    """
+    try:
+        if category:
+            facts = company_knowledge_service.get_facts_by_category(category)
+        else:
+            facts = company_knowledge_service.get_all_facts()
+        
+        return {
+            "success": True,
+            "count": len(facts),
+            "facts": facts
+        }
+    except Exception as e:
+        logger.error(f"Failed to get facts: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка получения фактов: {str(e)}"
+        )
+
+
+@router.get("/belarus-context")
+async def get_belarus_context():
+    """
+    Get Belarus market context
+    
+    Returns:
+        Belarus market information
+    """
+    try:
+        context = company_knowledge_service.get_belarus_context()
+        return {
+            "success": True,
+            "context": context
+        }
+    except Exception as e:
+        logger.error(f"Failed to get Belarus context: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ошибка получения контекста: {str(e)}"
+        )

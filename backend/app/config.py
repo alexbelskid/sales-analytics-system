@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4-turbo-preview"
     groq_api_key: str = ""
+    tavily_api_key: str = ""  # For web search
+    web_search_max_results: int = 5
     
     # Gmail / SMTP
     gmail_client_id: str = ""
