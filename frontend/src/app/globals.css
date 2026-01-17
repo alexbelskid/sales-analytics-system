@@ -103,6 +103,66 @@
   .btn-accent {
     @apply bg-[hsl(348, 70%, 36%)] hover:opacity-90 text-white;
   }
+
+  /* ========================================
+     PIXEL-PERFECT BUTTON SYSTEM
+     Design Tokens for Consistent UI
+     ======================================== */
+
+  /* Primary CTA Buttons - 56px height */
+  .btn-primary {
+    @apply flex items-center justify-center gap-2;
+    @apply rounded-2xl bg-rose-800 text-white;
+    @apply px-6 transition-all;
+    @apply hover:opacity-90 disabled:opacity-50;
+    @apply font-medium text-sm;
+    height: 56px;
+    min-width: 120px;
+  }
+
+  /* Secondary Action Buttons - 48px height */
+  .btn-secondary {
+    @apply flex items-center justify-center gap-2;
+    @apply rounded-2xl border border-border text-white;
+    @apply px-5 transition-all;
+    @apply hover:opacity-90 hover:bg-white/5;
+    @apply font-normal text-sm;
+    height: 48px;
+    min-width: 110px;
+  }
+
+  /* Filter Chip Buttons - 44px height (touch-friendly) */
+  .btn-filter {
+    @apply flex items-center justify-center gap-2;
+    @apply rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400;
+    @apply px-4 transition-all;
+    @apply hover:bg-cyan-500/20 hover:border-cyan-500/50;
+    @apply font-medium text-sm;
+    height: 44px !important;
+    min-width: 100px;
+  }
+
+  /* Icon-only Buttons - 44x44px square */
+  .btn-icon {
+    @apply flex items-center justify-center;
+    @apply rounded-2xl border border-border text-white;
+    @apply transition-all;
+    @apply hover:opacity-90 hover:bg-white/5;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+  }
+
+  /* Button Group Container - ensures consistent spacing */
+  .btn-group {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  /* Touch-safe utility - ensures minimum 44x44px */
+  .touch-target-safe {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
 
 @layer utilities {

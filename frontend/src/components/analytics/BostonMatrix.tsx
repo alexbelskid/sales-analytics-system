@@ -117,8 +117,8 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
                                         <Badge
                                             variant="secondary"
                                             className={`text-[10px] px-1.5 py-0 ${product.revenue_growth >= 0
-                                                    ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                                    : "bg-red-500/20 text-red-300 border-red-500/30"
+                                                ? "bg-green-500/20 text-green-300 border-green-500/30"
+                                                : "bg-red-500/20 text-red-300 border-red-500/30"
                                                 }`}
                                         >
                                             {product.revenue_growth >= 0 ? "+" : ""}
@@ -168,8 +168,8 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
                 </div>
             </div>
 
-            {/* 2x2 Matrix Grid */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* 2x2 Matrix Grid - stacks on very small screens */}
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 md:gap-4">
                 {/* Top row: Question Marks | Stars */}
                 {renderQuadrant("question_mark")}
                 {renderQuadrant("star")}

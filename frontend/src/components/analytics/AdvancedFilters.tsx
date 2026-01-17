@@ -83,50 +83,53 @@ export function AdvancedFilters({
 
     return (
         <div className="w-full">
-            {/* Pill-shaped Search Bar */}
-            <div className="relative flex items-center gap-2 rounded-full bg-zinc-900/50 border border-zinc-800 px-4 py-3 backdrop-blur-sm">
-                <Search className="h-5 w-5 text-zinc-400" />
+            {/* Mobile-first Search Bar */}
+            <div className="relative flex flex-col md:flex-row md:items-center gap-3 rounded-3xl bg-zinc-900/50 border border-zinc-800 px-4 py-3 backdrop-blur-sm">
+                {/* Search row */}
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <Search className="h-5 w-5 text-zinc-400 shrink-0" />
 
-                {/* Filter Chips */}
-                <div className="flex flex-wrap items-center gap-2 flex-1">
-                    {filters.map((filter) => (
-                        <Badge
-                            key={filter.id}
-                            variant="secondary"
-                            className="rounded-full bg-purple-500/20 text-purple-300 border-purple-500/30 pl-2 pr-1 py-1 flex items-center gap-1"
-                        >
-                            {filter.icon}
-                            <span className="text-xs font-medium">{filter.label}</span>
-                            <button
-                                onClick={() => removeFilter(filter.id)}
-                                className="ml-1 rounded-full hover:bg-purple-500/30 p-0.5"
+                    {/* Filter Chips - scrollable on mobile */}
+                    <div className="flex items-center gap-2 overflow-x-auto flex-1 min-w-0 scrollbar-hide">
+                        {filters.map((filter) => (
+                            <Badge
+                                key={filter.id}
+                                variant="secondary"
+                                className="rounded-full bg-purple-500/20 text-purple-300 border-purple-500/30 pl-2 pr-1 py-1 flex items-center gap-1 shrink-0"
                             >
-                                <X className="h-3 w-3" />
-                            </button>
-                        </Badge>
-                    ))}
+                                {filter.icon}
+                                <span className="text-xs font-medium whitespace-nowrap">{filter.label}</span>
+                                <button
+                                    onClick={() => removeFilter(filter.id)}
+                                    className="ml-1 rounded-full hover:bg-purple-500/30 p-0.5 min-h-[24px] min-w-[24px] flex items-center justify-center"
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        ))}
 
-                    <Input
-                        type="text"
-                        placeholder="Поиск аналитики, метрик или отчётов..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-500"
-                    />
+                        <Input
+                            type="text"
+                            placeholder="Поиск..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="flex-1 min-w-[120px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-500"
+                        />
+                    </div>
                 </div>
 
-                {/* Quick Filter Buttons */}
-                <div className="flex items-center gap-2">
+                {/* Quick Filter Buttons - wrap on mobile */}
+                <div className="flex items-center gap-2 flex-wrap">
+
                     {/* Date Picker */}
                     <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="ghost"
-                                size="sm"
-                                className="rounded-full h-8 px-3 text-xs bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30"
+                                className="btn-filter"
                             >
-                                <Calendar className="h-3 w-3 mr-1" />
-                                Дата
+                                <Calendar className="h-4 w-4" />
+                                <span className="hidden md:inline">Дата</span>
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-800">
@@ -144,11 +147,10 @@ export function AdvancedFilters({
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    size="sm"
-                                    className="rounded-full h-8 px-3 text-xs bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30"
+                                    className="btn-filter"
                                 >
-                                    <MapPin className="h-3 w-3 mr-1" />
-                                    Регион
+                                    <MapPin className="h-4 w-4" />
+                                    <span className="hidden md:inline">Регион</span>
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-48 bg-zinc-900 border-zinc-800">
@@ -180,11 +182,10 @@ export function AdvancedFilters({
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="ghost"
-                                    size="sm"
-                                    className="rounded-full h-8 px-3 text-xs bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 border border-cyan-500/30"
+                                    className="btn-filter"
                                 >
-                                    <User className="h-3 w-3 mr-1" />
-                                    Агент
+                                    <User className="h-4 w-4" />
+                                    <span className="hidden md:inline">Агент</span>
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-48 bg-zinc-900 border-zinc-800">
