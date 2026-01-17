@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Any
 import logging
 import sqlparse
 from statistics import mean
-from openai import OpenAI
+from groq import Groq
 from app.config import settings
 from app.database import supabase
 from app.services.secure_query_service import secure_query_service, SecurityViolationError
@@ -54,14 +54,12 @@ class SQLQueryService:
     
     4. products (Товары)
        - id: UUID
-       - name: VARCHAR (название товара)
-       - sku: VARCHAR (артикул)
-       - price: DECIMAL (цена)
-       - cost_price: DECIMAL (себестоимость)
+       - name: VARCHAR (название товара) -- NOTE: column is 'name', NOT 'product_name'
+       - normalized_name: VARCHAR (нормализованное название)
        - category: VARCHAR (категория)
-       - description: TEXT
-       - unit: VARCHAR (единица измерения)
-       - in_stock: INTEGER (остаток на складе)
+       - total_quantity: INTEGER (общее количество)
+       - total_revenue: DECIMAL (общая выручка)
+       - sales_count: INTEGER (количество продаж)
     
     5. agents (Агенты/Менеджеры)
        - id: UUID
@@ -135,12 +133,9 @@ class SQLQueryService:
     """
     
     def __init__(self):
-        self.client = None
-        if settings.openai_api_key:
-            try:
-                self.client = OpenAI(api_key=settings.openai_api_key)
-            except Exception as e:
-                logger.error(f"Failed to initialize OpenAI for SQL generation: {e}")
+        """Initialize SQL query service with GROQ"""
+        self.client = Groq(api_key=settings.groq_api_key)
+        self.supabase = supabase
     
     def is_available(self) -> bool:
         """Check if SQL query generation is available"""
@@ -203,7 +198,7 @@ Return your response in this JSON format:
         
         try:
             response = self.client.chat.completions.create(
-                model=settings.openai_model,
+                model="llama-3.3-70b-versatile",  # GROQ model
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Generate SQL query for: {question}"}
