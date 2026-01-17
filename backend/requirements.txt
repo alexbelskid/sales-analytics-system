@@ -19,6 +19,7 @@ numpy==1.26.4
 # AI/ML
 google-generativeai==0.8.4
 openai==1.58.0
+groq==0.4.2
 prophet==1.1.5
 
 # Document Generation
