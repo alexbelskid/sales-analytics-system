@@ -6,9 +6,11 @@ Generates and executes safe SQL queries from user questions
 from typing import Dict, List, Optional, Any
 import logging
 import sqlparse
+from statistics import mean
 from openai import OpenAI
 from app.config import settings
 from app.database import supabase
+from app.services.secure_query_service import secure_query_service, SecurityViolationError
 
 logger = logging.getLogger(__name__)
 
@@ -352,28 +354,110 @@ Return your response in this JSON format:
             }
         
         try:
-            # Execute via Supabase RPC (safer than raw SQL)
-            # For now, use rpc or direct query
-            # NOTE: This requires a database function or direct execution
-            # For security, we'd create a DB function that executes read-only queries
+            # Execute via secure_query_service (replaces broken RPC)
+            result = secure_query_service.execute_safe_query(sql)
             
-            result = supabase.rpc('execute_safe_query', {'query_text': sql}).execute()
+            if not result["success"]:
+                return {
+                    "success": False,
+                    "data": [],
+                    "row_count": 0,
+                    "error": result.get("error", "Query execution failed"),
+                    "message": "Ошибка выполнения запроса к базе данных."
+                }
+            
+            data = result.get("data", [])
+            row_count = len(data)
+            
+            # NULL SAFETY: Handle empty results with explicit message
+            if row_count == 0:
+                return {
+                    "success": True,
+                    "data": [],
+                    "row_count": 0,
+                    "error": None,
+                    "message": "Данные за этот период отсутствуют. Попробуйте расширить диапазон дат или изменить фильтры.",
+                    "summary": None
+                }
+            
+            # SMART CONTEXT: Summarize large datasets
+            summary = None
+            if row_count > 50:
+                summary = self._summarize_data(data)
+                # Keep only first 5 rows + summary instead of full dump
+                data = data[:5]
             
             return {
                 "success": True,
-                "data": result.data,
-                "row_count": len(result.data),
-                "error": None
+                "data": data,
+                "row_count": row_count,
+                "error": None,
+                "message": None,
+                "summary": summary,
+                "truncated": row_count > 50
             }
             
+        except SecurityViolationError as e:
+            logger.warning(f"Security violation blocked: {e}")
+            return {
+                "success": False,
+                "data": [],
+                "row_count": 0,
+                "error": f"Запрос заблокирован: {str(e)}",
+                "message": "Запрос содержит недопустимые операции."
+            }
+        except ConnectionError as e:
+            logger.error(f"Database connection error: {e}")
+            return {
+                "success": False,
+                "data": [],
+                "row_count": 0,
+                "error": f"Ошибка подключения к БД: {str(e)}",
+                "message": "Не удалось подключиться к базе данных. Проверьте настройки."
+            }
         except Exception as e:
             logger.error(f"SQL execution error: {e}")
             return {
                 "success": False,
                 "data": [],
                 "row_count": 0,
-                "error": str(e)
+                "error": str(e),
+                "message": "Произошла ошибка при выполнении запроса."
             }
+    
+    def _summarize_data(self, data: List[Dict]) -> Dict[str, Any]:
+        """
+        Smart Data Summarizer - creates statistical summary for large datasets
+        Instead of sending 10k rows to LLM, send first 5 + stats
+        """
+        if not data:
+            return None
+        
+        summary = {
+            "total_rows": len(data),
+            "sample_rows": 5,
+            "columns": list(data[0].keys()) if data else [],
+            "stats": {}
+        }
+        
+        # Calculate statistics for numeric columns
+        for key in summary["columns"]:
+            values = []
+            for row in data:
+                val = row.get(key)
+                if isinstance(val, (int, float)) and val is not None:
+                    values.append(float(val))
+            
+            if values:
+                summary["stats"][key] = {
+                    "min": min(values),
+                    "max": max(values),
+                    "avg": round(mean(values), 2),
+                    "sum": round(sum(values), 2),
+                    "count": len(values)
+                }
+        
+        return summary
     
     async def query_from_question(self, question: str) -> Dict[str, Any]:
         """

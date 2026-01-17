@@ -90,14 +90,19 @@ class UnifiedIntelligenceService:
         2. EXTERNAL_WEB: Access to internet search (Tavily). Use this for Belarus market news, inflation rates, competitor info, BYN exchange rates, regional economic conditions.
         3. HYBRID: Needs BOTH internal data AND external context (e.g., "compare our Brest sales vs regional economic trends").
         4. CHAT: Greeting, clarification, or questions not needing data.
+        5. CLARIFY: Ambiguous query - need user clarification.
 
+        CRITICAL RULE: If confidence < 0.8, use type="CLARIFY" and provide clarifying question.
         ALWAYS prioritize INTERNAL_DB first. Only use EXTERNAL_WEB if database cannot answer the question.
+        NEVER GUESS - if unsure, ask for clarification!
         
         Analyze the User Query and Context. 
         Return JSON:
         {
-            "type": "INTERNAL_DB" | "EXTERNAL_WEB" | "HYBRID" | "CHAT",
+            "type": "INTERNAL_DB" | "EXTERNAL_WEB" | "HYBRID" | "CHAT" | "CLARIFY",
+            "confidence": 0.0-1.0 (how sure are you),
             "reasoning": "Why you chose this",
+            "clarifying_question": "Question to ask user" (if CLARIFY),
             "search_queries": ["query1"] (if WEB or HYBRID),
             "sql_needed": true/false
         }
@@ -152,6 +157,13 @@ class UnifiedIntelligenceService:
         
         {company_context}
         
+        ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Перед ответом выведи свои рассуждения в тегах <thought>...</thought>.
+        В тегах опиши:
+        - Что ты понял из вопроса
+        - Какие данные у тебя есть
+        - Как ты пришёл к выводу
+        Затем дай финальный ответ БЕЗ тегов.
+        
         Правила ответа:
         1. Отвечай на русском языке.
         2. Цитируй источники (например, "По данным нашей базы..." или "Согласно новостям...").
@@ -177,7 +189,7 @@ class UnifiedIntelligenceService:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Query: {query}\n\nData Context:\n{data_context}"}
                 ],
-                temperature=0.5
+                temperature=0.2  # Lower for factual synthesis (was 0.5)
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -200,10 +212,33 @@ class UnifiedIntelligenceService:
             
         history = self._get_history(session_id)
         
-        # 1. Classify Intent
+        # 1. Classify Intent with confidence tracking
         classification = await self._classify_intent(message, history)
         query_type = classification.get("type", "CHAT")
+        confidence = classification.get("confidence", 0.7)
         sources = []
+        
+        # REASONING TRACE: Log classification decision  
+        logger.info(f"[THOUGHT] Query classified as: {query_type} (confidence: {confidence:.2f})")
+        logger.info(f"[THOUGHT] Reasoning: {classification.get('reasoning', 'N/A')}")
+        
+        # CLARIFY: If confidence too low, ask clarifying question instead of guessing
+        if query_type == "CLARIFY" or (confidence < 0.8 and query_type not in ["CHAT"]):
+            clarifying_question = classification.get("clarifying_question", 
+                "Не совсем понял ваш вопрос. Пожалуйста, уточните!")
+            
+            logger.info(f"[THOUGHT] Low confidence ({confidence:.2f}) - requesting clarification")
+            
+            self._save_to_history(session_id, "user", message)
+            self._save_to_history(session_id, "assistant", clarifying_question)
+            
+            return {
+                "response": clarifying_question,
+                "session_id": session_id,
+                "sources": [],
+                "classification": classification,
+                "needs_clarification": True
+            }
         
         sql_data = None
         web_data = None
@@ -212,16 +247,18 @@ class UnifiedIntelligenceService:
         try:
             # Internal DB
             if query_type in ["INTERNAL_DB", "HYBRID"]:
-                # Pass the classification context to SQL service if needed, or just the raw query
-                # Maybe improve prompt to be more specific based on classification?
-                # For now, just pass the user query + relevant history context? 
-                # Actually SQLQueryService takes just a natural language string.
-                # Let's verify if we need to refine the question.
-                
+                logger.info(f"[THOUGHT] Executing SQL query for question")
                 sql_data = await sql_query_service.query_from_question(message)
+                
+                if sql_data:
+                    logger.info(f"[THOUGHT] SQL: {sql_data.get('sql', 'N/A')[:100]}...")
+                    logger.info(f"[THOUGHT] SQL returned {sql_data.get('row_count', 0)} rows")
+                    if sql_data.get('summary'):
+                        logger.info(f"[THOUGHT] Large dataset summarized: {sql_data['summary']['total_rows']} rows")
+                
                 sources.append({
                     "type": "internal",
-                    "status": "success" if sql_data["success"] else "error",
+                    "status": "success" if sql_data.get("success") else "error",
                     "details": sql_data.get("sql") or sql_data.get("error")
                 })
 
@@ -255,7 +292,24 @@ class UnifiedIntelligenceService:
         else:
             response_text = await self._synthesize_response(message, classification, sql_data, web_data, history)
 
-        # 4. Update History
+        # 4. SELF-REFLECTION: Quality Scoring
+        quality_score = self._calculate_quality_score(
+            query_type=query_type,
+            confidence=confidence,
+            sql_data=sql_data,
+            web_data=web_data,
+            response=response_text
+        )
+        
+        logger.info(f"[SELF-REFLECTION] Quality Score: {quality_score}/10")
+        
+        # Add disclaimer if quality is low
+        if quality_score < 5:
+            disclaimer = "\n\n⚠️ **Низкая точность ответа**: Недостаточно данных для полноценного анализа. Рекомендую уточнить вопрос или указать конкретный период."
+            response_text += disclaimer
+            logger.warning(f"[SELF-REFLECTION] Low quality response (score: {quality_score}) - disclaimer added")
+
+        # 5. Update History
         self._save_to_history(session_id, "user", message)
         self._save_to_history(session_id, "assistant", response_text)
 
@@ -264,9 +318,64 @@ class UnifiedIntelligenceService:
             "session_id": session_id,
             "classification": classification,
             "sources": sources,
+            "quality_score": quality_score,
             "debug_sql": sql_data,
             "debug_web": web_data
         }
+    
+    def _calculate_quality_score(self, query_type: str, confidence: float, 
+                                  sql_data: Optional[Dict], web_data: Optional[Dict],
+                                  response: str) -> int:
+        """
+        Self-Reflection: Calculate quality score (1-10) based on:
+        1. Data Grounding: Do we have actual data from DB/Web?
+        2. Query Clarity: Was classification confident?
+        3. Response Quality: Is response substantive?
+        
+        Returns:
+            int: Quality score 1-10
+        """
+        score = 5  # Start at neutral
+        
+        # Factor 1: Data Grounding (0-4 points)
+        has_db_data = sql_data and sql_data.get("success") and sql_data.get("row_count", 0) > 0
+        has_web_data = web_data and web_data.get("success") and len(web_data.get("results", [])) > 0
+        
+        if has_db_data:
+            score += 3  # Strong grounding in internal data
+            logger.info(f"[QUALITY] +3 for DB data ({sql_data.get('row_count')} rows)")
+        if has_web_data:
+            score += 2  # Additional external context
+            logger.info(f"[QUALITY] +2 for web data ({len(web_data.get('results', []))} results)")
+        
+        if not has_db_data and not has_web_data and query_type != "CHAT":
+            score -= 3  # No data for a data question
+            logger.warning(f"[QUALITY] -3 for no data on {query_type} query")
+        
+        # Factor 2: Query Clarity (0-3 points)
+        if confidence >= 0.9:
+            score += 2
+            logger.info(f"[QUALITY] +2 for high confidence ({confidence:.2f})")
+        elif confidence >= 0.7:
+            score += 1
+            logger.info(f"[QUALITY] +1 for medium confidence ({confidence:.2f})")
+        elif confidence < 0.5:
+            score -= 2
+            logger.warning(f"[QUALITY] -2 for low confidence ({confidence:.2f})")
+        
+        # Factor 3: Response Quality (0-3 points)
+        response_length = len(response)
+        if response_length > 200:
+            score += 1  # Substantive response
+        if "По данным" in response or "Согласно" in response:
+            score += 1  # Cites sources
+        if "Извините" in response or "не удалось" in response:
+            score -= 1  # Error in response
+        
+        # Clamp to 1-10
+        score = max(1, min(10, score))
+        
+        return score
 
 # Global Singleton
 unified_intelligence_service = UnifiedIntelligenceService()

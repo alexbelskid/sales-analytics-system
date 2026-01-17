@@ -29,6 +29,7 @@ export default function AiAssistantPanel() {
     const [input, setInput] = useState("");
     const [isThinking, setIsThinking] = useState(false);
     const [thinkingStep, setThinkingStep] = useState<string>("");
+    const [sessionId] = useState(() => `session_${Date.now()}`);
 
     const scrollRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -54,76 +55,69 @@ export default function AiAssistantPanel() {
         setInput("");
         setIsThinking(true);
 
-        simulateThinkingProcess(text);
+        // Call real API instead of mock
+        await processRealQuery(text);
     };
 
-    const simulateThinkingProcess = async (query: string) => {
-        // Step 1: Analyze Intent
-        setThinkingStep("Анализирую запрос...");
-        await new Promise(r => setTimeout(r, 1000));
+    const processRealQuery = async (query: string) => {
+        try {
+            // Step 1: Analyze Intent
+            setThinkingStep("Анализирую запрос...");
+            await new Promise(r => setTimeout(r, 300));
 
-        // Step 2: Database
-        setThinkingStep("Запрашиваю данные из CRM...");
-        await new Promise(r => setTimeout(r, 1200));
+            // Step 2: Call real API
+            setThinkingStep("Запрашиваю данные из базы...");
 
-        let sources: string[] = ["Internal CRM"];
+            const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
 
-        // Step 3: External (if needed)
-        if (query.toLowerCase().includes("рынок") || query.toLowerCase().includes("кейс")) {
-            setThinkingStep("Проверяю внешние источники...");
-            await new Promise(r => setTimeout(r, 1500));
-            sources.push("Industry Reports API");
+            const response = await fetch(`${API_BASE}/api/ai-chat/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: query,
+                    session_id: sessionId
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            // Step 3: Process response
+            setThinkingStep("Формирую ответ...");
+            await new Promise(r => setTimeout(r, 300));
+
+            const aiMsg: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: {
+                    text: data.response || "Не удалось получить ответ"
+                },
+                timestamp: new Date(),
+                sources: data.sources?.map((s: any) => s.type) || []
+            };
+
+            setMessages(prev => [...prev, aiMsg]);
+
+        } catch (error) {
+            console.error('AI query error:', error);
+
+            const errorMsg: ChatMessage = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: {
+                    text: "⚠️ Извините, произошла ошибка при обработке запроса. Проверьте подключение к серверу."
+                },
+                timestamp: new Date()
+            };
+
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsThinking(false);
+            setThinkingStep("");
         }
-
-        // Step 4: Final Generation
-        setThinkingStep("Генерирую ответ...");
-        await new Promise(r => setTimeout(r, 800));
-
-        // Generate Mock Response
-        const isAnalytics = query.toLowerCase().includes("продаж") || query.toLowerCase().includes("сравни") || query.toLowerCase().includes("q4");
-
-        const responseContent: MessageContent = {
-            text: isAnalytics
-                ? "Проанализировав данные за Q4, я подготовил сводную таблицу по регионам. Москва демонстрирует наибольший рост (+15%), в то время как Санкт-Петербург отстает от плана."
-                : "Основываясь на анализе рынка, рекомендую внедрить персонализированные предложения. Конкуренты, использующие эту стратегию, увеличили retention на 12%.",
-
-            table: isAnalytics ? {
-                title: "Сводка по Регионам (Q4)",
-                headers: ["Регион", "Выручка", "Рост", "Статус"],
-                rows: [
-                    ["Москва", "12.5M ₽", "+15%", "Выше плана"],
-                    ["Санкт-Петербург", "8.2M ₽", "-2%", "Ниже плана"],
-                    ["Казань", "5.1M ₽", "+5%", "В плане"],
-                    ["Екатеринбург", "4.8M ₽", "+8%", "В плане"]
-                ]
-            } : undefined,
-
-            chart: isAnalytics ? {
-                type: 'bar',
-                title: 'Динамика по Регионам',
-                xKey: 'name',
-                dataKey: 'value',
-                color: '#e11d48',
-                data: [
-                    { name: 'Мск', value: 12500 },
-                    { name: 'СПб', value: 8200 },
-                    { name: 'Каз', value: 5100 },
-                    { name: 'Екб', value: 4800 },
-                ]
-            } : undefined
-        };
-
-        const aiMsg: ChatMessage = {
-            id: (Date.now() + 1).toString(),
-            role: 'assistant',
-            content: responseContent,
-            timestamp: new Date(),
-            sources: sources
-        };
-
-        setMessages(prev => [...prev, aiMsg]);
-        setIsThinking(false);
-        setThinkingStep("");
     };
 
     return (
