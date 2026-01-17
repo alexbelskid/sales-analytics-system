@@ -11,7 +11,15 @@ import {
 } from 'recharts';
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Sparkles, TrendingUp } from "lucide-react";
+import { Sparkles, TrendingUp, Table as TableIcon } from "lucide-react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
 
 export interface ChartData {
     type: 'bar' | 'area' | 'line';
@@ -22,13 +30,16 @@ export interface ChartData {
     color?: string;
 }
 
+export interface TableData {
+    title?: string;
+    headers: string[];
+    rows: (string | number)[][];
+}
+
 export interface MessageContent {
     text: string;
     chart?: ChartData;
-    table?: {
-        headers: string[];
-        rows: string[][];
-    };
+    table?: TableData;
 }
 
 interface GenerativeMessageProps {
@@ -45,14 +56,14 @@ export default function GenerativeMessage({ content, role }: GenerativeMessagePr
             isUser ? "justify-end" : "justify-start"
         )}>
             <div className={cn(
-                "max-w-[85%] lg:max-w-[75%] space-y-4",
+                "max-w-[85%] lg:max-w-[90%] space-y-4",
                 isUser ? "ml-auto" : "mr-auto"
             )}>
                 {/* Text Bubble */}
                 <div className={cn(
                     "p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap animate-in fade-in duration-300",
                     isUser
-                        ? "bg-rose-600 text-white rounded-tr-sm"
+                        ? "bg-rose-600 text-white rounded-tr-sm shadow-md shadow-rose-900/10"
                         : "bg-[#2A2A2A] text-gray-200 rounded-tl-sm border border-[#333333] shadow-sm"
                 )}>
                     {content.text}
@@ -61,7 +72,7 @@ export default function GenerativeMessage({ content, role }: GenerativeMessagePr
                 {/* Generative Artifacts (Charts/Tables) - Only for Assistant */}
                 {!isUser && content.chart && (
                     <div className="animate-in zoom-in-95 duration-500 delay-150">
-                        <Card className="bg-[#1E1E1E] border-[#333333] p-4 sm:p-6 overflow-hidden">
+                        <Card className="bg-[#1E1E1E] border-[#333333] p-4 sm:p-6 overflow-hidden shadow-lg shadow-black/20">
                             <div className="flex items-center gap-2 mb-6">
                                 <div className="p-1.5 rounded-md bg-rose-500/10">
                                     <TrendingUp className="w-4 h-4 text-rose-500" />
@@ -141,6 +152,45 @@ export default function GenerativeMessage({ content, role }: GenerativeMessagePr
                                         </BarChart>
                                     )}
                                 </ResponsiveContainer>
+                            </div>
+                        </Card>
+                    </div>
+                )}
+
+                {!isUser && content.table && (
+                    <div className="animate-in zoom-in-95 duration-500 delay-200">
+                        <Card className="bg-[#1E1E1E] border-[#333333] overflow-hidden shadow-lg shadow-black/20">
+                            {content.table.title && (
+                                <div className="px-4 py-3 border-b border-[#333333] flex items-center gap-2 bg-[#262626]/50">
+                                    <TableIcon className="w-4 h-4 text-rose-500" />
+                                    <h3 className="font-medium text-gray-200 text-xs uppercase tracking-wider">
+                                        {content.table.title}
+                                    </h3>
+                                </div>
+                            )}
+                            <div className="max-h-[300px] overflow-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow className="border-[#333333] hover:bg-transparent">
+                                            {content.table.headers.map((header, i) => (
+                                                <TableHead key={i} className="text-[#808080] font-medium text-xs h-9">
+                                                    {header}
+                                                </TableHead>
+                                            ))}
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {content.table.rows.map((row, i) => (
+                                            <TableRow key={i} className="border-[#333333] hover:bg-[#262626]">
+                                                {row.map((cell, j) => (
+                                                    <TableCell key={j} className="text-gray-300 py-2 text-xs">
+                                                        {cell}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
                             </div>
                         </Card>
                     </div>

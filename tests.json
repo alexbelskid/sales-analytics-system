@@ -87,6 +87,160 @@
             "status": "pending"
         }
     ],
+    "security_audit_2026_01_17": {
+        "performed_by": "AI Security Auditor",
+        "timestamp": "2026-01-17T22:58:00+03:00",
+        "issues_found": 6,
+        "issues_fixed": 5,
+        "bugs_fixed": [
+            {
+                "id": "SEC-001",
+                "severity": "CRITICAL",
+                "issue": "AI service crashes when API key missing (AttributeError on None client)",
+                "file": "unified_intelligence_service.py",
+                "fix": "Added null checks and graceful degradation with helpful error messages",
+                "status": "✅ FIXED"
+            },
+            {
+                "id": "SEC-002",
+                "severity": "HIGH",
+                "issue": "Knowledge base fails silently on corrupted JSON",
+                "file": "company_knowledge_service.py",
+                "fix": "Added JSON validation, backup creation, and auto-recovery",
+                "status": "✅ FIXED"
+            },
+            {
+                "id": "SEC-003",
+                "severity": "HIGH",
+                "issue": "Analytics queries have no pagination (could crash on large datasets)",
+                "file": "analytics_service.py",
+                "fix": "Added MAX_RECORDS=10000 limit and MAX_DAYS=730 (2 years) validation",
+                "status": "✅ FIXED"
+            },
+            {
+                "id": "SEC-004",
+                "severity": "MEDIUM",
+                "issue": "No input validation for knowledge facts",
+                "file": "company_knowledge_service.py",
+                "fix": "Added validation: empty check, length limit (1000 chars), category validation",
+                "status": "✅ FIXED"
+            },
+            {
+                "id": "SEC-005",
+                "severity": "MEDIUM",
+                "issue": "Silent error suppression in multiple services",
+                "file": "multiple",
+                "fix": "Improved error logging and response propagation",
+                "status": "✅ FIXED"
+            },
+            {
+                "id": "SEC-006",
+                "severity": "LOW",
+                "issue": "SQL RPC function execute_safe_query may not exist in DB",
+                "file": "sql_query_service.py",
+                "fix": "Documented in README, requires DB migration",
+                "status": "⚠️ DOCUMENTED"
+            }
+        ],
+        "stress_tests": [
+            {
+                "id": "STRESS-001",
+                "name": "Query 10 years of data",
+                "description": "Request 3650 days of sales data - should limit to MAX_DAYS (730)",
+                "expected": "Graceful limiting, no crash or timeout",
+                "status": "✅ IMPLEMENTED"
+            },
+            {
+                "id": "STRESS-002",
+                "name": "Invalid date range (negative/zero)",
+                "description": "Request days=-30 or days=0",
+                "expected": "Default to 30 days, log warning",
+                "status": "✅ IMPLEMENTED"
+            },
+            {
+                "id": "STRESS-003",
+                "name": "Corrupted JSON recovery",
+                "description": "Write invalid JSON to knowledge base",
+                "expected": "Create backup, reinitialize with defaults",
+                "status": "✅ IMPLEMENTED"
+            },
+            {
+                "id": "STRESS-004",
+                "name": "Empty/invalid fact validation",
+                "description": "Submit empty, whitespace-only, or too-long facts",
+                "expected": "Raise ValueError with clear message",
+                "status": "✅ IMPLEMENTED"
+            },
+            {
+                "id": "STRESS-005",
+                "name": "AI service without API key",
+                "description": "Run AI synthesis with null client",
+                "expected": "Return helpful error, not crash",
+                "status": "✅ IMPLEMENTED"
+            }
+        ],
+        "test_file": "tests/test_stress.py"
+    },
+    "sql_security_firewall_2026_01_17": {
+        "performed_by": "AI Security Engineer",
+        "timestamp": "2026-01-17T23:04:00+03:00",
+        "component": "secure_query_service.py",
+        "features": [
+            "SQL validation firewall (blocks DROP, DELETE, UPDATE, INSERT, ALTER, GRANT, TRUNCATE)",
+            "Only SELECT and EXPLAIN allowed",
+            "READ ONLY transaction mode",
+            "Multi-statement blocking",
+            "Comment injection protection",
+            "System table access blocking",
+            "Query timeout (30s)",
+            "Row limit (10,000)",
+            "Query length limit (10,000 chars)"
+        ],
+        "penetration_tests": [
+            {
+                "attack": "DROP TABLE sales;",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "DELETE FROM sales WHERE 1=1;",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "UPDATE users SET password='hacked'",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "INSERT INTO users VALUES ('hacker')",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "SELECT * FROM sales; -- DROP TABLE sales;",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "SELECT 1; DROP TABLE sales; SELECT 2;",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "GRANT ALL PRIVILEGES TO hacker;",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "ALTER TABLE sales ADD COLUMN backdoor;",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "SELECT * FROM information_schema.tables",
+                "result": "✅ BLOCKED"
+            },
+            {
+                "attack": "SELECT 1 as test;",
+                "result": "✅ ALLOWED (valid query)"
+            }
+        ],
+        "test_file": "tests/security_test.py",
+        "status": "✅ ALL ATTACKS BLOCKED"
+    },
     "mobile_ui_tests": {
         "verified_date": "2026-01-16",
         "test_device": "iPhone 15 (393x852px)",
@@ -143,5 +297,32 @@
             "whatif_simulator_mobile_1768572507589.png"
         ],
         "browser_recording": "mobile_responsive_test_1768572263623.webp"
+    },
+    "knowledge_base_validation": {
+        "verified_date": "2026-01-17",
+        "component": "KnowledgeModal.tsx",
+        "tests": [
+            {
+                "id": "KB-VAL-001",
+                "name": "Minimum content length (10 chars)",
+                "status": "✅ VERIFIED",
+                "behavior": "Shows error message 'Минимум 10 символов', highlights field in red, disables Save button",
+                "proof": "knowledge_validation_errors_1768680655821.png"
+            },
+            {
+                "id": "KB-VAL-002",
+                "name": "Region selection warning",
+                "status": "✅ VERIFIED",
+                "behavior": "Shows amber warning 'Применится ко всем регионам' when no region selected",
+                "proof": "knowledge_validation_errors_1768680655821.png"
+            },
+            {
+                "id": "KB-VAL-003",
+                "name": "Data transformation (Region prepend)",
+                "status": "✅ VERIFIED",
+                "behavior": "Selected region is prepended to content as '[Region: Name]'",
+                "proof": "Manual code review of handleSave"
+            }
+        ]
     }
 }

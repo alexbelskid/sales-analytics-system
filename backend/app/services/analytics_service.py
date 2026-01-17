@@ -8,19 +8,31 @@ logger = logging.getLogger(__name__)
 class AnalyticsService:
     """Provides analytics from database for AI context using Supabase client"""
     
+    # Maximum days to prevent excessive queries
+    MAX_DAYS = 730  # 2 years
+    MAX_RECORDS = 10000  # Maximum records to fetch
+    
     def get_sales_summary(self, days: int = 30) -> List[Dict[str, Any]]:
         """Top products for last N days"""
         if supabase is None:
-            return []
+            return[]
+        
+        # Validate days parameter
+        if days < 1:
+            logger.warning(f"Invalid days parameter: {days}, using default 30")
+            days = 30
+        if days > self.MAX_DAYS:
+            logger.warning(f"Days {days} exceeds maximum {self.MAX_DAYS}, limiting to {self.MAX_DAYS}")
+            days = self.MAX_DAYS
             
         try:
             cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
             
-            # Fetch sales items with product names
+            # Fetch sales items with product names - with limit
             # Note: We fetch all and aggregate in Python because Postgrest aggregation is limited
             result = supabase.table("sale_items").select(
                 "quantity, amount, products(name), sales!inner(sale_date)"
-            ).gte("sales.sale_date", cutoff_date).execute()
+            ).gte("sales.sale_date", cutoff_date).limit(self.MAX_RECORDS).execute()
             
             product_totals = {}
             for item in result.data:
@@ -53,13 +65,21 @@ class AnalyticsService:
         """Top clients for last N days"""
         if supabase is None:
             return []
+        
+        # Validate days parameter
+        if days < 1:
+            logger.warning(f"Invalid days parameter: {days}, using default 30")
+            days = 30
+        if days > self.MAX_DAYS:
+            logger.warning(f"Days {days} exceeds maximum {self.MAX_DAYS}, limiting to {self.MAX_DAYS}")
+            days = self.MAX_DAYS
             
         try:
             cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
             
             result = supabase.table("sales").select(
                 "total_amount, customers(name)"
-            ).gte("sale_date", cutoff_date).execute()
+            ).gte("sale_date", cutoff_date).limit(self.MAX_RECORDS).execute()
             
             client_totals = {}
             for sale in result.data:

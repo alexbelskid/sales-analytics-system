@@ -16,7 +16,7 @@ import TrainingTab from "@/components/ai-assistant/TrainingTab";
 import StatusTab from "@/components/ai-assistant/StatusTab";
 import KnowledgeModal from "@/components/ai-assistant/KnowledgeModal";
 import TrainingModal from "@/components/ai-assistant/TrainingModal";
-import ChatInterface from "@/components/ai-assistant/ChatInterface";
+import AiAssistantPanel from "@/components/ai-assistant/AiAssistantPanel";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
 
@@ -302,7 +302,7 @@ export default function AIAssistantPage() {
 
                 {/* Content Area */}
                 <div className="animate-in fade-in duration-500 min-h-[500px]">
-                    {activeTab === 'chat' && <ChatInterface />}
+                    {activeTab === 'chat' && <AiAssistantPanel />}
 
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">

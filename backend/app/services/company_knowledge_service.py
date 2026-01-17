@@ -84,10 +84,30 @@ class CompanyKnowledgeService:
             with _file_lock:
                 if COMPANY_CONTEXT_FILE.exists():
                     with open(COMPANY_CONTEXT_FILE, 'r', encoding='utf-8') as f:
-                        context = json.load(f)
-                        self._context_cache = context
-                        self._cache_timestamp = datetime.now()
-                        return context
+                        try:
+                            context = json.load(f)
+                            # Validate structure
+                            if not isinstance(context, dict):
+                                raise ValueError("Context is not a dictionary")
+                            if "facts" not in context or not isinstance(context["facts"], list):
+                                logger.warning("Invalid facts structure, resetting")
+                                context["facts"] = []
+                            if "belarus_context" not in context or not isinstance(context["belarus_context"], dict):
+                                logger.warning("Invalid belarus_context structure, resetting")
+                                context["belarus_context"] = {}
+                            
+                            self._context_cache = context
+                            self._cache_timestamp = datetime.now()
+                            return context
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Corrupted JSON in company_context.json: {e}")
+                            logger.info("Creating backup and reinitializing...")
+                            # Backup corrupted file
+                            backup_path = COMPANY_CONTEXT_FILE.with_suffix('.json.corrupted')
+                            COMPANY_CONTEXT_FILE.rename(backup_path)
+                            # Reinitialize
+                            self._ensure_knowledge_dir()
+                            return self._load_context()
         except Exception as e:
             logger.error(f"Failed to load company context: {e}")
         
@@ -149,12 +169,28 @@ class CompanyKnowledgeService:
         Returns:
             The created fact object
         """
+        # Validate inputs
+        if not fact or not fact.strip():
+            raise ValueError("Fact cannot be empty")
+        
+        if len(fact) > 1000:
+            raise ValueError("Fact is too long (max 1000 characters)")
+        
+        valid_categories = ["logistics", "products", "regions", "partners", "other"]
+        if category not in valid_categories:
+            logger.warning(f"Invalid category '{category}', using 'other'")
+            category = "other"
+        
+        if not (0.0 <= confidence <= 1.0):
+            logger.warning(f"Invalid confidence {confidence}, using 1.0")
+            confidence = 1.0
+        
         context = self._load_context()
         
         new_fact = {
             "id": str(uuid.uuid4()),
             "category": category,
-            "fact": fact,
+            "fact": fact.strip(),
             "created_at": datetime.now().isoformat(),
             "created_by": created_by,
             "confidence": confidence

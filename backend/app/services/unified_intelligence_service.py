@@ -131,8 +131,16 @@ class UnifiedIntelligenceService:
     ) -> str:
         """Combine all data sources into a final natural language answer"""
         
+        # Check if AI client is available
+        if not self.client:
+            return "Извините, AI-сервис недоступен. Пожалуйста, настройте GROQ_API_KEY или OPENAI_API_KEY в конфигурации системы."
+        
         # Load company knowledge context
-        company_context = company_knowledge_service.get_context_for_ai()
+        try:
+            company_context = company_knowledge_service.get_context_for_ai()
+        except Exception as e:
+            logger.warning(f"Failed to load company context: {e}")
+            company_context = "(Контекст компании временно недоступен)"
         
         system_prompt = f"""Ты — стратегический AI-аналитик и Директор по развитию кондитерской компании в Беларуси.
         
@@ -162,15 +170,22 @@ class UnifiedIntelligenceService:
         if web_result and web_result.get("success"):
             data_context += f"\n[ВНЕШНИЙ ВЕБ-ПОИСК]:\nСводка: {web_result.get('summary')}\nДетали: {str(web_result.get('results'))}\n"
 
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Query: {query}\n\nData Context:\n{data_context}"}
-            ],
-            temperature=0.5
-        )
-        return response.choices[0].message.content
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"Query: {query}\n\nData Context:\n{data_context}"}
+                ],
+                temperature=0.5
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"AI synthesis error: {e}")
+            # Return data summary instead of crashing
+            if sql_result or web_result:
+                return f"Извините, возникла ошибка при генерации ответа, но вот доступные данные:\n{data_context}"
+            return f"Извините, не удалось обработать запрос: {str(e)}"
 
     async def process_message(self, session_id: str, message: str) -> Dict[str, Any]:
         """
