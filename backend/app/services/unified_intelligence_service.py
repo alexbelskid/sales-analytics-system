@@ -159,33 +159,62 @@ class UnifiedIntelligenceService:
         if not self.client:
             return "Извините, AI-сервис недоступен. Пожалуйста, настройте GROQ_API_KEY или OPENAI_API_KEY в конфигурации системы."
         
-        # CRITICAL: Only use company context if NO SQL data available
+        # HYBRID APPROACH: Use BOTH SQL data AND knowledge base context
+        # SQL gives us FACTS (numbers, names, dates)
+        # Knowledge base gives us CONTEXT (business rules, market insights)
+        
         company_context = ""
+        sql_facts = ""
+        
+        # Always try to load company knowledge for context
+        try:
+            company_context = company_knowledge_service.get_context_for_ai()
+        except Exception as e:
+            logger.warning(f"Failed to load company context: {e}")
+            company_context = "(Контекст компании временно недоступен)"
+        
+        # Extract SQL facts if available
         if sql_result and sql_result.get("success") and sql_result.get("data"):
-            # We have real database data - DON'T use knowledge base!
-            company_context = "(Using live database data - knowledge base disabled)"
+            data = sql_result.get("data", [])
+            if isinstance(data, list) and len(data) > 0:
+                sql_facts = f"DATABASE FACTS (PRIORITY): {len(data)} records retrieved\n"
+                sql_facts += f"Sample data: {str(data[:3])}\n"
+            elif isinstance(data, dict):
+                sql_facts = f"DATABASE FACTS (PRIORITY): {data}\n"
+        
+        # Combine both sources
+        if sql_facts:
+            combined_context = f"{sql_facts}\n\nBUSINESS CONTEXT:\n{company_context}"
         else:
-            # No SQL data - fallback to knowledge base
-            try:
-                company_context = company_knowledge_service.get_context_for_ai()
-            except Exception as e:
-                logger.warning(f"Failed to load company context: {e}")
-                company_context = "(Контекст компании временно недоступен)"
+            combined_context = company_context
         
-        system_prompt = f"""Ты — стратегический AI-аналитик и Директор по развитию кондитерской компании в Беларуси.
+        system_prompt = f"""Ты — AI-аналитик для системы аналитики продаж.
         
-        Твоя роль:
-        - Искать возможности для роста и предупреждать о рисках
-        - Эксперт по рынку Беларуси: знаешь географию (области, райцентры), логистические цепочки, налоговое законодательство РБ и специфику ритейла
-        - ВСЕГДА сначала смотришь в исторические данные продаж (БД). Если данных не хватает — идёшь в интернет (Web Search)
-        - НИКОГДА не выдумываешь факты. Если данных недостаточно, честно говоришь об этом
+        ЗАДАЧА: Дай точный, основанный на ФАКТАХ ответ.
         
-        {company_context}
+        ИСТОЧНИКИ ДАННЫХ (в порядке приоритета):
+        1. DATABASE FACTS - РЕАЛЬНЫЕ данные из базы (ВСЕГДА используй в первую очередь!)
+        2. BUSINESS CONTEXT - Контекст компании для понимания
+        3. External Web - Рыночные данные (если есть)
+        
+        КРИТИЧЕСКИЕ ПРАВИЛА:
+        - Если есть DATABASE FACTS → базируй ответ на НИХ (цифры, имена товаров, даты)
+        - НЕ придумывай данные! Используй только то что в DATABASE FACTS
+        - Business context используй для объяснения, НЕ для замены фактов
+        - Если DATABASE FACTS пустые → скажи что данных нет
+        
+        ФОРМАТ ОТВЕТА:
+        1. Прямой ответ с цифрами из DATABASE FACTS
+        2. Краткое объяснение/контекст
+        3. Инсайты если применимо
+        
+        Доступные данные:
+        {combined_context}
         
         ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Перед ответом выведи свои рассуждения в тегах <thought>...</thought>.
         В тегах опиши:
         - Что ты понял из вопроса
-        - Какие данные у тебя есть
+        - Какие данные у тебя есть (из DATABASE FACTS)
         - Как ты пришёл к выводу
         Затем дай финальный ответ БЕЗ тегов.
         
@@ -194,10 +223,7 @@ class UnifiedIntelligenceService:
         2. Цитируй источники (например, "По данным нашей базы..." или "Согласно новостям...").
         3. Если внутренние данные противоречат внешним, укажи на это.
         4. Будь кратким, но обстоятельным.
-        5. Давай стратегические рекомендации, а не просто цифры.
-        6. Учитывай региональную специфику Беларуси в своих советах.
-        
-        Источники данных:
+        5. Давай инсайты и рекомендации на основе ФАКТОВ.
         """
         
         data_context = ""
