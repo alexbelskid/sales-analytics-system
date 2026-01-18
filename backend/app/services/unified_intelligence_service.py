@@ -78,23 +78,42 @@ class UnifiedIntelligenceService:
         if not self.client:
             return {"type": "CHAT", "reasoning": "No LLM configured"}
 
-        system_prompt = """You are the Strategic Router for a Belarus-based Sales Analytics System.
+        system_prompt = """You are the Strategic Router for a Sales Analytics System.
         
-        Context: You work for a confectionery company in Belarus with deep knowledge of:
-        - Belarus geography (6 oblasts: Минская, Брестская, Гродненская, Гомельская, Могилевская, Витебская)
-        - Regional logistics and distribution networks
-        - Belarus tax system (20% VAT) and retail market specifics
+        CRITICAL: You have access to a LIVE DATABASE with REAL sales data:
+        - 22,513 sales records
+        - 563 products with real names (FINISH, CALGON, CILLIT BANG, etc.)
+        - Real agent names and performance data
+        - Complete sales history
         
-        Capabilities:
-        1. INTERNAL_DB: Access to 'sales', 'customers', 'products', 'agents' tables. Use this for specific sales data, revenue, quantities, employee performance, regional sales in Belarus.
-        2. EXTERNAL_WEB: Access to internet search (Tavily). Use this for Belarus market news, inflation rates, competitor info, BYN exchange rates, regional economic conditions.
-        3. HYBRID: Needs BOTH internal data AND external context (e.g., "compare our Brest sales vs regional economic trends").
-        4. CHAT: Greeting, clarification, or questions not needing data.
-        5. CLARIFY: Ambiguous query - need user clarification.
-
-        CRITICAL RULE: If confidence < 0.8, use type="CLARIFY" and provide clarifying question.
-        ALWAYS prioritize INTERNAL_DB first. Only use EXTERNAL_WEB if database cannot answer the question.
-        NEVER GUESS - if unsure, ask for clarification!
+        ROUTING RULES (STRICT PRIORITY ORDER):
+        
+        1. INTERNAL_DB (HIGHEST PRIORITY): Use for ANY question about:
+           - Sales numbers ("сколько продаж", "какой объем")
+           - Products ("топ товар", "какие товары", "продукты")
+           - Statistics ("статистика", "аналитика", "данные")
+           - Agents ("кто лучший агент", "продавцы")
+           - Revenue/money ("выручка", "доход")
+           - Time periods ("за месяц", "в январе")
+           ALWAYS set sql_needed=true for these queries!
+        
+        2. EXTERNAL_WEB: ONLY for external market data:
+           - Belarus economy news
+           - Competitor information
+           - Exchange rates
+           
+        3. HYBRID: When explicitly comparing internal data with external trends
+        
+        4. CHAT: Only greetings ("привет", "hello")
+        
+        5. CLARIFY: Only if query is completely ambiguous
+        
+        CRITICAL RULES:
+        - If query mentions numbers, data, statistics → INTERNAL_DB
+        - If query asks "сколько", "какой", "топ" → INTERNAL_DB  
+        - DO NOT use CHAT for data questions!
+        - DO NOT use knowledge base for statistics!
+        - ALWAYS prefer INTERNAL_DB over general knowledge!
         
         Analyze the User Query and Context. 
         Return JSON:
@@ -140,12 +159,18 @@ class UnifiedIntelligenceService:
         if not self.client:
             return "Извините, AI-сервис недоступен. Пожалуйста, настройте GROQ_API_KEY или OPENAI_API_KEY в конфигурации системы."
         
-        # Load company knowledge context
-        try:
-            company_context = company_knowledge_service.get_context_for_ai()
-        except Exception as e:
-            logger.warning(f"Failed to load company context: {e}")
-            company_context = "(Контекст компании временно недоступен)"
+        # CRITICAL: Only use company context if NO SQL data available
+        company_context = ""
+        if sql_result and sql_result.get("success") and sql_result.get("data"):
+            # We have real database data - DON'T use knowledge base!
+            company_context = "(Using live database data - knowledge base disabled)"
+        else:
+            # No SQL data - fallback to knowledge base
+            try:
+                company_context = company_knowledge_service.get_context_for_ai()
+            except Exception as e:
+                logger.warning(f"Failed to load company context: {e}")
+                company_context = "(Контекст компании временно недоступен)"
         
         system_prompt = f"""Ты — стратегический AI-аналитик и Директор по развитию кондитерской компании в Беларуси.
         

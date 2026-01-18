@@ -858,3 +858,83 @@ INFO:     Finished server process [23787]
 INFO:     Started server process [31630]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+Supabase admin client initialized (RLS bypass enabled)
+INFO:     127.0.0.1:62785 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62927 - "OPTIONS /api/ai-chat/chat HTTP/1.1" 200 OK
+Database error: could not translate host name "db.hnunemnxpmyhexzcvmtb.supabase.co" to address: nodename nor servname provided, or not known
+
+[QUALITY] -3 for no data on INTERNAL_DB query
+INFO:     127.0.0.1:62927 - "POST /api/ai-chat/chat HTTP/1.1" 200 OK
+Database error: could not translate host name "db.hnunemnxpmyhexzcvmtb.supabase.co" to address: nodename nor servname provided, or not known
+
+[QUALITY] -3 for no data on INTERNAL_DB query
+INFO:     127.0.0.1:62982 - "POST /api/ai-chat/chat HTTP/1.1" 200 OK
+Error in get_sales_summary: {'code': 'PGRST200', 'details': "Searched for a foreign key relationship between 'sale_items' and 'sales' in the schema 'public', but no matches were found.", 'hint': "Perhaps you meant 'sales_plans' instead of 'sale_items'.", 'message': "Could not find a relationship between 'sale_items' and 'sales' in the schema cache"}
+INFO:     127.0.0.1:63047 - "GET /api/data/analytics/summary HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63086 - "OPTIONS /api/analytics/sales-trend?period=month&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63088 - "OPTIONS /api/analytics/top-products?limit=6&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63086 - "OPTIONS /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63089 - "OPTIONS /api/analytics/top-customers?limit=5&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63088 - "OPTIONS /api/analytics/sales-trend?period=month&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63092 - "OPTIONS /api/analytics/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63086 - "OPTIONS /api/analytics/top-products?limit=6&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63089 - "OPTIONS /api/analytics/top-customers?limit=5&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63093 - "OPTIONS /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63092 - "OPTIONS /api/analytics/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63088 - "OPTIONS /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63095 - "OPTIONS /api/forecast/seasonality HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63093 - "OPTIONS /api/forecast/seasonality HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63086 - "OPTIONS /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63089 - "GET /api/analytics/sales-trend?period=month&force_refresh=false HTTP/1.1" 200 OK
+RPC not available for top-products: {'code': '42702', 'details': 'It could refer to either a PL/pgSQL variable or a table column.', 'hint': None, 'message': 'column reference "total_revenue" is ambiguous'}
+INFO:     127.0.0.1:63092 - "GET /api/analytics/top-products?limit=6&force_refresh=false HTTP/1.1" 200 OK
+Importing plotly failed. Interactive plots will not work.
+ERROR:root:Error training Prophet model: 'Prophet' object has no attribute 'stan_backend'
+INFO:     127.0.0.1:63088 - "GET /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63095 - "GET /api/analytics/top-customers?limit=5&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63093 - "GET /api/analytics/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63086 - "GET /api/forecast/seasonality HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63089 - "GET /api/analytics/sales-trend?period=month&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63095 - "GET /api/analytics/top-products?limit=6&force_refresh=false HTTP/1.1" 200 OK
+ERROR:root:Error training Prophet model: 'Prophet' object has no attribute 'stan_backend'
+INFO:     127.0.0.1:63088 - "GET /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63092 - "GET /api/analytics/top-customers?limit=5&force_refresh=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63086 - "GET /api/analytics/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63093 - "GET /api/forecast/seasonality HTTP/1.1" 200 OK
+ERROR:root:Error training Prophet model: 'Prophet' object has no attribute 'stan_backend'
+INFO:     127.0.0.1:63088 - "GET /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+ERROR:root:Error training Prophet model: 'Prophet' object has no attribute 'stan_backend'
+INFO:     127.0.0.1:63088 - "GET /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63113 - "OPTIONS /api/analytics/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63113 - "POST /api/analytics/refresh HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63113 - "GET /api/analytics/dashboard HTTP/1.1" 200 OK
+ERROR:root:Error training Prophet model: 'Prophet' object has no attribute 'stan_backend'
+INFO:     127.0.0.1:63113 - "GET /api/forecast/predict?months_ahead=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63113 - "GET /api/forecast/seasonality HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63849 - "OPTIONS /api/ai-chat/chat HTTP/1.1" 200 OK
+WARNING:app.services.secure_query_service:Query blocked: Query must start with one of: SELECT, EXPLAIN. Query: WITH current_year AS (SELECT SUM(total_amount) as total, EXTRACT(MONTH FROM sale_date) as month FROM sales WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY EXTRACT(MONTH F
+WARNING:app.services.sql_query_service:Security violation blocked: Security Violation: Query must start with one of: SELECT, EXPLAIN
+WARNING:app.services.unified_intelligence_service:[QUALITY] -3 for no data on INTERNAL_DB query
+INFO:     127.0.0.1:63849 - "POST /api/ai-chat/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63926 - "GET /api/analytics/filter-options HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63927 - "GET /api/analytics/abc-xyz?days=90 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63926 - "GET /api/analytics/filter-options HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63927 - "GET /api/analytics/abc-xyz?days=90 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63934 - "GET /api/analytics/plan-fact?period_start=2025-12-31&period_end=2026-01-30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63934 - "GET /api/analytics/plan-fact?period_start=2025-12-31&period_end=2026-01-30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63927 - "GET /api/analytics/lfl?period1_start=2025-12-31&period1_end=2026-01-30&period2_start=2025-11-30&period2_end=2025-12-30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63927 - "GET /api/analytics/lfl?period1_start=2025-12-31&period1_end=2026-01-30&period2_start=2025-11-30&period2_end=2025-12-30 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63934 - "GET /api/analytics/geo?days=90 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63934 - "GET /api/analytics/geo?days=90 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63927 - "GET /api/analytics/boston-matrix?days=90 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63927 - "GET /api/analytics/boston-matrix?days=90 HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/services/unified_intelligence_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [31630]
+/Users/alexbelski/Desktop/new bi project/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+INFO:     Started server process [39500]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
