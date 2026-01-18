@@ -680,3 +680,70 @@ Import trace for requested module:
  ✓ Compiled in 328ms (375 modules)
  ✓ Compiled in 419ms (372 modules)
 [?25h
+
+> sales-analytics@1.0.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.250.87:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 758ms
+
+> sales-analytics@1.0.0 dev
+> next dev
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.250.87:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 467ms
+ GET / 200 in 1124ms (compile: 988ms, render: 136ms)
+ GET /sales-dashboard 200 in 99ms (compile: 79ms, render: 20ms)
+ GET / 200 in 218ms (compile: 8ms, render: 209ms)
+ GET /ai-assistant 200 in 713ms (compile: 674ms, render: 39ms)
+ GET /ai-assistant 200 in 189ms (compile: 40ms, render: 149ms)
+ GET /ai-assistant 200 in 197ms (compile: 45ms, render: 152ms)
+ GET /advanced-analytics 200 in 307ms (compile: 280ms, render: 27ms)
+ GET /ai-assistant 200 in 12ms (compile: 3ms, render: 9ms)
+✓ Compiled in 1054ms
+ GET /ai-assistant 200 in 213ms (compile: 78ms, render: 136ms)
+ GET /sales-dashboard 200 in 201ms (compile: 155ms, render: 47ms)
+ GET /ai-assistant 200 in 56ms (compile: 3ms, render: 53ms)
+ GET /sales-dashboard 200 in 48ms (compile: 4ms, render: 44ms)
+ GET /ai-assistant 200 in 60ms (compile: 1692µs, render: 58ms)
+ GET /sales-dashboard 200 in 69ms (compile: 13ms, render: 56ms)
+ GET /ai-assistant 200 in 51ms (compile: 2ms, render: 48ms)
+ GET /sales-dashboard 200 in 51ms (compile: 12ms, render: 39ms)
+ GET /ai-assistant 200 in 43ms (compile: 1980µs, render: 41ms)
+ GET /ai-assistant 200 in 67ms (compile: 5ms, render: 62ms)
+ GET /ai-assistant 200 in 80ms (compile: 1994µs, render: 78ms)
+ GET /ai-assistant 200 in 85ms (compile: 3ms, render: 81ms)
+ GET /ai-assistant 200 in 56ms (compile: 7ms, render: 49ms)
+ GET /ai-assistant 200 in 44ms (compile: 1956µs, render: 42ms)
+ GET /ai-assistant 200 in 24ms (compile: 2ms, render: 21ms)
+ GET /ai-assistant 200 in 13ms (compile: 1926µs, render: 11ms)
+ GET /sales-dashboard 200 in 269ms (compile: 33ms, render: 236ms)
+ GET /ai-assistant 200 in 31ms (compile: 9ms, render: 21ms)
+ GET /advanced-analytics 200 in 84ms (compile: 57ms, render: 26ms)
+ GET / 200 in 114ms (compile: 71ms, render: 43ms)
+ GET /sales-dashboard 200 in 22ms (compile: 8ms, render: 14ms)
+ GET /advanced-analytics 200 in 14ms (compile: 3ms, render: 11ms)
+ GET /ai-assistant 200 in 10ms (compile: 4ms, render: 7ms)
+ GET /sales-dashboard 200 in 13ms (compile: 1740µs, render: 11ms)
+ GET /ai-assistant 200 in 13ms (compile: 3ms, render: 11ms)
+ GET /advanced-analytics 200 in 10ms (compile: 1594µs, render: 9ms)
+✓ Compiled in 162ms
+✓ Compiled in 66ms
+✓ Compiled in 50ms
+✓ Compiled in 51ms
+✓ Compiled in 45ms
+✓ Compiled in 51ms
+ GET /advanced-analytics 200 in 175ms (compile: 51ms, render: 124ms)
+ GET /sales-dashboard 200 in 17ms (compile: 5ms, render: 12ms)
+ GET /advanced-analytics 200 in 22ms (compile: 3ms, render: 19ms)
+ GET /ai-assistant 200 in 16ms (compile: 5ms, render: 11ms)

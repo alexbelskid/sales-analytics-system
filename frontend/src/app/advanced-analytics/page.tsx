@@ -91,7 +91,7 @@ export default function AdvancedAnalyticsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 overflow-x-hidden">
+        <div className="min-h-screen bg-[#202020] overflow-x-hidden">
             <div className="max-w-full lg:max-w-[1600px] mx-auto space-y-4 md:space-y-6 p-4 md:p-6 mobile-container">
                 {/* Header */}
                 <div className="flex flex-col gap-2">
@@ -117,7 +117,7 @@ export default function AdvancedAnalyticsPage() {
                         {lflData.map((metric: any, idx: number) => (
                             <Card
                                 key={idx}
-                                className="bg-zinc-900/50 border-zinc-800 backdrop-blur-sm rounded-2xl p-6"
+                                className="bg-[#262626] border-[#333333] backdrop-blur-sm rounded-2xl p-6"
                             >
                                 <div className="flex items-center justify-between">
                                     <div>
@@ -158,7 +158,7 @@ export default function AdvancedAnalyticsPage() {
                         {abcXyzData && !loading ? (
                             <ABCXYZMatrix data={abcXyzData} />
                         ) : (
-                            <Card className="bg-zinc-900/50 border-zinc-800 rounded-3xl p-6 h-[600px] flex items-center justify-center">
+                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[600px] flex items-center justify-center">
                                 <div className="text-zinc-500">Загрузка ABC-XYZ Матрицы...</div>
                             </Card>
                         )}
@@ -169,7 +169,7 @@ export default function AdvancedAnalyticsPage() {
                         {planFactData && !loading ? (
                             <PlanFactGauge data={planFactData} />
                         ) : (
-                            <Card className="bg-zinc-900/50 border-zinc-800 rounded-3xl p-6 h-[600px] flex items-center justify-center">
+                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[600px] flex items-center justify-center">
                                 <div className="text-zinc-500">Загрузка План-Факт...</div>
                             </Card>
                         )}
@@ -183,7 +183,7 @@ export default function AdvancedAnalyticsPage() {
                         {geoData && !loading ? (
                             <GeoMap data={geoData} />
                         ) : (
-                            <Card className="bg-zinc-900/50 border-zinc-800 rounded-3xl p-6 h-[400px] flex items-center justify-center">
+                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[400px] flex items-center justify-center">
                                 <div className="text-zinc-500">Загрузка географии...</div>
                             </Card>
                         )}
@@ -194,7 +194,7 @@ export default function AdvancedAnalyticsPage() {
                         {bostonData && !loading ? (
                             <BostonMatrix data={bostonData} />
                         ) : (
-                            <Card className="bg-zinc-900/50 border-zinc-800 rounded-3xl p-6 h-[400px] flex items-center justify-center">
+                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[400px] flex items-center justify-center">
                                 <div className="text-zinc-500">Загрузка Бостонской матрицы...</div>
                             </Card>
                         )}

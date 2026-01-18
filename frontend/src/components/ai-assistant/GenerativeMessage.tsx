@@ -66,7 +66,39 @@ export default function GenerativeMessage({ content, role }: GenerativeMessagePr
                         ? "bg-rose-600 text-white rounded-tr-sm shadow-md shadow-rose-900/10"
                         : "bg-[#2A2A2A] text-gray-200 rounded-tl-sm border border-[#333333] shadow-sm"
                 )}>
-                    {content.text}
+                    {(() => {
+                        // Very simple parser for <thought> tag
+                        const thoughtMatch = content.text.match(/<thought>([\s\S]*?)<\/thought>/);
+                        if (thoughtMatch && !isUser) {
+                            const thoughtContent = thoughtMatch[1].trim();
+                            const mainContent = content.text.replace(/<thought>[\s\S]*?<\/thought>/, "").trim();
+
+                            return (
+                                <div className="space-y-3">
+                                    <div className="group">
+                                        <details className="text-xs">
+                                            <summary className="cursor-pointer list-none font-medium text-[#808080] hover:text-rose-400 flex items-center gap-2 transition-colors select-none">
+                                                <Sparkles className="w-3 h-3" />
+                                                Thinking Process
+                                                <div className="group-open:rotate-180 transition-transform duration-200">
+                                                    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </div>
+                                            </summary>
+                                            <div className="mt-2 pl-3 border-l-2 border-[#404040] text-gray-400 italic">
+                                                {thoughtContent}
+                                            </div>
+                                        </details>
+                                    </div>
+                                    <div className="pt-1">
+                                        {mainContent}
+                                    </div>
+                                </div>
+                            );
+                        }
+                        return content.text;
+                    })()}
                 </div>
 
                 {/* Generative Artifacts (Charts/Tables) - Only for Assistant */}

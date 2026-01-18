@@ -38,7 +38,7 @@ export function GeoMap({ data }: GeoMapProps) {
     const sortedPoints = [...points].sort((a, b) => b.revenue - a.revenue);
 
     return (
-        <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-sm rounded-3xl p-6">
+        <Card className="bg-[#262626] border-[#333333] backdrop-blur-sm rounded-3xl p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
