@@ -87,6 +87,46 @@ class SQLQueryService:
     - To get sales with product details, JOIN sales -> sale_items -> products
     - To get sales with customer details, JOIN sales -> customers
     - To get sales with agent details, JOIN sales -> agents
+    
+    ANALYTICS VIEWS (for comprehensive analysis, use these instead of complex JOINs):
+    
+    7. sales_analytics_complete (Полная аналитика продаж)
+       - id, sale_date, total_amount, discount, status
+       - agent_name, agent_email, agent_phone
+       - customer_name, customer_email
+       - items_count, total_items_quantity
+       - products (comma-separated list)
+       Use for: Complete sales overview with all related data
+    
+    8. product_performance (Производительность товаров)
+       - id, name, category
+       - total_quantity, total_revenue, sales_count
+       - unique_sales, avg_price, max_price, min_price
+       - last_sale_date
+       Use for: Product analysis and performance metrics
+    
+    9. agent_performance (Производительность агентов)
+       - id, name, email, phone
+       - base_salary, commission_rate
+       - total_sales, total_revenue, avg_sale_amount
+       - first_sale_date, last_sale_date, unique_customers
+       Use for: Agent performance and commission calculations
+    
+    10. daily_sales_summary (Ежедневная сводка продаж)
+        - sale_day, sales_count, total_revenue
+        - avg_sale_amount, active_agents, unique_customers
+        Use for: Daily trends and patterns
+    
+    11. top_products_by_revenue (Топ товары по выручке)
+        - name, category, total_revenue
+        - total_quantity, sales_count, avg_price_per_unit
+        Use for: Best performing products
+    
+    DATA ACCESS:
+    - You have access to ALL data (22,000+ sales, 500+ products)
+    - For "top N" queries, use LIMIT N
+    - For "all" or "complete" queries, NO LIMIT (get all rows)
+    - Use views for better performance on complex queries
     """
     
     # Allowed tables (whitelist for security)
@@ -110,6 +150,27 @@ class SQLQueryService:
          GROUP BY p.name 
          ORDER BY total_amount DESC 
          LIMIT 5;
+    
+    Q: "Все товары с продажами" (ALL data, no limit)
+    SQL: SELECT name, total_quantity, total_revenue, sales_count 
+         FROM product_performance 
+         WHERE total_quantity > 0 
+         ORDER BY total_revenue DESC;
+    
+    Q: "Статистика по всем агентам"
+    SQL: SELECT name, total_sales, total_revenue, avg_sale_amount, unique_customers 
+         FROM agent_performance 
+         WHERE total_sales > 0 
+         ORDER BY total_revenue DESC;
+    
+    Q: "Сколько всего продаж?"
+    SQL: SELECT COUNT(*) as total_sales, SUM(total_amount) as total_revenue 
+         FROM sales;
+    
+    Q: "Продажи за последнюю неделю"
+    SQL: SELECT * FROM sales_analytics_complete 
+         WHERE sale_date >= CURRENT_DATE - INTERVAL '7 days' 
+         ORDER BY sale_date DESC;
     
     Q: "Какой агент продал больше всего в прошлом квартале?"
     SQL: SELECT a.name, SUM(s.total_amount) as total 
