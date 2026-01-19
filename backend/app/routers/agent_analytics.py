@@ -323,9 +323,8 @@ async def import_from_excel(
         if result.success:
             try:
                 from app.services.cache_service import cache
-                cache.invalidate_pattern("dashboard:")
-                cache.invalidate_pattern("agent:")
-                logger.info("Agent analytics cache invalidated after import")
+                cleared_count = cache.invalidate_all_agent_cache()
+                logger.info(f"Agent analytics cache invalidated after import: {cleared_count} entries cleared")
             except Exception as cache_error:
                 logger.warning(f"Cache invalidation failed: {cache_error}")
         

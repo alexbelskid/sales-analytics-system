@@ -312,19 +312,46 @@ async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Cha
         if delete_data:
             try:
                 if import_type == 'agents':
-                    # Delete agent-related data
+                    # COMPREHENSIVE AGENT DATA DELETION
                     related_agent_ids = import_record.get('related_agent_ids', [])
                     
+                    logger.info(f"🗑️ Starting agent data deletion for {len(related_agent_ids) if related_agent_ids else 0} agents")
+                    logger.info(f"Agent IDs: {related_agent_ids}")
+                    
+                    # STEP 1: Clear cache BEFORE deletion to prevent race conditions
+                    try:
+                        from app.services.cache_service import cache
+                        pre_clear_count = cache.invalidate_all_agent_cache()
+                        logger.info(f"✅ Pre-deletion cache clear: {pre_clear_count} entries removed")
+                    except Exception as cache_err:
+                        logger.error(f"Pre-deletion cache clear error: {cache_err}")
+                    
+                    # STEP 2: Delete data from database
                     if related_agent_ids and len(related_agent_ids) > 0:
                         # Delete daily sales for these agents
                         sales_result = supabase.table("agent_daily_sales").delete().in_("agent_id", related_agent_ids).execute()
                         deleted_counts['agent_daily_sales'] = len(sales_result.data) if sales_result.data else 0
+                        logger.info(f"  → Deleted {deleted_counts['agent_daily_sales']} daily sales records")
                         
                         # Delete sales plans for these agents
                         plans_result = supabase.table("agent_sales_plans").delete().in_("agent_id", related_agent_ids).execute()
                         deleted_counts['agent_sales_plans'] = len(plans_result.data) if plans_result.data else 0
+                        logger.info(f"  → Deleted {deleted_counts['agent_sales_plans']} sales plans")
                         
-                        logger.info(f"Cascade deleted agent data: {deleted_counts}")
+                        # Delete performance forecasts for these agents
+                        forecasts_result = supabase.table("agent_performance_forecasts").delete().in_("agent_id", related_agent_ids).execute()
+                        deleted_counts['agent_performance_forecasts'] = len(forecasts_result.data) if forecasts_result.data else 0
+                        logger.info(f"  → Deleted {deleted_counts['agent_performance_forecasts']} forecasts")
+                        
+                        # ✅ DELETE THE AGENTS THEMSELVES to prevent "zombie" agents
+                        # This prevents accumulation of agents without data after file deletion
+                        agents_result = supabase.table("agents").delete().in_("id", related_agent_ids).execute()
+                        deleted_counts['agents'] = len(agents_result.data) if agents_result.data else 0
+                        logger.info(f"  → Deleted {deleted_counts['agents']} agent records themselves")
+                        
+                        logger.info(f"✅ Cascade deleted agent data: {deleted_counts}")
+                    else:
+                        logger.warning("⚠️ No related_agent_ids found in import record - data might not be fully cleaned")
                 
                 elif import_type == 'sales':
                     # ✅ Simple approach: Just delete sales by import_id
@@ -350,14 +377,35 @@ async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Cha
         # Delete import_history record
         supabase.table("import_history").delete().eq("id", file_id).execute()
         
-        # Clear cache
+        # STEP 3: Clear cache AFTER deletion (belt-and-suspenders approach)
         try:
             from app.services.cache_service import cache
-            cache.invalidate_pattern("analytics:")
-            cache.invalidate_pattern("dashboard:")
-            cache.invalidate_pattern("agent:")
-            cache.clear()
-            logger.info("Cache cleared after file deletion")
+            
+            # Get cache state before cleanup (for logging)
+            stats_before = cache.get_stats()
+            logger.info(f"📊 Cache state before cleanup: {stats_before['total_entries']} entries")
+            
+            # Use comprehensive agent cache cleanup
+            if import_type == 'agents':
+                cleared_count = cache.invalidate_all_agent_cache()
+                logger.info(f"✅ Post-deletion agent cache clear: {cleared_count} entries removed")
+            else:
+                # For non-agent imports, use standard cleanup
+                cache.invalidate_pattern("analytics:")
+                cache.invalidate_pattern("dashboard:")
+            
+            # Nuclear option: clear everything to be absolutely sure
+            total_cleared = cache.clear()
+            logger.info(f"🧹 Total cache cleared: {total_cleared} entries")
+            
+            # Verify cache is empty
+            stats_after = cache.get_stats()
+            logger.info(f"✅ Cache state after cleanup: {stats_after['total_entries']} entries (should be 0)")
+            
+            if stats_after['total_entries'] > 0:
+                logger.warning(f"⚠️ WARNING: Cache still has {stats_after['total_entries']} entries after cleanup!")
+                logger.warning(f"Remaining keys: {stats_after['keys']}")
+            
         except Exception as e:
             logger.error(f"Cache clear error: {e}")
         
