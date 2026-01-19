@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 import logging
 import re
 
-from app.database import supabase
+from app.database import supabase, supabase_admin
 from app.models.agent_analytics import GoogleSheetsImportResult
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,13 @@ class GoogleSheetsImporter:
     ALL_REGION_HEADERS = REGIONS + TEAMS
     
     def __init__(self):
-        self.supabase = supabase
+        # CRITICAL FIX: Use admin client to bypass RLS for imports!
+        # Regular supabase client has RLS which blocks agent creation
+        self.supabase = supabase_admin or supabase
+        if supabase_admin:
+            logger.info("[IMPORT] Using admin client (RLS bypass) for data import")
+        else:
+            logger.warning("[IMPORT] Admin client not available, using regular client (may fail due to RLS)")
     
     async def import_from_data(
         self,

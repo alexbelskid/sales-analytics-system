@@ -5,10 +5,14 @@ Provides formatted context from sales data for Groq AI assistant
 
 from typing import Optional, Dict, Any
 from app.services.extended_analytics_service import extended_analytics
-from app.database import supabase
+from app.database import supabase, supabase_admin
 import logging
 
 logger = logging.getLogger(__name__)
+
+# CRITICAL FIX: Use admin client to bypass RLS for reading agent data!
+# Regular supabase client has RLS which blocks reading agents table
+_db = supabase_admin or supabase
 
 
 class AIContextService:
@@ -248,7 +252,7 @@ class AIContextService:
         Returns:
             Formatted text context with real agent performance data
         """
-        if supabase is None:
+        if _db is None:
             return ""
         
         try:
@@ -259,7 +263,7 @@ class AIContextService:
             period_start = period_end - timedelta(days=period_days)
             
             # Get all active agents
-            agents_result = supabase.table('agents').select('*').eq('is_active', True).execute()
+            agents_result = _db.table('agents').select('*').eq('is_active', True).execute()
             
             if not agents_result.data:
                 return "⚠️ Нет данных об агентах в БД. Загрузите данные через импорт Excel."
@@ -267,17 +271,18 @@ class AIContextService:
             agents = agents_result.data
             agent_ids = [a['id'] for a in agents]
             
-            # Get plans for the period
-            plans_result = supabase.table('agent_sales_plans').select('*').in_(
+            # Get plans that OVERLAP with the period (correct logic!)
+            # A plan overlaps if: plan_start <= period_end AND plan_end >= period_start
+            plans_result = _db.table('agent_sales_plans').select('*').in_(
                 'agent_id', agent_ids
-            ).gte('period_start', period_start.isoformat()).lte(
-                'period_end', period_end.isoformat()
+            ).lte('period_start', period_end.isoformat()).gte(
+                'period_end', period_start.isoformat()
             ).execute()
             
             plans_by_agent = {p['agent_id']: p for p in (plans_result.data or [])}
             
             # Get actual sales for the period
-            sales_result = supabase.table('agent_daily_sales').select('*').in_(
+            sales_result = _db.table('agent_daily_sales').select('*').in_(
                 'agent_id', agent_ids
             ).gte('sale_date', period_start.isoformat()).lte(
                 'sale_date', period_end.isoformat()
@@ -346,7 +351,7 @@ class AIContextService:
             
             # Add import history info
             try:
-                imports = supabase.table('import_history').select(
+                imports = _db.table('import_history').select(
                     'filename, imported_rows, completed_at'
                 ).eq('import_type', 'agents').eq('status', 'completed').order(
                     'completed_at', desc=True
@@ -388,7 +393,7 @@ class AIContextService:
             
             # Search for agent
             normalized = agent_name.lower().strip()
-            result = supabase.table('agents').select('*').ilike(
+            result = _db.table('agents').select('*').ilike(
                 'name', f'%{normalized}%'
             ).limit(1).execute()
             
@@ -403,7 +408,7 @@ class AIContextService:
             period_start = today.replace(day=1)
             
             # Get plan
-            plan_result = supabase.table('agent_sales_plans').select('*').eq(
+            plan_result = _db.table('agent_sales_plans').select('*').eq(
                 'agent_id', agent_id
             ).gte('period_start', period_start.isoformat()).limit(1).execute()
             
@@ -411,7 +416,7 @@ class AIContextService:
             plan_amount = float(plan['plan_amount']) if plan else 0
             
             # Get daily sales
-            sales_result = supabase.table('agent_daily_sales').select('*').eq(
+            sales_result = _db.table('agent_daily_sales').select('*').eq(
                 'agent_id', agent_id
             ).gte('sale_date', period_start.isoformat()).order(
                 'sale_date', desc=True
@@ -466,7 +471,7 @@ class AIContextService:
             return ""
         
         try:
-            imports = supabase.table('import_history').select(
+            imports = _db.table('import_history').select(
                 'filename, total_rows, imported_rows, status, completed_at, import_type'
             ).eq('status', 'completed').order('completed_at', desc=True).limit(5).execute()
             
