@@ -142,6 +142,10 @@ app.include_router(files_router.router)
 from app.routers import agent_analytics
 app.include_router(agent_analytics.router, prefix="/api")
 
+# Data Validation Router (NEW!)
+from app.routers import data_validation
+app.include_router(data_validation.router, prefix="/api")
+
 # Advanced Analytics Router (LFL, Filters)
 app.include_router(advanced_analytics.router, prefix="/api/analytics", tags=["Advanced Analytics"])
 
@@ -159,6 +163,10 @@ app.include_router(boston_matrix.router, prefix="/api/analytics", tags=["Boston 
 
 # Phase 3: What-If Scenarios Router
 app.include_router(what_if.router, prefix="/api/analytics", tags=["What-If"])
+
+# Cache Debug Router (for debugging agent cache issues)
+from app.routers import cache_debug
+app.include_router(cache_debug.router)
 
 
 @app.get("/", tags=["Health"])
