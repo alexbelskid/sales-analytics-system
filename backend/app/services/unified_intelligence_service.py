@@ -162,8 +162,10 @@ class UnifiedIntelligenceService:
         # HYBRID APPROACH: Use BOTH SQL data AND knowledge base context
         # SQL gives us FACTS (numbers, names, dates)
         # Knowledge base gives us CONTEXT (business rules, market insights)
+        # Agent analytics gives us REAL AGENT DATA (performance, sales, rankings)
         
         company_context = ""
+        agent_context = ""  # NEW: Real agent data context
         sql_facts = ""
         
         # Always try to load company knowledge for context
@@ -172,6 +174,20 @@ class UnifiedIntelligenceService:
         except Exception as e:
             logger.warning(f"Failed to load company context: {e}")
             company_context = "(Контекст компании временно недоступен)"
+        
+        # NEW: Load agent analytics context from REAL DATABASE
+        try:
+            from app.services.ai_context_service import ai_context
+            agent_context = ai_context.get_context_for_ai(
+                include_agents=True,  # Agent analytics
+                include_general=False,  # Already have from company_knowledge
+                include_imports=True  # Show data sources
+            )
+            if agent_context:
+                logger.info(f"[CONTEXT] Loaded agent analytics context: {len(agent_context)} chars")
+        except Exception as e:
+            logger.warning(f"Failed to load agent context: {e}")
+            agent_context = ""
         
         # Extract SQL facts if available
         if sql_result and sql_result.get("success") and sql_result.get("data"):
@@ -182,11 +198,16 @@ class UnifiedIntelligenceService:
             elif isinstance(data, dict):
                 sql_facts = f"DATABASE FACTS (PRIORITY): {data}\n"
         
-        # Combine both sources
+        # Combine ALL sources (SQL facts, Agent data, Business context)
+        context_parts = []
         if sql_facts:
-            combined_context = f"{sql_facts}\n\nBUSINESS CONTEXT:\n{company_context}"
-        else:
-            combined_context = company_context
+            context_parts.append(sql_facts)
+        if agent_context:
+            context_parts.append(f"AGENT ANALYTICS (REAL DATA FROM DB):\n{agent_context}")
+        if company_context:
+            context_parts.append(f"BUSINESS CONTEXT:\n{company_context}")
+        
+        combined_context = "\n\n".join(context_parts) if context_parts else "No data available"
         
         system_prompt = f"""Ты — AI-аналитик для системы аналитики продаж.
         
