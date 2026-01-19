@@ -1,66 +1,64 @@
-# Database Optimization
+# Database
 
-## RLS Performance Fix
+This directory contains database-related files for the Sales Analytics System.
 
-Этот скрипт исправляет проблемы производительности Row Level Security (RLS) политик.
+## Structure
 
-### Проблемы
-
-1. **Дублирующиеся политики** - Множественные permissive политики для одной таблицы замедляют запросы
-2. **Неоптимизированные auth вызовы** - `auth.role()` пересчитывается для каждой строки
-
-### Решение
-
-Скрипт `fix_rls_performance.sql`:
-- Удаляет дублирующиеся политики
-- Объединяет политики для authenticated и service_role
-- Оборачивает `auth.role()` в `SELECT` для кэширования
-
-### Применение
-
-Выполните в Supabase SQL Editor:
-
-```sql
--- Скопируйте и выполните содержимое fix_rls_performance.sql
+```
+database/
+├── schema/        # SQL table and view definitions
+├── migrations/    # Database migration scripts  
+├── seeds/         # Sample/test data for development
+└── README.md      # This file
 ```
 
-### Затронутые таблицы
+## Quick Start
 
-- `agents`
-- `sale_items`
-- `email_settings`
-- `incoming_emails`
-- `email_responses`
-- `response_tone_settings`
-- `response_templates`
+### 1. Database Setup
 
-### Результат
+The application uses **Supabase** (PostgreSQL) as the database.
 
-✅ Уменьшение количества политик с ~100+ до 7  
-✅ Оптимизация проверки ролей  
-✅ Улучшение производительности запросов
+**Connection details are in:**
+- Backend: `backend/.env` → `SUPABASE_URL`, `SUPABASE_KEY`
 
----
+### 2. Schema
 
-## AI Assistant Tables
+Main tables:
+- `sales` - Sales transactions
+- `products` - Product catalog
+- `customers` - Customer information
+- `agents` - Sales agents
+- `sale_items` - Line items (links sales ↔ products)
 
-Скрипт `create_ai_tables.sql` создаёт таблицы для AI Ассистента.
+Analytics views:
+- `product_performance` - Product statistics
+- `agent_performance` - Agent KPIs
+- `daily_sales_summary` - Daily aggregates
+- `monthly_sales_trends` - Monthly trends
 
-### Таблицы
+### 3. Seeds (Sample Data)
 
-- `knowledge_base` - База знаний (продукты, условия, контакты, FAQ)
-- `training_examples` - Примеры для обучения AI
+For local development, you can use:
+- `seeds/sample_sales.csv` - Example sales data
 
-### Применение
-
-Выполните в Supabase SQL Editor:
-
-```sql
--- Скопируйте и выполните содержимое create_ai_tables.sql
+**To populate database:**
+```bash
+# Run SQL scripts from main project docs
+# See: docs/guides/database-setup.md
 ```
 
-### Результат
+## Migrations
 
-✅ Таблицы с правильной структурой  
-✅ RLS политики для доступа  
-✅ Индексы для быстрого поиска
+Database schema changes are managed through:
+1. Supabase Dashboard SQL Editor (for production)
+2. Migration scripts (for version control)
+
+**Currently:** Manual migrations via Supabase UI
+
+**Future:** Automated migration system
+
+## Related Documentation
+
+- [Database Setup Guide](../docs/guides/database-setup.md)
+- [Supabase Setup](../docs/QUICKSTART.md#database-setup)
+- [Troubleshooting](../docs/TROUBLESHOOTING.md#database-issues)

@@ -957,3 +957,15 @@ INFO:     Finished server process [42813]
 Supabase admin client initialized (RLS bypass enabled)
 /Users/alexbelski/Desktop/new bi project/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
   warnings.warn(
+INFO:     Started server process [42896]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+Supabase admin client initialized (RLS bypass enabled)
+INFO:     127.0.0.1:51259 - "OPTIONS /api/agent-analytics/dashboard?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51261 - "OPTIONS /api/agent-analytics/agents?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51263 - "OPTIONS /api/agent-analytics/dashboard?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51259 - "GET /api/agent-analytics/dashboard?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51261 - "GET /api/agent-analytics/agents?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51264 - "OPTIONS /api/agent-analytics/agents?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51264 - "GET /api/agent-analytics/agents?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51259 - "GET /api/agent-analytics/dashboard?period_start=2026-01-01&period_end=2026-01-31 HTTP/1.1" 200 OK
