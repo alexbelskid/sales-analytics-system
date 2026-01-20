@@ -242,16 +242,21 @@ class UnifiedImporter:
             errors = []
             
             # Process in batches to prevent memory issues with large files
-            BATCH_SIZE = 100
+            # Increased from 100 to 500 for better performance with large files (50K+ rows)
+            BATCH_SIZE = 500
             total_rows = len(df)
             
-            logger.info(f"Processing {total_rows} rows in batches of {BATCH_SIZE}")
+            import time
+            import_start_time = time.time()
+            logger.info(f"[IMPORT START] Processing {total_rows} rows in batches of {BATCH_SIZE}")
+            logger.info(f"[IMPORT CONFIG] Mode: {mode}, Import ID: {import_id}")
             
             for batch_start in range(0, total_rows, BATCH_SIZE):
                 batch_end = min(batch_start + BATCH_SIZE, total_rows)
                 batch_df = df.iloc[batch_start:batch_end]
+                batch_start_time = time.time()
                 
-                logger.info(f"Processing batch {batch_start}-{batch_end} ({len(batch_df)} rows)")
+                logger.info(f"[BATCH {batch_start//BATCH_SIZE + 1}] Processing rows {batch_start}-{batch_end} ({len(batch_df)} rows)")
                 
                 for idx, row in batch_df.iterrows():
                     try:
@@ -349,13 +354,13 @@ class UnifiedImporter:
                         imported += 1
                     
                     except Exception as e:
-                        logger.error(f"Error importing sale row {idx}: {e}", exc_info=True)
-                        logger.error(f"Row data: customer_name={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
-                        logger.error(f"Parsed values: sale_date={sale_date if 'sale_date' in locals() else 'N/A'}, year={year if 'year' in locals() else 'N/A'}, month={month if 'month' in locals() else 'N/A'}")
+                        error_msg = f"Row {idx}: {str(e)[:100]}"
+                        logger.error(f"[ROW ERROR] {error_msg}", exc_info=False)
+                        logger.debug(f"Row data: customer={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
                         errors.append({
                             'row': int(idx),
                             'customer': str(row.get('customer_name', 'Unknown')),
-                            'error': str(e)
+                            'error': str(e)[:200]
                         })
                         failed += 1
                 
@@ -363,24 +368,33 @@ class UnifiedImporter:
                 del batch_df
                 
                 # ✅ Real-time progress update
+                batch_time = time.time() - batch_start_time
                 progress_percent = min(int((batch_end / total_rows) * 100), 99)  # Cap at 99% until completion
+                rows_per_sec = len(batch_df) / batch_time if batch_time > 0 else 0
+                
                 try:
                     supabase.table('import_history').update({
                         'progress_percent': progress_percent,
                         'imported_rows': imported,
                         'failed_rows': failed
                     }).eq('id', import_id).execute()
-                    logger.info(f"Batch {batch_start}-{batch_end} complete: {progress_percent}% ({imported} imported, {failed} failed)")
+                    logger.info(f"[BATCH COMPLETE] Rows {batch_start}-{batch_end}: {progress_percent}% | "
+                               f"Imported: {imported}/{total_rows} | Failed: {failed} | "
+                               f"Speed: {rows_per_sec:.1f} rows/sec | Time: {batch_time:.2f}s")
                 except Exception as update_error:
-                    logger.error(f"Failed to update progress: {update_error}")
+                    logger.error(f"[PROGRESS UPDATE FAILED] {update_error}")
                     # Don't fail import if progress update fails
+            
+            total_time = time.time() - import_start_time
+            avg_speed = imported / total_time if total_time > 0 else 0
+            logger.info(f"[IMPORT COMPLETE] Total: {imported} imported, {failed} failed in {total_time:.2f}s ({avg_speed:.1f} rows/sec)")
             
             return {
                 'success': True,
                 'imported_rows': imported,
                 'failed_rows': failed,
                 'related_sale_ids': sale_ids,
-                'errors': errors,
+                'errors': errors[:100],  # Limit error list to first 100
                 'message': f"Imported {imported} sales records, {failed} failed"
             }
         
