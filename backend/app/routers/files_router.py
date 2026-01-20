@@ -149,6 +149,13 @@ async def delete_all_sales_data():
             logger.warning(f"RPC reset failed ({e}), falling back to batch delete")
             rpc_error = e
             
+            # Fallback: Delete sale_items first (foreign key dependency)
+            try:
+                db.table("sale_items").delete().gte("id", "00000000-0000-0000-0000-000000000000").execute()
+                logger.info("Deleted all sale_items")
+            except Exception as item_err:
+                logger.error(f"sale_items delete error: {item_err}")
+            
             # Fallback: Delete sales in batches
             while True:
                 try:
@@ -162,9 +169,15 @@ async def delete_all_sales_data():
                 except Exception as batch_err:
                     logger.error(f"Batch delete error: {batch_err}")
                     break
-            
-            # Fallback: Delete import_history
+        
+        # 2.5 ALWAYS delete import_history (regardless of RPC success!)
+        # This prevents stale data showing in dashboard
+        try:
             db.table("import_history").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+            logger.info("Cleared all import_history records")
+            deleted_imports = 1
+        except Exception as ih_err:
+            logger.error(f"import_history delete error: {ih_err}")
         
         # 3. Delete agent analytics data
         try:
