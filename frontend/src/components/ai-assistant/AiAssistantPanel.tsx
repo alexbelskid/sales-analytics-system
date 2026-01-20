@@ -241,7 +241,7 @@ export default function AiAssistantPanel() {
                         type="submit"
                         disabled={!input.trim() || isThinking}
                         size="icon"
-                        className="absolute right-1 top-1 h-9 w-9 rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-900/20 transition-all disabled:opacity-0 disabled:scale-95"
+                        className="absolute right-1 top-1 h-9 w-9 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-600/25 transition-all disabled:opacity-0 disabled:scale-95"
                     >
                         <ArrowRight className="w-4 h-4" />
                     </Button>

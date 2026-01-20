@@ -236,16 +236,13 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 p-6">
             {/* Header */}
             <div className="flex flex-col gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-[40px] font-semibold tracking-tight mb-2">Дашборд</h1>
-                    <p className="text-sm text-[#808080]">Аналитика, загрузка данных и прогнозы в одном месте</p>
-                </div>
+
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <select className="rounded-2xl bg-[#111] border border-[#333333] px-5 py-3 sm:py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer min-h-[44px]">
+                    <select className="rounded-full bg-[#111] border border-[#333333] px-5 h-[44px] text-sm text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/25 transition-all duration-300 cursor-pointer">
                         <option>Этот месяц</option>
                         <option>Прошлый месяц</option>
                         <option>Этот квартал</option>
@@ -254,7 +251,7 @@ export default function Dashboard() {
 
                     <button
                         onClick={() => setShowUploader(!showUploader)}
-                        className={`flex items-center justify-center gap-2 rounded-2xl border px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] hover:scale-[1.02] ${showUploader ? 'bg-rose-800/20 border-rose-800 text-white shadow-lg shadow-rose-800/25' : 'border-[#333333] hover:bg-[#262626]'}`}
+                        className={`flex items-center justify-center gap-2 rounded-full border px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] hover:scale-[1.02] ${showUploader ? 'bg-cyan-600/20 border-cyan-500 text-white shadow-lg shadow-cyan-600/25' : 'border-[#333333] hover:bg-[#262626]'}`}
                     >
                         <UploadIcon className="h-4 w-4" />
                         <span>Загрузить данные</span>
@@ -263,7 +260,7 @@ export default function Dashboard() {
                     <button
                         onClick={handleRefresh}
                         disabled={refreshing}
-                        className="flex items-center justify-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-700 px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] disabled:opacity-50 hover:shadow-lg hover:shadow-rose-800/25 font-medium"
+                        className="flex items-center justify-center gap-2 rounded-full bg-cyan-600 hover:bg-cyan-500 px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] disabled:opacity-50 shadow-lg shadow-cyan-600/25 font-medium"
                         title="Обновить все данные"
                     >
                         <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -286,7 +283,7 @@ export default function Dashboard() {
                     <div className="flex gap-2 mb-4">
                         <button
                             onClick={() => setImportTab('excel')}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-300 ${importTab === 'excel'
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 h-[44px] ${importTab === 'excel'
                                 ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
                                 : 'bg-[#262626] text-[#808080] hover:text-white'
                                 }`}
@@ -296,8 +293,8 @@ export default function Dashboard() {
                         </button>
                         <button
                             onClick={() => setImportTab('csv')}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-300 ${importTab === 'csv'
-                                ? 'bg-rose-800 text-white shadow-lg shadow-rose-800/25'
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 h-[44px] ${importTab === 'csv'
+                                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/25'
                                 : 'bg-[#262626] text-[#808080] hover:text-white'
                                 }`}
                         >
@@ -376,7 +373,7 @@ export default function Dashboard() {
                                     <button
                                         onClick={handleUpload}
                                         disabled={!file || uploadLoading}
-                                        className="flex items-center justify-center gap-2 rounded-2xl bg-rose-800 hover:bg-rose-700 px-6 py-3 font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25 disabled:opacity-50 min-h-[44px]"
+                                        className="flex items-center justify-center gap-2 rounded-full bg-cyan-600 hover:bg-cyan-500 px-6 py-3 font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/25 disabled:opacity-50 min-h-[44px]"
                                     >
                                         {uploadLoading ? 'Загрузка...' : 'Загрузить'}
                                     </button>
@@ -475,7 +472,7 @@ export default function Dashboard() {
                     <select
                         value={monthsAhead}
                         onChange={(e) => setMonthsAhead(Number(e.target.value))}
-                        className="rounded-2xl bg-[#111] border border-[#333333] px-5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer"
+                        className="rounded-full bg-[#111] border border-[#333333] px-5 h-[44px] text-sm text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/25 transition-all duration-300 cursor-pointer"
                     >
                         <option value={1}>1 месяц</option>
                         <option value={3}>3 месяца</option>

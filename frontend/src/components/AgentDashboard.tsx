@@ -125,17 +125,10 @@ export default function AgentDashboard() {
     });
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8 animate-in fade-in duration-500 p-6">
             {/* Header */}
             <div className="flex flex-col gap-4">
-                <div>
-                    <h1 className="text-2xl md:text-[40px] font-semibold tracking-tight mb-2">
-                        Агенты
-                    </h1>
-                    <p className="text-sm text-[#808080]">
-                        Отслеживайте выполнение планов и эффективность работы агентов
-                    </p>
-                </div>
+
 
                 {/* Controls - Centered */}
                 <div className="flex flex-wrap items-center justify-center gap-3">
@@ -143,19 +136,19 @@ export default function AgentDashboard() {
                         type="date"
                         value={periodStart}
                         onChange={(e) => setPeriodStart(e.target.value)}
-                        className="rounded-2xl bg-input border border-border px-4 h-12 text-sm text-white min-w-[140px]"
+                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[140px]"
                     />
                     <input
                         type="date"
                         value={periodEnd}
                         onChange={(e) => setPeriodEnd(e.target.value)}
-                        className="rounded-2xl bg-input border border-border px-4 h-12 text-sm text-white min-w-[140px]"
+                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[140px]"
                     />
 
                     <select
                         value={selectedRegion || ''}
                         onChange={(e) => setSelectedRegion(e.target.value || null)}
-                        className="rounded-2xl bg-input border border-border px-4 h-12 text-sm text-white min-w-[140px]"
+                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[140px]"
                     >
                         <option value="">Все регионы</option>
                         <option value="БРЕСТ">БРЕСТ</option>
@@ -193,13 +186,13 @@ export default function AgentDashboard() {
                             type="file"
                             accept=".xlsx,.xls"
                             onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-                            className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-rose-800 file:text-white hover:file:bg-rose-700"
+                            className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500"
                         />
                         {importFile && (
                             <button
                                 onClick={handleImport}
                                 disabled={importing}
-                                className="rounded-2xl bg-rose-800 hover:opacity-90 px-6 py-2.5 text-sm disabled:opacity-50 transition-all"
+                                className="rounded-full bg-cyan-600 hover:bg-cyan-500 px-6 py-2.5 text-sm disabled:opacity-50 transition-all shadow-lg shadow-cyan-600/25 font-medium"
                             >
                                 {importing ? 'Импорт...' : 'Загрузить'}
                             </button>
@@ -267,7 +260,7 @@ export default function AgentDashboard() {
                         placeholder="Поиск агента..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-2xl bg-input border border-border pl-11 pr-5 py-3 text-sm text-white focus:outline-none focus:border-rose-800"
+                        className="w-full rounded-full bg-input border border-border pl-11 pr-5 h-[44px] text-sm text-white focus:outline-none focus:border-cyan-500"
                     />
                 </div>
 
@@ -276,7 +269,7 @@ export default function AgentDashboard() {
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as SortOption)}
-                        className="rounded-2xl bg-input border border-border px-4 py-2.5 text-sm text-white min-w-[160px]"
+                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[160px]"
                     >
                         <option value="fulfillment">По выполнению</option>
                         <option value="sales">По продажам</option>

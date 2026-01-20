@@ -217,7 +217,7 @@ export default function ChatInterface() {
                                 type="submit"
                                 disabled={!input.trim() || isThinking}
                                 size="sm"
-                                className="h-8 w-8 p-0 rounded-lg bg-rose-600 hover:bg-rose-500 text-white shadow shadow-rose-900/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="h-8 w-8 p-0 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white shadow shadow-cyan-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <ArrowRight className="w-4 h-4" />
                             </Button>

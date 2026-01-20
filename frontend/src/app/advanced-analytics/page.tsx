@@ -92,16 +92,9 @@ export default function AdvancedAnalyticsPage() {
 
     return (
         <div className="min-h-screen bg-[#202020] overflow-x-hidden">
-            <div className="max-w-full lg:max-w-[1600px] mx-auto space-y-4 md:space-y-6 p-4 md:p-6 mobile-container">
+            <div className="max-w-full lg:max-w-[1600px] mx-auto space-y-6 p-6 mobile-container">
                 {/* Header */}
-                <div className="flex flex-col gap-2">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-white">Аналитика</h1>
-                        <p className="text-sm text-zinc-500 mt-1">
-                            Комплексный анализ: ABC-XYZ, План-Факт и LFL
-                        </p>
-                    </div>
-                </div>
+
 
                 {/* Advanced Filters */}
                 <AdvancedFilters
