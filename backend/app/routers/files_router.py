@@ -149,13 +149,6 @@ async def delete_all_sales_data():
             logger.warning(f"RPC reset failed ({e}), falling back to batch delete")
             rpc_error = e
             
-            # Fallback: Delete sale_items first (foreign key dependency)
-            try:
-                db.table("sale_items").delete().gte("id", "00000000-0000-0000-0000-000000000000").execute()
-                logger.info("Deleted all sale_items")
-            except Exception as item_err:
-                logger.error(f"sale_items delete error: {item_err}")
-            
             # Fallback: Delete sales in batches
             while True:
                 try:
@@ -169,15 +162,9 @@ async def delete_all_sales_data():
                 except Exception as batch_err:
                     logger.error(f"Batch delete error: {batch_err}")
                     break
-        
-        # 2.5 ALWAYS delete import_history (regardless of RPC success!)
-        # This prevents stale data showing in dashboard
-        try:
+            
+            # Fallback: Delete import_history
             db.table("import_history").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
-            logger.info("Cleared all import_history records")
-            deleted_imports = 1
-        except Exception as ih_err:
-            logger.error(f"import_history delete error: {ih_err}")
         
         # 3. Delete agent analytics data
         try:
@@ -390,40 +377,34 @@ async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Cha
         # Delete import_history record
         supabase.table("import_history").delete().eq("id", file_id).execute()
         
-        # STEP 3: Clear ALL cache after deletion
-        # This ensures dashboard/analytics always show fresh data
+        # STEP 3: Clear cache AFTER deletion (belt-and-suspenders approach)
         try:
             from app.services.cache_service import cache
             
             # Get cache state before cleanup (for logging)
             stats_before = cache.get_stats()
-            logger.info(f"📊 Cache BEFORE file deletion: {stats_before['total_entries']} entries")
-            if stats_before['keys']:
-                logger.info(f"   Cache keys: {stats_before['keys'][:10]}")  # First 10 keys
+            logger.info(f"📊 Cache state before cleanup: {stats_before['total_entries']} entries")
             
-            # ALWAYS clear ALL analytics patterns regardless of import_type
-            # This prevents stale dashboard data after ANY file deletion
-            patterns_cleared = 0
+            # Use comprehensive agent cache cleanup
+            if import_type == 'agents':
+                cleared_count = cache.invalidate_all_agent_cache()
+                logger.info(f"✅ Post-deletion agent cache clear: {cleared_count} entries removed")
+            else:
+                # For non-agent imports, use standard cleanup
+                cache.invalidate_pattern("analytics:")
+                cache.invalidate_pattern("dashboard:")
             
-            # Clear all known cache patterns
-            patterns = ["analytics:", "dashboard:", "agent:", "extended:", "summary:"]
-            for pattern in patterns:
-                count = cache.invalidate_pattern(pattern)
-                if count > 0:
-                    logger.info(f"   Cleared {count} entries for pattern '{pattern}'")
-                    patterns_cleared += count
-            
-            # Nuclear option: clear EVERYTHING to be absolutely sure
+            # Nuclear option: clear everything to be absolutely sure
             total_cleared = cache.clear()
-            logger.info(f"🧹 TOTAL cache cleared: {total_cleared} entries")
+            logger.info(f"🧹 Total cache cleared: {total_cleared} entries")
             
             # Verify cache is empty
             stats_after = cache.get_stats()
-            logger.info(f"✅ Cache AFTER file deletion: {stats_after['total_entries']} entries (should be 0)")
+            logger.info(f"✅ Cache state after cleanup: {stats_after['total_entries']} entries (should be 0)")
             
             if stats_after['total_entries'] > 0:
-                logger.warning(f"⚠️ Cache still has {stats_after['total_entries']} entries!")
-                logger.warning(f"   Remaining: {stats_after['keys']}")
+                logger.warning(f"⚠️ WARNING: Cache still has {stats_after['total_entries']} entries after cleanup!")
+                logger.warning(f"Remaining keys: {stats_after['keys']}")
             
         except Exception as e:
             logger.error(f"Cache clear error: {e}")
