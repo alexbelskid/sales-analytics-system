@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { TrendingUp, TrendingDown, MapPin, Trophy, Eye, User } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import AgentDetailsModal from './AgentDetailsModal';
+import LiquidButton from './LiquidButton';
 
 interface AgentCardProps {
     agent: {
@@ -56,7 +57,7 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
             <div
                 onClick={() => setShowDetails(true)}
                 className={`
-                    relative overflow-hidden rounded-xl border border-[#262626] bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f]
+                    glass-panel
                     cursor-pointer transition-all duration-300 
                     hover:border-rose-800/50 hover:shadow-lg hover:shadow-rose-900/20 hover:scale-[1.02]
                     ${isTopPerformer ? 'ring-1 ring-yellow-500/20' : ''}
@@ -87,8 +88,8 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-base truncate">{agent.agent_name}</h3>
-                                <div className="flex items-center gap-1.5 text-xs text-[#666]">
+                                <h3 className="font-semibold text-base truncate text-gray-100">{agent.agent_name}</h3>
+                                <div className="flex items-center gap-1.5 text-xs text-gray-400">
                                     <MapPin className="h-3 w-3" />
                                     <span className="truncate">{agent.region}</span>
                                 </div>
@@ -143,28 +144,30 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
                                 </span>
                             )}
                         </div>
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowDetails(true);
-                            }}
-                            className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors"
-                        >
-                            <Eye className="h-3.5 w-3.5" />
-                            <span>Детали</span>
-                        </button>
+                        <div onClick={(e) => e.stopPropagation()}>
+                            <LiquidButton
+                                onClick={() => setShowDetails(true)}
+                                variant="secondary"
+                                icon={Eye}
+                                className="h-9 px-4 text-xs min-h-0" // Override for card footer to avoid too much bulk, but keep capsule shape
+                            >
+                                Детали
+                            </LiquidButton>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Details Modal */}
-            {showDetails && (
-                <AgentDetailsModal
-                    agentId={agent.agent_id}
-                    agentName={agent.agent_name}
-                    onClose={() => setShowDetails(false)}
-                />
-            )}
+            {
+                showDetails && (
+                    <AgentDetailsModal
+                        agentId={agent.agent_id}
+                        agentName={agent.agent_name}
+                        onClose={() => setShowDetails(false)}
+                    />
+                )
+            }
         </>
     );
 }

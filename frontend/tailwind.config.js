@@ -16,6 +16,20 @@ module.exports = {
         },
         extend: {
             colors: {
+                // --- MONOLITH STEALTH PALETTE (Stealth Edition) ---
+                gray: {
+                    50: '#f8f9fa',  // Bright Snow
+                    100: '#e9ecef', // Platinum
+                    200: '#dee2e6', // Alabaster
+                    300: '#ced4da', // Pale Slate
+                    400: '#adb5bd', // Icons
+                    500: '#6c757d',
+                    600: '#495057',
+                    700: '#343a40', // Gunmetal - THE BORDER COLOR
+                    800: '#212529', // Carbon Black - THE GLASS SURFACE
+                    900: '#050505', // Deep Void - THE APP BACKGROUND
+                },
+
                 // Data Brutalism Color System
                 obsidian: "hsl(var(--obsidian))",
                 charcoal: "hsl(var(--charcoal))",

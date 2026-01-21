@@ -12,6 +12,8 @@ import {
     Download,
     AlertTriangle
 } from 'lucide-react';
+import LiquidButton from '@/components/LiquidButton';
+import GlassSelect from '@/components/GlassSelect';
 
 interface ImportFile {
     id: string;
@@ -199,70 +201,70 @@ export default function FilesPage() {
                     </div>
 
                     <div className="flex gap-3 flex-wrap">
-                        <button
+                        <LiquidButton
                             onClick={resetStuck}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-400 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-amber-500/25"
+                            icon={AlertTriangle}
+                            variant="secondary"
                         >
-                            <AlertTriangle size={16} />
                             Сбросить застрявшие
-                        </button>
-                        <button
+                        </LiquidButton>
+                        <LiquidButton
                             onClick={confirmDeleteAll}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-400 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-red-500/25"
+                            icon={Trash2}
+                            variant="secondary"
+                            className="hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 hover:shadow-red-900/20"
                         >
-                            <Trash2 size={16} />
                             Удалить ВСЕ данные
-                        </button>
-                        <button
+                        </LiquidButton>
+                        <LiquidButton
                             onClick={clearCache}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-2xl transition-all duration-150 hover:shadow-lg"
+                            icon={RefreshCw}
+                            variant="secondary"
                         >
-                            <RefreshCw size={16} />
                             Очистить кэш
-                        </button>
-                        <button
+                        </LiquidButton>
+                        <LiquidButton
                             onClick={fetchFiles}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-rose-800 hover:bg-rose-700 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-rose-800/25"
+                            icon={RefreshCw}
                         >
-                            <RefreshCw size={16} />
                             Обновить
-                        </button>
+                        </LiquidButton>
                     </div>
                 </div>
 
                 {/* Filters */}
                 <div className="flex gap-4 mb-6">
-                    <select
+                    <GlassSelect
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-input border border-border rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                        className="min-w-[180px]"
                     >
                         <option value="">Все статусы</option>
                         <option value="completed">Завершённые</option>
                         <option value="failed">С ошибками</option>
                         <option value="processing">В процессе</option>
-                    </select>
-                    <select
+                    </GlassSelect>
+                    <GlassSelect
                         value={sourceFilter}
                         onChange={(e) => setSourceFilter(e.target.value)}
-                        className="bg-input border border-border rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                        className="min-w-[180px]"
                     >
                         <option value="">Все источники</option>
                         <option value="google_sheets">Google Sheets</option>
                         <option value="excel_upload">Excel Upload</option>
                         <option value="csv_upload">CSV Upload</option>
-                    </select>
-                    <select
+                    </GlassSelect>
+                    <GlassSelect
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="bg-input border border-border rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
+                        className="min-w-[180px]"
                     >
                         <option value="">Все типы</option>
                         <option value="agents">Агенты</option>
                         <option value="sales">Продажи</option>
                         <option value="customers">Клиенты</option>
                         <option value="products">Товары</option>
-                    </select>
+                    </GlassSelect>
                 </div>
 
                 {/* Table */}
@@ -454,30 +456,22 @@ export default function FilesPage() {
                             </div>
 
                             <div className="flex gap-3">
-                                <button
+                                <LiquidButton
                                     onClick={() => setShowDeleteModal(false)}
                                     disabled={isDeleting}
-                                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-2xl transition-all duration-150 disabled:opacity-50 font-medium"
+                                    variant="secondary"
+                                    className="flex-1"
                                 >
                                     Отмена
-                                </button>
-                                <button
+                                </LiquidButton>
+                                <LiquidButton
                                     onClick={executeDeleteAll}
                                     disabled={isDeleting}
-                                    className="flex-1 py-3 bg-red-500 hover:bg-red-400 rounded-2xl transition-all duration-150 flex items-center justify-center gap-2 disabled:opacity-50 hover:shadow-lg hover:shadow-red-500/25 font-medium"
+                                    icon={Trash2}
+                                    className="flex-1 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 hover:shadow-red-900/20"
                                 >
-                                    {isDeleting ? (
-                                        <>
-                                            <RefreshCw size={16} className="animate-spin" />
-                                            Удаление...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Trash2 size={16} />
-                                            Удалить всё
-                                        </>
-                                    )}
-                                </button>
+                                    {isDeleting ? 'Удаление...' : 'Удалить всё'}
+                                </LiquidButton>
                             </div>
                         </div>
                     </div>

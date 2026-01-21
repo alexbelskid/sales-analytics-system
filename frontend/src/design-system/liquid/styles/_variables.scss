@@ -1,0 +1,31 @@
+// Palette: Neon Glass
+$color-neon-blue: #00f3ff;
+$color-neon-purple: #bd00ff;
+$color-neon-green: #00ff94;
+$color-glass-surface: rgba(255, 255, 255, 0.03);
+$color-glass-border: rgba(255, 255, 255, 0.1);
+$color-glass-highlight: rgba(255, 255, 255, 0.4);
+
+// Text
+$color-text-primary: #ffffff;
+$color-text-secondary: rgba(255, 255, 255, 0.7);
+
+// Physics & Motion
+$ease-liquid: cubic-bezier(0.2, 0.8, 0.2, 1);
+$duration-fast: 0.3s;
+$duration-medium: 0.6s;
+$duration-slow: 1.2s;
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-s: 8px;
+$spacing-m: 16px;
+$spacing-l: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 64px;
+
+// Z-Index Layers
+$z-background: -1;
+$z-glass: 10;
+$z-floating: 20;
+$z-overlay: 100;

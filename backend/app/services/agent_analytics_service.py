@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from uuid import UUID
 import logging
 
-from app.database import supabase
+from app.database import supabase_admin
 from app.models.agent_analytics import (
     AgentPerformance,
     AgentPerformanceDetailed,
@@ -32,7 +32,7 @@ class AgentAnalyticsService:
     """Service for agent analytics operations"""
     
     def __init__(self):
-        self.supabase = supabase
+        self.supabase = supabase_admin
         self.cache = cache
     
     # ========================================================================

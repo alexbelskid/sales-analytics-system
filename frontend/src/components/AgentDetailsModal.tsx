@@ -46,7 +46,7 @@ export default function AgentDetailsModal({ agentId, agentName, onClose }: Agent
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-[#262626] rounded-lg transition-colors"
+                            className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
                         >
                             <X className="h-5 w-5" />
                         </button>

@@ -10,6 +10,9 @@ import {
     AlertCircle,
     Info
 } from 'lucide-react';
+import LiquidButton from '@/components/LiquidButton';
+import GlassSelect from '@/components/GlassSelect';
+import GlassDatePicker from '@/components/GlassDatePicker';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
 
@@ -161,15 +164,20 @@ export default function UploadPage() {
                                 <p className="text-sm text-gray-400 mb-4">
                                     или
                                 </p>
-                                <label className="inline-block px-6 py-3 bg-rose-800 hover:bg-rose-700 rounded-2xl cursor-pointer transition-all duration-150 hover:shadow-lg hover:shadow-rose-800/25">
-                                    <span>Выбрать файл</span>
+                                <div onClick={() => document.getElementById('file-upload-input')?.click()}>
+                                    <LiquidButton
+                                        icon={Upload}
+                                    >
+                                        Выбрать файл
+                                    </LiquidButton>
                                     <input
+                                        id="file-upload-input"
                                         type="file"
                                         accept=".xlsx,.xls,.csv"
                                         onChange={handleFileChange}
                                         className="hidden"
                                     />
-                                </label>
+                                </div>
                                 <p className="text-xs text-gray-500 mt-4">
                                     Поддерживаемые форматы: Excel (.xlsx, .xls), CSV (.csv)
                                 </p>
@@ -185,17 +193,16 @@ export default function UploadPage() {
                                 <label className="block text-sm font-medium mb-2">
                                     Тип данных
                                 </label>
-                                <select
+                                <GlassSelect
                                     value={dataType}
                                     onChange={(e) => setDataType(e.target.value)}
-                                    className="w-full bg-input border border-border rounded-2xl px-4 py-2.5 transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                                 >
                                     <option value="auto">Автоопределение</option>
                                     <option value="sales">Продажи</option>
                                     <option value="agents">Агенты</option>
                                     <option value="customers">Клиенты</option>
                                     <option value="products">Товары</option>
-                                </select>
+                                </GlassSelect>
                                 <p className="text-xs text-gray-500 mt-1">
                                     Автоопределение проанализирует структуру файла для определения типа данных
                                 </p>
@@ -237,45 +244,32 @@ export default function UploadPage() {
                                         <label className="block text-sm font-medium mb-2">
                                             Начало периода (для агентов)
                                         </label>
-                                        <input
-                                            type="date"
+                                        <GlassDatePicker
                                             value={periodStart}
                                             onChange={(e) => setPeriodStart(e.target.value)}
-                                            className="w-full bg-input border border-border rounded-2xl px-4 py-2.5 transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-2">
                                             Конец периода (для агентов)
                                         </label>
-                                        <input
-                                            type="date"
+                                        <GlassDatePicker
                                             value={periodEnd}
                                             onChange={(e) => setPeriodEnd(e.target.value)}
-                                            className="w-full bg-input border border-border rounded-2xl px-4 py-2.5 transition-all duration-150 hover:border-rose-800 focus:border-rose-800 focus:outline-none focus:ring-2 focus:ring-rose-800/25"
                                         />
                                     </div>
                                 </div>
                             )}
 
                             {/* Upload Button */}
-                            <button
+                            <LiquidButton
                                 onClick={handleUpload}
                                 disabled={uploading}
-                                className="w-full py-3 bg-rose-800 hover:bg-rose-700 rounded-2xl transition-all duration-150 hover:shadow-lg hover:shadow-rose-800/25 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full"
+                                icon={uploading ? RefreshCw : Upload}
                             >
-                                {uploading ? (
-                                    <>
-                                        <RefreshCw size={20} className="animate-spin" />
-                                        Загрузка...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload size={20} />
-                                        Загрузить файл
-                                    </>
-                                )}
-                            </button>
+                                {uploading ? 'Загрузка...' : 'Загрузить файл'}
+                            </LiquidButton>
                         </div>
                     )}
                 </div>

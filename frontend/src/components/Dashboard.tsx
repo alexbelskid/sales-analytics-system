@@ -21,6 +21,8 @@ import SalesTrendChart from '@/components/charts/SalesTrendChart';
 import TopCustomersChart from '@/components/charts/TopCustomersChart';
 import TopProductsChart from '@/components/charts/TopProductsChart';
 import { ExcelImport } from '@/components/ExcelImport';
+import LiquidButton from './LiquidButton';
+import GlassSelect from './GlassSelect';
 
 interface DashboardMetrics {
     total_revenue: number;
@@ -242,36 +244,34 @@ export default function Dashboard() {
 
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <select className="rounded-full bg-[#111] border border-[#333333] px-5 h-[44px] text-sm text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/25 transition-all duration-300 cursor-pointer">
+                    <GlassSelect className="min-w-[160px]">
                         <option>Этот месяц</option>
                         <option>Прошлый месяц</option>
                         <option>Этот квартал</option>
                         <option>Этот год</option>
-                    </select>
+                    </GlassSelect>
 
-                    <button
+                    <LiquidButton
                         onClick={() => setShowUploader(!showUploader)}
-                        className={`flex items-center justify-center gap-2 rounded-full border px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] hover:scale-[1.02] ${showUploader ? 'bg-cyan-600/20 border-cyan-500 text-white shadow-lg shadow-cyan-600/25' : 'border-[#333333] hover:bg-[#262626]'}`}
+                        icon={UploadIcon}
+                        className={showUploader ? 'ring-2 ring-cyan-500' : ''}
                     >
-                        <UploadIcon className="h-4 w-4" />
-                        <span>Загрузить данные</span>
-                    </button>
+                        Загрузить данные
+                    </LiquidButton>
 
-                    <button
+                    <LiquidButton
                         onClick={handleRefresh}
                         disabled={refreshing}
-                        className="flex items-center justify-center gap-2 rounded-full bg-cyan-600 hover:bg-cyan-500 px-5 py-3 sm:py-2.5 text-sm transition-all duration-300 min-h-[44px] disabled:opacity-50 shadow-lg shadow-cyan-600/25 font-medium"
-                        title="Обновить все данные"
+                        icon={RefreshCw}
                     >
-                        <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-                        <span className="hidden sm:inline">{refreshing ? 'Обновление...' : 'Обновить'}</span>
-                    </button>
+                        {refreshing ? 'Обновление...' : 'Обновить'}
+                    </LiquidButton>
                 </div>
             </div>
 
             {/* Collapsible Upload Section */}
             {showUploader && (
-                <div className="bg-[#202020] border border-[#333333] rounded-lg p-6 animate-in slide-in-from-top-4 duration-300">
+                <div className="glass-panel p-6 animate-in slide-in-from-top-4 duration-300">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold">Загрузить данные</h2>
                         <button onClick={() => setShowUploader(false)} className="text-[#404040] hover:text-white transition-colors">
@@ -281,26 +281,20 @@ export default function Dashboard() {
 
                     {/* Tab selector */}
                     <div className="flex gap-2 mb-4">
-                        <button
+                        <LiquidButton
                             onClick={() => setImportTab('excel')}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 h-[44px] ${importTab === 'excel'
-                                ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
-                                : 'bg-[#262626] text-[#808080] hover:text-white'
-                                }`}
+                            variant={importTab === 'excel' ? 'primary' : 'secondary'}
+                            icon={FileSpreadsheet}
                         >
-                            <FileSpreadsheet className="h-4 w-4" />
                             Excel (64МБ)
-                        </button>
-                        <button
+                        </LiquidButton>
+                        <LiquidButton
                             onClick={() => setImportTab('csv')}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 h-[44px] ${importTab === 'csv'
-                                ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/25'
-                                : 'bg-[#262626] text-[#808080] hover:text-white'
-                                }`}
+                            variant={importTab === 'csv' ? 'primary' : 'secondary'}
+                            icon={UploadIcon}
                         >
-                            <UploadIcon className="h-4 w-4" />
                             CSV
-                        </button>
+                        </LiquidButton>
                     </div>
 
                     {/* Excel Import */}
@@ -316,17 +310,15 @@ export default function Dashboard() {
                         <>
                             <div className="grid gap-3 md:grid-cols-3 mb-4">
                                 {dataTypes.map((type) => (
-                                    <button
+                                    <LiquidButton
                                         key={type.id}
                                         onClick={() => setSelectedType(type.id as DataType)}
-                                        className={`flex items-center gap-3 rounded border p-3 text-left transition-all ${selectedType === type.id
-                                            ? 'border-white bg-[#262626]'
-                                            : 'border-[#333333] hover:border-[#333]'
-                                            }`}
+                                        variant={selectedType === type.id ? 'primary' : 'secondary'}
+                                        className="justify-start"
                                     >
-                                        <span className={`${selectedType === type.id ? 'text-white' : 'text-[#404040]'}`}>{type.icon}</span>
-                                        <span className="text-sm font-medium">{type.name}</span>
-                                    </button>
+                                        <span className="mr-2">{type.icon}</span>
+                                        {type.name}
+                                    </LiquidButton>
                                 ))}
                             </div>
 
@@ -370,13 +362,12 @@ export default function Dashboard() {
 
                             <div className="mt-4 flex flex-col gap-4">
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                                    <button
+                                    <LiquidButton
                                         onClick={handleUpload}
                                         disabled={!file || uploadLoading}
-                                        className="flex items-center justify-center gap-2 rounded-full bg-cyan-600 hover:bg-cyan-500 px-6 py-3 font-medium text-white transition-all duration-300 hover:shadow-lg hover:shadow-cyan-600/25 disabled:opacity-50 min-h-[44px]"
                                     >
                                         {uploadLoading ? 'Загрузка...' : 'Загрузить'}
-                                    </button>
+                                    </LiquidButton>
 
                                     <div className="flex items-center gap-6 text-sm">
                                         <label className="flex items-center gap-2 cursor-pointer group min-h-[44px]">
@@ -469,16 +460,16 @@ export default function Dashboard() {
                         <p className="text-sm text-[#808080]">Прогноз на основе исторических данных</p>
                     </div>
 
-                    <select
+                    <GlassSelect
                         value={monthsAhead}
                         onChange={(e) => setMonthsAhead(Number(e.target.value))}
-                        className="rounded-full bg-[#111] border border-[#333333] px-5 h-[44px] text-sm text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/25 transition-all duration-300 cursor-pointer"
+                        className="min-w-[160px]"
                     >
                         <option value={1}>1 месяц</option>
                         <option value={3}>3 месяца</option>
                         <option value={6}>6 месяцев</option>
                         <option value={12}>12 месяцев</option>
-                    </select>
+                    </GlassSelect>
                 </div>
 
                 {/* Forecast Chart */}
@@ -529,7 +520,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* Seasonality Chart */}
-                <div className="bg-[#202020] border border-[#262626] rounded-lg p-6">
+                <div className="glass-panel p-6">
                     <div className="mb-6 flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-gray-400" />
                         <h3 className="font-medium">Сезонность по месяцам</h3>

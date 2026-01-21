@@ -1,0 +1,33 @@
+@use '../styles/variables' as *;
+@use '../styles/mixins' as *;
+
+.liquid-card {
+    @include glass-material;
+    padding: $spacing-l;
+    border-radius: 24px;
+    color: $color-text-primary;
+    position: relative;
+    overflow: hidden;
+
+    // Refractive shimmer
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent);
+        transform: skewX(-25deg);
+        transition: left 0.5s $ease-liquid;
+        pointer-events: none;
+    }
+
+    &:hover::before {
+        left: 150%;
+        transition: left 1s $ease-liquid;
+    }
+}

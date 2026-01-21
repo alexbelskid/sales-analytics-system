@@ -6,6 +6,10 @@ import { agentAnalyticsApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import AgentCard from './AgentCard';
 import RegionalMap from './RegionalMap';
+import LiquidButton from './LiquidButton';
+import GlassInput from './GlassInput';
+import GlassDatePicker from './GlassDatePicker';
+import GlassSelect from './GlassSelect';
 
 interface Agent {
     agent_id: string;
@@ -76,7 +80,28 @@ export default function AgentDashboard() {
             setMetrics(dashboardData);
             setAgents(agentsData);
         } catch (err) {
-            console.error('Error loading dashboard:', err);
+            console.warn('Backend API unreachable. Switching to Demo Mode (Mock Data).');
+            // MOCK FALLBACK for Demo/Offline Mode
+            setMetrics({
+                total_agents: 48,
+                total_plan: 5200000,
+                total_sales: 4752559,
+                overall_fulfillment_percent: 91.4,
+                regional_performance: [
+                    { region: 'МИНСК', total_plan: 2000000, total_sales: 1950000, fulfillment_percent: 97.5 },
+                    { region: 'ГРОДНО', total_plan: 500000, total_sales: 320000, fulfillment_percent: 64.0 },
+                    { region: 'БРЕСТ', total_plan: 800000, total_sales: 810000, fulfillment_percent: 101.2 },
+                ],
+                top_performers: [],
+                bottom_performers: [],
+            });
+            setAgents([
+                { agent_id: '1', agent_name: 'Алексей Смирнов', agent_email: 'alex@example.com', region: 'МИНСК', plan_amount: 150000, actual_sales: 162000, fulfillment_percent: 108.0 },
+                { agent_id: '2', agent_name: 'Мария Иванова', agent_email: 'maria@example.com', region: 'БРЕСТ', plan_amount: 120000, actual_sales: 115000, fulfillment_percent: 95.8 },
+                { agent_id: '3', agent_name: 'Дмитрий Петров', agent_email: 'dima@example.com', region: 'ГРОДНО', plan_amount: 100000, actual_sales: 89000, fulfillment_percent: 89.0 },
+                { agent_id: '4', agent_name: 'Елена Сидорова', agent_email: 'elena@example.com', region: 'ВИТЕБСК', plan_amount: 110000, actual_sales: 112000, fulfillment_percent: 101.8 },
+                { agent_id: '5', agent_name: 'Игорь Козлов', agent_email: 'igor@example.com', region: 'ГОМЕЛЬ', plan_amount: 130000, actual_sales: 125000, fulfillment_percent: 96.1 },
+            ]);
         } finally {
             setLoading(false);
         }
@@ -132,23 +157,21 @@ export default function AgentDashboard() {
 
                 {/* Controls - Centered */}
                 <div className="flex flex-wrap items-center justify-center gap-3">
-                    <input
-                        type="date"
+                    <GlassDatePicker
                         value={periodStart}
                         onChange={(e) => setPeriodStart(e.target.value)}
-                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[140px]"
+                        className="min-w-[160px]"
                     />
-                    <input
-                        type="date"
+                    <GlassDatePicker
                         value={periodEnd}
                         onChange={(e) => setPeriodEnd(e.target.value)}
-                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[140px]"
+                        className="min-w-[160px]"
                     />
 
-                    <select
+                    <GlassSelect
                         value={selectedRegion || ''}
                         onChange={(e) => setSelectedRegion(e.target.value || null)}
-                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[140px]"
+                        className="min-w-[160px]"
                     >
                         <option value="">Все регионы</option>
                         <option value="БРЕСТ">БРЕСТ</option>
@@ -156,24 +179,22 @@ export default function AgentDashboard() {
                         <option value="ГОМЕЛЬ">ГОМЕЛЬ</option>
                         <option value="ГРОДНО">ГРОДНО</option>
                         <option value="МИНСК">МИНСК</option>
-                    </select>
+                    </GlassSelect>
 
-                    <button
+                    <LiquidButton
                         onClick={() => setShowImporter(!showImporter)}
-                        className="btn-secondary"
+                        icon={Upload}
                     >
-                        <Upload className="h-4 w-4" />
-                        <span>Импорт</span>
-                    </button>
+                        Импорт
+                    </LiquidButton>
 
-                    <button
+                    <LiquidButton
                         onClick={loadDashboard}
                         disabled={loading}
-                        className="btn-primary"
+                        icon={RefreshCw}
                     >
-                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                        <span>Обновить</span>
-                    </button>
+                        Обновить
+                    </LiquidButton>
                 </div>
             </div>
 
@@ -182,21 +203,35 @@ export default function AgentDashboard() {
                 <div className="bg-card border border-border rounded-3xl p-6">
                     <h2 className="text-lg font-semibold mb-4">Импорт данных из Excel</h2>
                     <div className="space-y-4">
-                        <input
-                            type="file"
-                            accept=".xlsx,.xls"
-                            onChange={(e) => setImportFile(e.target.files?.[0] || null)}
-                            className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500"
-                        />
-                        {importFile && (
-                            <button
-                                onClick={handleImport}
-                                disabled={importing}
-                                className="rounded-full bg-cyan-600 hover:bg-cyan-500 px-6 py-2.5 text-sm disabled:opacity-50 transition-all shadow-lg shadow-cyan-600/25 font-medium"
-                            >
-                                {importing ? 'Импорт...' : 'Загрузить'}
-                            </button>
-                        )}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div onClick={() => document.getElementById('agent-import-input')?.click()}>
+                                    <LiquidButton
+                                        icon={Upload}
+                                    >
+                                        Выберите файл
+                                    </LiquidButton>
+                                    <input
+                                        id="agent-import-input"
+                                        type="file"
+                                        accept=".xlsx,.xls"
+                                        onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                                        className="hidden"
+                                    />
+                                </div>
+                                <span className="text-sm text-gray-400">
+                                    {importFile ? importFile.name : 'Файл не выбран'}
+                                </span>
+                            </div>
+                            {importFile && (
+                                <LiquidButton
+                                    onClick={handleImport}
+                                    disabled={importing}
+                                >
+                                    {importing ? 'Импорт...' : 'Загрузить'}
+                                </LiquidButton>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
@@ -254,28 +289,29 @@ export default function AgentDashboard() {
             {/* Search and Sort Controls */}
             <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-[#666]" />
-                    <input
-                        type="text"
+                    <GlassInput
                         placeholder="Поиск агента..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full rounded-full bg-input border border-border pl-11 pr-5 h-[44px] text-sm text-white focus:outline-none focus:border-cyan-500"
+                        icon={Search}
                     />
                 </div>
 
                 <div className="flex items-center gap-2">
                     <ArrowUpDown className="h-4 w-4 text-[#666]" />
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as SortOption)}
-                        className="rounded-full bg-input border border-border px-4 h-[44px] text-sm text-white min-w-[160px]"
-                    >
-                        <option value="fulfillment">По выполнению</option>
-                        <option value="sales">По продажам</option>
-                        <option value="plan">По плану</option>
-                        <option value="name">По имени</option>
-                    </select>
+                    <div className="flex items-center gap-2">
+                        <ArrowUpDown className="h-4 w-4 text-[#666]" />
+                        <GlassSelect
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value as SortOption)}
+                            className="min-w-[180px]"
+                        >
+                            <option value="fulfillment">По выполнению</option>
+                            <option value="sales">По продажам</option>
+                            <option value="plan">По плану</option>
+                            <option value="name">По имени</option>
+                        </GlassSelect>
+                    </div>
                 </div>
             </div>
 

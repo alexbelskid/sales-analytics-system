@@ -14,6 +14,8 @@ interface ImportStatus {
     error_log?: string;
 }
 
+import LiquidButton from './LiquidButton';
+
 export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
@@ -123,9 +125,16 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
                         </div>
                     ) : (
                         <>
-                            <Upload className="h-10 w-10 mx-auto text-[#404040] mb-2" />
-                            <p className="text-[#808080]">Нажмите для выбора Excel файла</p>
-                            <p className="text-xs text-[#404040] mt-1">До 100 МБ, форматы .xlsx, .xls</p>
+                            <LiquidButton
+                                icon={Upload}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    fileInputRef.current?.click();
+                                }}
+                            >
+                                Выбрать Excel файл
+                            </LiquidButton>
+                            <p className="text-xs text-[#404040] mt-3">До 100 МБ, форматы .xlsx, .xls</p>
                         </>
                     )}
                 </div>
@@ -140,10 +149,10 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
 
                 {/* Upload Button */}
                 {file && !status && (
-                    <button
+                    <LiquidButton
                         onClick={handleUpload}
                         disabled={uploading}
-                        className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-3 rounded-lg transition-colors"
+                        className="w-full"
                     >
                         {uploading ? (
                             <>
@@ -156,7 +165,7 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
                                 Загрузить и импортировать
                             </>
                         )}
-                    </button>
+                    </LiquidButton>
                 )}
 
                 {/* Progress */}
@@ -174,8 +183,8 @@ export function ExcelImport({ onComplete }: { onComplete?: () => void }) {
                         <div className="w-full bg-[#333333] rounded-full h-2">
                             <div
                                 className={`h-2 rounded-full transition-all duration-300 ${status.status === 'completed' ? 'bg-green-500' :
-                                        status.status === 'failed' ? 'bg-red-500' :
-                                            'bg-blue-500'
+                                    status.status === 'failed' ? 'bg-red-500' :
+                                        'bg-blue-500'
                                     }`}
                                 style={{ width: `${status.progress_percent}%` }}
                             />

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquid Glass: Monolith Edition</title>
+    <style>
+        /* --- CONFIG & VARIABLES --- */
+        :root {
+            /* --- THE MONOLITH PALETTE (Stealth Edition) --- */
+            --bright-snow: #f8f9fa;
+            --platinum: #e9ecef;
+            --alabaster-grey: #dee2e6;
+            --pale-slate: #ced4da;
+            --pale-slate-2: #adb5bd;
+            --slate-grey: #6c757d;
+            --iron-grey: #495057;
+            --gunmetal: #343a40;
+            --carbon-black: #050505;
+            /* Deepest Black before Void */
+
+            /* Semantic Mapping */
+            --bg-root: #000000;
+            /* Pure Void */
+
+            /* Glass Physics (Phantom) */
+            --glass-border: rgba(255, 255, 255, 0.08);
+            /* Extremely subtle */
+            --glass-surface: rgba(255, 255, 255, 0.02);
+            /* Barely visible */
+            --glass-highlight: rgba(255, 255, 255, 0.05);
+            /* Faint glimmer */
+
+            /* Motion */
+            --ease-satin: cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-root);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--bright-snow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1200px;
+
+            /* MANDATORY: SMOOTHNESS */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        /* --- LAYER 0: ATMOSPHERE --- */
+        #aurora-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            filter: blur(100px) contrast(110%) brightness(60%);
+            opacity: 0.6;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        /* --- LAYER 1: FILM GRAIN (FIXED) --- */
+        /* Changed from "Static" to "Film Emulsion" */
+        .film-grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+
+            /* The Fix: Soft Overlay Blend */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            /* Almost invisible */
+            mix-blend-mode: overlay;
+            /* Blends nicely with darks */
+            filter: blur(0.5px);
+            /* Soften digital edges */
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 340px);
+            gap: 60px;
+            z-index: 10;
+            place-items: center;
+        }
+
+        /* --- THE MASTERPIECE: LIQUID SMOOTH CARD --- */
+        .glass-panel {
+            position: relative;
+            height: 480px;
+            width: 340px;
+            border-radius: 40px;
+
+            /* 1. Ghost Refraction (Top Gradient) */
+            /* Simulates thickness without borders */
+            background: linear-gradient(180deg,
+                    var(--glass-surface) 0%,
+                    rgba(233, 236, 239, 0.0) 40%);
+
+            /* Anti-aliasing Secret: Padding Box Clip */
+            /* Prevents bleeding under the border */
+            background-clip: padding-box;
+
+            backdrop-filter: blur(30px) saturate(100%);
+            -webkit-backdrop-filter: blur(30px) saturate(100%);
+
+            /* 2. Vector Perfect Border (Single Line) */
+            border: 1px solid var(--glass-border);
+
+            /* 3. Clean Volume (No Edge Insets) */
+            box-shadow:
+                0 40px 80px -20px rgba(0, 0, 0, 0.8),
+                /* Deep Drop Shadow */
+                inset 0 0 40px 0 rgba(255, 255, 255, 0.02);
+            /* Internal Volume */
+
+            /* Hardware Acceleration */
+            will-change: transform;
+            transform: translateZ(0);
+            transition: transform 0.6s var(--ease-satin), box-shadow 0.6s var(--ease-satin);
+            transform-style: preserve-3d;
+            overflow: hidden;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-8px) translateZ(0) scale(1.01);
+            box-shadow:
+                0 50px 100px -20px rgba(0, 0, 0, 0.9),
+                inset 0 0 60px 0 rgba(255, 255, 255, 0.04);
+            border-color: var(--glass-highlight);
+            /* Subtle brighten */
+        }
+
+        /* Typography */
+        .content {
+            padding: 40px;
+            height: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            z-index: 3;
+            transform: translateZ(20px);
+        }
+
+        h2 {
+            margin: 0 0 8px 0;
+            font-weight: 400;
+            font-size: 26px;
+            letter-spacing: 0.5px;
+            color: var(--bright-snow);
+        }
+
+        p {
+            margin: 0;
+            font-weight: 400;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--pale-slate);
+        }
+
+        /* Orb: Satin Aluminum */
+        .mercury-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transform: translateZ(40px);
+        }
+
+        .mercury-orb {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            cursor: pointer;
+            /* Monolith: Platinum to Slate Grey */
+            background: linear-gradient(135deg, var(--platinum) 0%, var(--slate-grey) 100%);
+            box-shadow:
+                0 20px 40px -10px rgba(0, 0, 0, 0.5),
+                inset 0 -20px 30px rgba(0, 0, 0, 0.4),
+                inset 0 10px 20px var(--bright-snow);
+            transition: all 0.5s var(--ease-satin);
+        }
+
+        .mercury-orb::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 60%;
+            height: 60%;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--bright-snow) 0%, transparent 70%);
+            filter: blur(15px);
+            opacity: 0.5;
+        }
+
+        .mercury-orb:hover {
+            transform: scale(1.05);
+            box-shadow:
+                0 30px 60px -15px rgba(0, 0, 0, 0.6),
+                inset 0 -20px 30px rgba(0, 0, 0, 0.4),
+                inset 0 10px 20px var(--bright-snow);
+        }
+
+        .mercury-orb:active {
+            transform: scale(0.95);
+        }
+
+        /* Scanline */
+        .scanline {
+            width: 100%;
+            height: 1px;
+            background: var(--glass-border);
+            margin-top: auto;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(30px);
+        }
+
+        .scanline::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--platinum), transparent);
+            transform: translateX(-100%);
+            animation: scan-light 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes scan-light {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            50%,
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .data-value {
+            font-size: 72px;
+            font-weight: 200;
+            color: var(--bright-snow);
+            letter-spacing: -2px;
+            transform: translateZ(40px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="aurora-canvas"></canvas>
+
+    <div class="film-grain"></div>
+
+    <div class="layout-grid">
+
+        <div class="glass-panel">
+            <div class="content">
+                <div>
+                    <h2>Physics Engine</h2>
+                    <p>High-fidelity fluid dynamics simulation.</p>
+                </div>
+
+                <div class="mercury-container">
+                    <div class="mercury-orb"></div>
+                </div>
+
+                <p style="text-align: center; font-size: 12px; opacity: 0.4;">INTERACT</p>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="content">
+                <div>
+                    <h2>Refraction Index</h2>
+                    <p>Real-time optical clarity analysis.</p>
+                </div>
+
+                <div style="flex-grow: 1; display: flex; align-items: center; justify-content: center;">
+                    <div class="data-value">
+                        98<span style="font-size: 30px; opacity: 0.5; font-weight: 300;">%</span>
+                    </div>
+                </div>
+
+                <div class="scanline"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('aurora-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let blobs = [];
+
+        // Colors: Stealth (Near Black)
+        const colors = ['#050505', '#0a0a0a', '#111111', '#000000'];
+
+        class Blob {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.1;
+                this.vy = (Math.random() - 0.5) * 0.1;
+                this.radius = Math.random() * 400 + 300;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < -this.radius) this.x = width + this.radius;
+                if (this.x > width + this.radius) this.x = -this.radius;
+                if (this.y < -this.radius) this.y = height + this.radius;
+                if (this.y > height + this.radius) this.y = -this.radius;
+            }
+
+            draw() {
+                ctx.beginPath();
+                const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                g.addColorStop(0, this.color);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+
+                ctx.fillStyle = g;
+                ctx.globalCompositeOperation = 'lighten';
+                ctx.globalAlpha = 0.4;
+
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            blobs = [];
+            for (let i = 0; i < 6; i++) blobs.push(new Blob());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.fillStyle = '#212529'; /* Carbon Black */
+            ctx.fillRect(0, 0, width, height);
+
+            blobs.forEach(blob => {
+                blob.update();
+                blob.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        animate();
+    </script>
+</body>
+
+</html>
