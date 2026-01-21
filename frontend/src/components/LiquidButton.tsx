@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 interface LiquidButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     icon?: LucideIcon;
     variant?: 'primary' | 'secondary';
-    children: React.ReactNode;
+    children?: React.ReactNode;
 }
 
 export default function LiquidButton({
