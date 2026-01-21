@@ -150,7 +150,8 @@ export default function AiAssistantPanel() {
                                 disabled={!input.trim()}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 p-0 min-h-0 rounded-full shadow-lg hover:scale-105 disabled:scale-95 disabled:opacity-0 transition-all duration-300"
                                 icon={ArrowRight}
-                            />
+                            >
+                            </LiquidButton>
                         </div>
                         <p className="text-center mt-4 text-[#606060] text-sm font-light">
                             Я умею анализировать данные, строить отчеты и искать факты.
