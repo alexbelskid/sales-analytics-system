@@ -456,34 +456,80 @@ class UnifiedImporter:
             imported = 0
             failed = 0
             
+            # Pre-fetch existing customers if in append mode
+            existing_names = set()
+            if mode == "append" and 'name' in df.columns:
+                try:
+                    # Get all unique names from the dataframe
+                    names_in_df = df['name'].dropna().astype(str).unique().tolist()
+                    names_in_df = [n for n in names_in_df if n] # Filter empty strings
+
+                    # Retrieve existing names in batches
+                    BATCH_SIZE = 1000
+                    for i in range(0, len(names_in_df), BATCH_SIZE):
+                        batch_names = names_in_df[i:i + BATCH_SIZE]
+                        if not batch_names:
+                            continue
+
+                        result = supabase.table("customers").select("name").in_("name", batch_names).execute()
+                        if result.data:
+                            for row in result.data:
+                                existing_names.add(row['name'])
+                except Exception as e:
+                    logger.error(f"Error pre-fetching existing customers: {e}")
+                    # Continue without pre-fetching, might cause duplicates or fail later,
+                    # but likely safer to proceed than crash.
+
+            customers_to_insert = []
+
             for _, row in df.iterrows():
                 try:
                     customer_name = str(row.get('name', ''))
                     
-                    # Check for duplicates in append mode
                     if mode == "append":
-                        existing = supabase.table("customers").select("id").eq("name", customer_name).execute()
-                        if existing.data:
+                        if customer_name in existing_names:
                             failed += 1
                             continue
+
+                        # Add to existing_names to prevent duplicates within the same import file
+                        existing_names.add(customer_name)
                     
                     # Create normalized name
                     normalized_name = customer_name.lower().strip()
                     
-                    supabase.table("customers").insert({
+                    customers_to_insert.append({
                         "name": customer_name,
                         "normalized_name": normalized_name,
                         "email": str(row.get('email', '')) or None,
                         "phone": str(row.get('phone', '')) or None,
                         "company": str(row.get('company', '')) or None
-                    }).execute()
+                    })
                     
-                    imported += 1
+                    # We increment imported later when we actually insert
                 
                 except Exception as e:
-                    logger.error(f"Error importing customer row: {e}")
+                    logger.error(f"Error preparing customer row: {e}")
                     failed += 1
             
+            # Bulk insert
+            if customers_to_insert:
+                INSERT_BATCH_SIZE = 1000
+                for i in range(0, len(customers_to_insert), INSERT_BATCH_SIZE):
+                    batch = customers_to_insert[i:i + INSERT_BATCH_SIZE]
+                    try:
+                        supabase.table("customers").insert(batch).execute()
+                        imported += len(batch)
+                    except Exception as e:
+                        logger.error(f"Batch insert failed: {e}")
+                        # Fallback to individual insert
+                        for item in batch:
+                            try:
+                                supabase.table("customers").insert(item).execute()
+                                imported += 1
+                            except Exception as inner_e:
+                                logger.error(f"Individual insert retry failed: {inner_e}")
+                                failed += 1
+
             return {
                 'success': True,
                 'imported_rows': imported,
