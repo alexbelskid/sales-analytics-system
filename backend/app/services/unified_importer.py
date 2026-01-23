@@ -258,22 +258,82 @@ class UnifiedImporter:
                 
                 logger.info(f"[BATCH {batch_start//BATCH_SIZE + 1}] Processing rows {batch_start}-{batch_end} ({len(batch_df)} rows)")
                 
+                # ========================================
+                # OPTIMIZED BATCH PROCESSING
+                # ========================================
+
+                # 1. Resolve Customers (Bulk)
+                customer_map = {}
+                try:
+                    # distinct customer names
+                    batch_customers = batch_df['customer_name'].fillna('Unknown').astype(str).tolist()
+                    unique_customers = list(set(batch_customers))
+
+                    if unique_customers:
+                        # Fetch existing
+                        existing_customers_response = supabase.table("customers").select("id, name").in_("name", unique_customers).execute()
+                        customer_map = {c['name']: c['id'] for c in existing_customers_response.data}
+
+                        # Identify missing
+                        missing_customers = [name for name in unique_customers if name not in customer_map]
+
+                        if missing_customers:
+                            new_customers_data = [{
+                                "name": name,
+                                "normalized_name": name.lower().strip()
+                            } for name in missing_customers]
+
+                            insert_response = supabase.table("customers").insert(new_customers_data).select().execute()
+                            for c in insert_response.data:
+                                customer_map[c['name']] = c['id']
+                except Exception as e:
+                    logger.error(f"Error processing customers batch: {e}")
+                    failed += len(batch_df)
+                    errors.append({'row': batch_start, 'error': f"Batch customer processing failed: {e}"})
+                    continue
+
+                # 2. Resolve Products (Bulk)
+                product_map = {}
+                if 'product_name' in batch_df.columns:
+                    try:
+                        batch_products = batch_df['product_name'].fillna('').astype(str).tolist()
+                        unique_products = list(set([p for p in batch_products if p]))
+
+                        if unique_products:
+                            existing_products_response = supabase.table("products").select("id, name").in_("name", unique_products).execute()
+                            product_map = {p['name']: p['id'] for p in existing_products_response.data}
+
+                            missing_products = [name for name in unique_products if name not in product_map]
+
+                            if missing_products:
+                                new_products_data = [{
+                                    "name": name,
+                                    "normalized_name": name.lower().strip()
+                                } for name in missing_products]
+
+                                insert_response = supabase.table("products").insert(new_products_data).select().execute()
+                                for p in insert_response.data:
+                                    product_map[p['name']] = p['id']
+                    except Exception as e:
+                        logger.error(f"Error processing products batch: {e}")
+                        # Continue without product mapping (items will be skipped or fail per row logic)
+                        pass
+
+                # 3. Prepare Sales and Items
+                sales_to_insert = []
+                sale_items_to_insert = []
+                batch_rows_data = [] # To link sales to items
+
+                # Prepare data
                 for idx, row in batch_df.iterrows():
                     try:
-                        # Get or create customer
                         customer_name = str(row.get('customer_name', 'Unknown'))
-                        customer_result = supabase.table("customers").select("id").eq("name", customer_name).execute()
+                        customer_id = customer_map.get(customer_name)
                         
-                        if customer_result.data:
-                            customer_id = customer_result.data[0]["id"]
-                        else:
-                            # Create normalized name (lowercase, stripped)
-                            normalized_name = customer_name.lower().strip()
-                            new_customer = supabase.table("customers").insert({
-                                "name": customer_name,
-                                "normalized_name": normalized_name
-                            }).execute()
-                            customer_id = new_customer.data[0]["id"]
+                        if not customer_id:
+                            # Fallback if somehow missing
+                            logger.warning(f"Customer ID missing for {customer_name}, skipping row")
+                            raise ValueError(f"Could not resolve customer: {customer_name}")
                         
                         # Parse date with GUARANTEED fallback values
                         sale_date = None
@@ -311,52 +371,37 @@ class UnifiedImporter:
                         # Get total amount with fallback
                         total = float(row.get('amount', row.get('total', 0)))
                         
-                        # Create sale with ALL required fields + import_id for tracking
-                        sale = supabase.table("sales").insert({
+                        sale_data = {
                             "customer_id": customer_id,
                             "sale_date": sale_date,
                             "year": year,
                             "month": month,
                             "total_amount": total,
-                            "import_id": import_id  # ✅ Track which import created this sale
-                        }).execute()
+                            "import_id": import_id
+                        }
                         
-                        sale_id = sale.data[0]["id"]
-                        sale_ids.append(sale_id)
+                        sales_to_insert.append(sale_data)
                         
-                        # Add sale items if product info present
+                        # Prepare potential item
+                        item_info = {"has_item": False}
                         if 'product_name' in row and row.get('product_name'):
                             product_name = str(row['product_name'])
-                            product_result = supabase.table("products").select("id").eq("name", product_name).execute()
-                            
-                            if product_result.data:
-                                product_id = product_result.data[0]["id"]
-                            else:
-                                # Create normalized name
-                                normalized_name = product_name.lower().strip()
-                                new_product = supabase.table("products").insert({
-                                    "name": product_name,
-                                    "normalized_name": normalized_name
-                                }).execute()
-                                product_id = new_product.data[0]["id"]
-                            
-                            quantity = int(row.get('quantity', 1))
-                            unit_price = float(row.get('price', total / quantity if quantity > 0 else 0))
-                            
-                            supabase.table("sale_items").insert({
-                                "sale_id": sale_id,
-                                "product_id": product_id,
-                                "quantity": quantity,
-                                "unit_price": unit_price,
-                                "amount": quantity * unit_price
-                            }).execute()
+                            if product_name in product_map:
+                                quantity = int(row.get('quantity', 1))
+                                unit_price = float(row.get('price', total / quantity if quantity > 0 else 0))
+                                item_info = {
+                                    "has_item": True,
+                                    "product_id": product_map[product_name],
+                                    "quantity": quantity,
+                                    "unit_price": unit_price,
+                                    "amount": quantity * unit_price
+                                }
+
+                        batch_rows_data.append(item_info)
                         
-                        imported += 1
-                    
                     except Exception as e:
                         error_msg = f"Row {idx}: {str(e)[:100]}"
                         logger.error(f"[ROW ERROR] {error_msg}", exc_info=False)
-                        logger.debug(f"Row data: customer={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
                         errors.append({
                             'row': int(idx),
                             'customer': str(row.get('customer_name', 'Unknown')),
@@ -364,13 +409,61 @@ class UnifiedImporter:
                         })
                         failed += 1
                 
+                # 4. Bulk Insert Sales & Items
+                if sales_to_insert:
+                    try:
+                        sales_response = supabase.table("sales").insert(sales_to_insert).select().execute()
+                        inserted_sales = sales_response.data
+
+                        if len(inserted_sales) != len(sales_to_insert):
+                             logger.warning(f"Mismatch in inserted sales count: expected {len(sales_to_insert)}, got {len(inserted_sales)}")
+
+                        imported += len(inserted_sales)
+
+                        # Prepare items
+                        for i, sale in enumerate(inserted_sales):
+                            sale_id = sale['id']
+                            sale_ids.append(sale_id)
+
+                            # Use corresponding item info
+                            # Note: This assumes returned order matches input order.
+                            # Postgres 'RETURNING' usually preserves order for VALUES insert.
+                            if i < len(batch_rows_data):
+                                item_data = batch_rows_data[i]
+                                if item_data["has_item"]:
+                                    sale_items_to_insert.append({
+                                        "sale_id": sale_id,
+                                        "product_id": item_data["product_id"],
+                                        "quantity": item_data["quantity"],
+                                        "unit_price": item_data["unit_price"],
+                                        "amount": item_data["amount"]
+                                    })
+
+                        # Bulk Insert Items
+                        if sale_items_to_insert:
+                            supabase.table("sale_items").insert(sale_items_to_insert).execute()
+
+                    except Exception as e:
+                        logger.error(f"Bulk insert failed: {e}")
+                        # If bulk insert fails, we mark these as failed
+                        # We already incremented 'failed' for rows that failed preparation
+                        # Now we need to count these as failed too
+                        failed += len(sales_to_insert)
+                        # Remove from imported count if we incremented it optimistically?
+                        # No, we incremented inside try block after success?
+                        # Wait, imported += len(inserted_sales) is inside try.
+                        # But if items insert fails, sales are already inserted.
+                        # If sales insert fails, exception is raised.
+                        errors.append({'row': batch_start, 'error': f"Bulk insert failed: {e}"})
+
                 # Explicit cleanup after each batch
+                batch_len = len(batch_df)
                 del batch_df
                 
                 # ✅ Real-time progress update
                 batch_time = time.time() - batch_start_time
                 progress_percent = min(int((batch_end / total_rows) * 100), 99)  # Cap at 99% until completion
-                rows_per_sec = len(batch_df) / batch_time if batch_time > 0 else 0
+                rows_per_sec = batch_len / batch_time if batch_time > 0 else 0
                 
                 try:
                     supabase.table('import_history').update({
