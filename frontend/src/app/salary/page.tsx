@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { Calculator, Download, Users } from 'lucide-react';
 import { salaryApi } from '@/lib/api';
 import { formatCurrency, downloadBlob, monthNames } from '@/lib/utils';
+import LiquidButton from '@/components/LiquidButton';
+import GlassSelect from '@/components/GlassSelect';
 
 interface SalaryData {
     agent_id: string;
@@ -97,36 +99,38 @@ export default function SalaryPage() {
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-2 sm:gap-3">
-                    <select
+                    <GlassSelect
                         value={month}
                         onChange={(e) => setMonth(Number(e.target.value))}
-                        className="rounded-full border border-input bg-background px-5 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer"
+                        className="min-w-[140px]"
                     >
                         {monthNames.map((name, i) => (
                             <option key={i} value={i + 1}>
                                 {name}
                             </option>
                         ))}
-                    </select>
-                    <select
+                    </GlassSelect>
+
+                    <GlassSelect
                         value={year}
                         onChange={(e) => setYear(Number(e.target.value))}
-                        className="rounded-full border border-input bg-background px-5 py-2.5 text-sm min-h-[44px] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 cursor-pointer"
+                        className="min-w-[100px]"
                     >
                         {[2024, 2025, 2026].map((y) => (
                             <option key={y} value={y}>
                                 {y}
                             </option>
                         ))}
-                    </select>
-                    <button
+                    </GlassSelect>
+
+                    <LiquidButton
                         onClick={exportExcel}
-                        className="flex items-center gap-2 rounded-full bg-rose-800 hover:bg-rose-700 px-5 py-2.5 font-medium text-white min-h-[44px] whitespace-nowrap transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
+                        icon={Download}
+                        variant="primary"
                     >
-                        <Download className="h-4 w-4" />
                         <span className="hidden sm:inline">Экспорт Excel</span>
                         <span className="sm:hidden">Excel</span>
-                    </button>
+                    </LiquidButton>
                 </div>
             </div>
 
@@ -188,7 +192,7 @@ export default function SalaryPage() {
                                     <td className="px-4 py-3 text-right text-white font-medium">
                                         {salary.bonus > 0 ? `+${formatCurrency(salary.bonus)}` : '—'}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-red-500">
+                                    <td className="px-4 py-3 text-right text-red-400">
                                         {salary.penalty > 0 ? `-${formatCurrency(salary.penalty)}` : '—'}
                                     </td>
                                     <td className="px-4 py-3 text-right font-bold">
@@ -213,7 +217,7 @@ export default function SalaryPage() {
                                 <td className="px-4 py-3 text-right font-medium text-white">
                                     +{formatCurrency(salaries.reduce((s, x) => s + x.bonus, 0))}
                                 </td>
-                                <td className="px-4 py-3 text-right font-medium text-red-500">
+                                <td className="px-4 py-3 text-right font-medium text-red-400">
                                     -{formatCurrency(salaries.reduce((s, x) => s + x.penalty, 0))}
                                 </td>
                                 <td className="px-4 py-3 text-right font-bold text-lg">

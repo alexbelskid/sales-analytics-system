@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrendingUp, TrendingDown, DollarSign, Users, Package } from "lucide-react";
@@ -107,35 +105,38 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
     };
 
     return (
-        <Card className="bg-[#262626] border-[#333333] backdrop-blur-sm rounded-3xl p-6">
+        <div className="glass-panel p-8 rounded-[40px] relative overflow-hidden">
+            {/* Decorative sheen */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
-                        <TrendingUp className="w-5 h-5 text-orange-400" />
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
+                        <TrendingUp className="w-6 h-6 text-gray-200" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-white">What-If сценарии</h3>
-                        <p className="text-xs text-zinc-500">Симуляция влияния на выручку</p>
+                        <h3 className="text-xl font-medium text-white tracking-wide">What-If сценарии</h3>
+                        <p className="text-sm text-gray-400">Симуляция влияния на выручку</p>
                     </div>
                 </div>
             </div>
 
             <Tabs defaultValue="custom" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6 h-auto min-h-[44px]">
-                    <TabsTrigger value="custom" className="min-h-[44px]">Настройки</TabsTrigger>
-                    <TabsTrigger value="presets" className="min-h-[44px]">Готовые</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-8 bg-black/20 p-1 rounded-full border border-white/5">
+                    <TabsTrigger value="custom" className="rounded-full data-[state=active]:bg-white/10 data-[state=active]:text-white">Настройки</TabsTrigger>
+                    <TabsTrigger value="presets" className="rounded-full data-[state=active]:bg-white/10 data-[state=active]:text-white">Готовые</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="custom" className="space-y-6">
+                <TabsContent value="custom" className="space-y-8">
                     {/* Price Slider */}
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm text-zinc-400 flex items-center gap-2">
-                                <DollarSign className="h-4 w-4" />
+                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                                <DollarSign className="h-4 w-4 text-gray-500" />
                                 Цена
                             </label>
-                            <Badge variant="secondary" className="rounded-full">
+                            <Badge variant="outline" className="rounded-full border-white/10 text-white bg-white/5 px-3">
                                 {priceChange > 0 ? "+" : ""}
                                 {priceChange}%
                             </Badge>
@@ -151,13 +152,13 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                     </div>
 
                     {/* Volume Slider */}
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm text-zinc-400 flex items-center gap-2">
-                                <Package className="h-4 w-4" />
+                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                                <Package className="h-4 w-4 text-gray-500" />
                                 Объём
                             </label>
-                            <Badge variant="secondary" className="rounded-full">
+                            <Badge variant="outline" className="rounded-full border-white/10 text-white bg-white/5 px-3">
                                 {volumeChange > 0 ? "+" : ""}
                                 {volumeChange}%
                             </Badge>
@@ -173,13 +174,13 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                     </div>
 
                     {/* Customer Slider */}
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="text-sm text-zinc-400 flex items-center gap-2">
-                                <Users className="h-4 w-4" />
+                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                                <Users className="h-4 w-4 text-gray-500" />
                                 Клиенты
                             </label>
-                            <Badge variant="secondary" className="rounded-full">
+                            <Badge variant="outline" className="rounded-full border-white/10 text-white bg-white/5 px-3">
                                 {customerChange > 0 ? "+" : ""}
                                 {customerChange}%
                             </Badge>
@@ -201,10 +202,10 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                         <button
                             key={idx}
                             onClick={() => applyPreset(preset)}
-                            className="w-full p-4 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800/50 transition-colors text-left min-h-[44px]"
+                            className="w-full p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-300 text-left group"
                         >
-                            <h4 className="font-semibold text-white text-sm mb-1">{preset.name}</h4>
-                            <p className="text-xs text-zinc-500">{preset.description}</p>
+                            <h4 className="font-medium text-white text-sm mb-1 group-hover:text-gray-200">{preset.name}</h4>
+                            <p className="text-xs text-gray-500 group-hover:text-gray-400">{preset.description}</p>
                         </button>
                     ))}
                 </TabsContent>
@@ -212,28 +213,28 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
 
             {/* Results */}
             {result && (
-                <div className="mt-6 pt-6 border-t border-zinc-800 space-y-4">
-                    <h4 className="text-sm font-semibold text-white mb-3">Прогноз</h4>
+                <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
+                    <h4 className="text-sm font-medium text-gray-400 mb-4 tracking-wider uppercase">Прогноз</h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
-                            <p className="text-xs text-zinc-500 mb-1">Базовая выручка</p>
-                            <p className="text-lg font-bold text-white">
+                        <div className="p-4 rounded-2xl bg-black/20 border border-white/5">
+                            <p className="text-xs text-gray-500 mb-1">Базовая выручка</p>
+                            <p className="text-xl font-light text-white tracking-tight">
                                 {result.base_revenue.toLocaleString()} Br
                             </p>
                         </div>
 
-                        <div className="p-3 rounded-lg bg-zinc-800/50 border border-zinc-700">
-                            <p className="text-xs text-zinc-500 mb-1">Прогноз выручки</p>
-                            <p className="text-lg font-bold text-white">
+                        <div className="p-4 rounded-2xl bg-black/20 border border-white/5">
+                            <p className="text-xs text-gray-500 mb-1">Прогноз выручки</p>
+                            <p className="text-xl font-light text-white tracking-tight">
                                 {result.projected_revenue.toLocaleString()} Br
                             </p>
                         </div>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-500/30">
+                    <div className="p-5 rounded-2xl bg-gradient-to-r from-white/[0.05] to-transparent border border-white/10">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-zinc-300">Изменение выручки</span>
+                            <span className="text-sm text-gray-300">Изменение выручки</span>
                             <Badge
                                 variant="secondary"
                                 className={`rounded-full text-sm px-3 py-1 ${result.revenue_change >= 0
@@ -242,20 +243,20 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                                     }`}
                             >
                                 {result.revenue_change >= 0 ? (
-                                    <TrendingUp className="h-4 w-4 mr-1 inline" />
+                                    <TrendingUp className="h-3 w-3 mr-1 inline" />
                                 ) : (
-                                    <TrendingDown className="h-4 w-4 mr-1 inline" />
+                                    <TrendingDown className="h-3 w-3 mr-1 inline" />
                                 )}
                                 {result.revenue_change >= 0 ? "+" : ""}
                                 {result.revenue_change_pct.toFixed(1)}%
                             </Badge>
                         </div>
-                        <p className="text-2xl font-bold text-white mt-2">
+                        <p className="text-3xl font-light text-white mt-3 tracking-tight">
                             {result.revenue_change >= 0 ? "+" : ""}{Math.abs(result.revenue_change).toLocaleString()} Br
                         </p>
                     </div>
                 </div>
             )}
-        </Card>
+        </div>
     );
 }

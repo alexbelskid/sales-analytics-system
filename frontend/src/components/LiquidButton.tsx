@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,15 +8,16 @@ interface LiquidButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
     children?: React.ReactNode;
 }
 
-export default function LiquidButton({
+const LiquidButton = forwardRef<HTMLButtonElement, LiquidButtonProps>(({
     className,
     children,
     icon: Icon,
     variant = 'primary',
     ...props
-}: LiquidButtonProps) {
+}, ref) => {
     return (
         <button
+            ref={ref}
             className={cn(
                 // MANDATORY SHAPE & SIZE
                 "relative flex items-center justify-center gap-2",
@@ -55,7 +56,11 @@ export default function LiquidButton({
                 "w-4 h-4 transition-transform group-hover:scale-110",
                 variant === 'primary' ? "text-gray-800" : "text-gray-300"
             )} />}
-            {children && <span>{children}</span>}
+            {children}
         </button>
     );
-}
+});
+
+LiquidButton.displayName = "LiquidButton";
+
+export default LiquidButton;

@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { TrendingUp, TrendingDown, Upload as UploadIcon, FileSpreadsheet, Check, AlertCircle, Download, RefreshCw, Calendar, Plus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Upload as UploadIcon, FileSpreadsheet, Check, AlertCircle, Download, RefreshCw, Calendar, Plus, ChevronDown } from 'lucide-react';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import {
     LineChart,
     Line,
@@ -244,12 +249,29 @@ export default function Dashboard() {
 
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <GlassSelect className="min-w-[160px]">
-                        <option>Этот месяц</option>
-                        <option>Прошлый месяц</option>
-                        <option>Этот квартал</option>
-                        <option>Этот год</option>
-                    </GlassSelect>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <LiquidButton
+                                variant="secondary"
+                                className="min-w-[180px] justify-between px-4"
+                            >
+                                <span className="mr-2">Этот месяц</span>
+                                <ChevronDown className="h-4 w-4 opacity-50" />
+                            </LiquidButton>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[180px] p-1 bg-[#1A1A1A] border-[#333333] rounded-2xl shadow-xl backdrop-blur-xl">
+                            <div className="flex flex-col gap-1">
+                                {['Этот месяц', 'Прошлый месяц', 'Этот квартал', 'Этот год'].map((option) => (
+                                    <button
+                                        key={option}
+                                        className="w-full text-left px-3 py-2.5 text-sm rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-200"
+                                    >
+                                        {option}
+                                    </button>
+                                ))}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
 
                     <LiquidButton
                         onClick={() => setShowUploader(!showUploader)}

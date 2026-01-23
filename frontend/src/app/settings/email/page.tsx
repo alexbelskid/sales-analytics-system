@@ -2,16 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import LiquidButton from "@/components/LiquidButton";
+import GlassInput from "@/components/GlassInput";
+import GlassSelect from "@/components/GlassSelect";
+import { AlertCircle, CheckCircle2, Loader2, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+// Helper components for layout
+function SectionHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="mb-6">
+      <h3 className="text-xl font-medium text-white tracking-wide">{title}</h3>
+      <p className="text-sm text-gray-400">{description}</p>
+    </div>
+  );
+}
+
+function GlassPanel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`p-8 rounded-3xl border border-white/5 bg-white/[0.02] backdrop-blur-sm ${className}`}>
+      {children}
+    </div>
+  );
+}
 
 export default function EmailSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -58,7 +71,6 @@ export default function EmailSettingsPage() {
   };
 
   const handleProviderChange = (provider: string) => {
-    // Auto-fill defaults based on provider
     let defaults = {};
     if (provider === "gmail") {
       defaults = { imap_server: "imap.gmail.com", imap_port: 993, smtp_server: "smtp.gmail.com", smtp_port: 587 };
@@ -79,10 +91,6 @@ export default function EmailSettingsPage() {
     try {
       const res = await api.testEmailConnection(settings);
       setTestResult(res);
-      if (res.detected_settings && settings.email_provider === "custom") {
-        // If custom and auto-detected something, suggest it?
-        // For now just logged
-      }
     } catch (error) {
       setTestResult({ success: false, details: { error: "Failed to connect to server" } });
     } finally {
@@ -109,160 +117,185 @@ export default function EmailSettingsPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { url } = await api.getAuthUrl();
-      window.location.href = url;
-    } catch (error: any) {
-      toast({
-        title: "Ошибка",
-        description: error.message || "Не удалось получить ссылку для авторизации",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (loading) return <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  if (loading) return (
+    <div className="flex justify-center p-8">
+      <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+    </div>
+  );
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl space-y-6">
+    <div className="container mx-auto py-6 max-w-4xl space-y-8 animate-fade-in text-gray-100">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Подключение почты</h1>
-        <p className="text-muted-foreground">Настройте подключение к вашему почтовому ящику через IMAP/SMTP.</p>
+        <h1 className="text-3xl font-light text-white tracking-tight">Подключение почты</h1>
+        <p className="text-gray-400 mt-2">Настройте подключение к вашему почтовому ящику через IMAP/SMTP.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Провайдер</CardTitle>
-          <CardDescription>Выберите вашего почтового провайдера</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {["gmail", "outlook", "yandex", "mail_ru", "custom"].map((prov) => (
+      <GlassPanel>
+        <SectionHeader
+          title="Провайдер"
+          description="Выберите вашего почтового провайдера"
+        />
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {["gmail", "outlook", "yandex", "mail_ru", "custom"].map((prov) => {
+            const isSelected = settings.email_provider === prov;
+            return (
               <div
                 key={prov}
                 onClick={() => handleProviderChange(prov)}
-                className={`cursor-pointer rounded-lg border p-4 flex flex-col items-center justify-center gap-2 hover:bg-accent transition-colors ${settings.email_provider === prov ? "border-primary bg-accent/50" : ""}`}
+                className={`
+                                    cursor-pointer rounded-2xl border p-4 flex flex-col items-center justify-center gap-2
+                                    transition-all duration-300
+                                    ${isSelected
+                    ? "bg-white/10 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                    : "bg-white/5 border-transparent hover:bg-white/10"
+                  }
+                                `}
               >
-                <Mail className="h-6 w-6" />
-                <span className="capitalize">{prov.replace("_", ".")}</span>
+                <Mail className={`h-6 w-6 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                <span className="capitalize text-xs tracking-wider">{prov.replace("_", ".")}</span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            );
+          })}
+        </div>
+      </GlassPanel>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Настройки подключения</CardTitle>
-          <CardDescription>IMAP/SMTP (универсальный способ для всех провайдеров)</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <GlassPanel>
+        <SectionHeader
+          title="Настройки подключения"
+          description="IMAP/SMTP (универсальный способ для всех провайдеров)"
+        />
+
+        <div className="space-y-6">
           <div className="grid gap-2">
-            <Label>Email адрес</Label>
-            <Input
+            <label className="text-sm font-medium text-gray-300">Email адрес</label>
+            <GlassInput
               value={settings.email_address}
               onChange={(e) => setSettings({ ...settings, email_address: e.target.value })}
               placeholder="user@example.com"
             />
           </div>
           <div className="grid gap-2">
-            <Label>Пароль приложения</Label>
-            <Input
+            <label className="text-sm font-medium text-gray-300">Пароль приложения</label>
+            <GlassInput
               type="password"
               value={settings.password}
               onChange={(e) => setSettings({ ...settings, password: e.target.value })}
               placeholder="••••••••"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-gray-500">
               Для Gmail/Yandex/Mail.ru используйте "Пароль приложения" (App Password), не обычный пароль
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>IMAP Сервер</Label>
-              <Input value={settings.imap_server} onChange={(e) => setSettings({ ...settings, imap_server: e.target.value })} />
+              <label className="text-sm font-medium text-gray-300">IMAP Сервер</label>
+              <GlassInput
+                value={settings.imap_server}
+                onChange={(e) => setSettings({ ...settings, imap_server: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Порт</Label>
-              <Input type="number" value={settings.imap_port} onChange={(e) => setSettings({ ...settings, imap_port: parseInt(e.target.value) })} />
+              <label className="text-sm font-medium text-gray-300">Порт</label>
+              <GlassInput
+                type="number"
+                value={settings.imap_port}
+                onChange={(e) => setSettings({ ...settings, imap_port: parseInt(e.target.value) })}
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>SMTP Сервер</Label>
-              <Input value={settings.smtp_server} onChange={(e) => setSettings({ ...settings, smtp_server: e.target.value })} />
+              <label className="text-sm font-medium text-gray-300">SMTP Сервер</label>
+              <GlassInput
+                value={settings.smtp_server}
+                onChange={(e) => setSettings({ ...settings, smtp_server: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Порт</Label>
-              <Input type="number" value={settings.smtp_port} onChange={(e) => setSettings({ ...settings, smtp_port: parseInt(e.target.value) })} />
+              <label className="text-sm font-medium text-gray-300">Порт</label>
+              <GlassInput
+                type="number"
+                value={settings.smtp_port}
+                onChange={(e) => setSettings({ ...settings, smtp_port: parseInt(e.target.value) })}
+              />
             </div>
           </div>
 
           {testResult && (
-            <Alert variant={testResult.success ? "default" : "destructive"}>
-              {testResult.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{testResult.success ? "Успешно" : "Ошибка"}</AlertTitle>
-              <AlertDescription>
-                {testResult.success
-                  ? "Подключение установлено (IMAP и SMTP работают)"
-                  : `Не удалось подключиться: ${testResult.details?.error || "Неизвестная ошибка"}`
-                }
-              </AlertDescription>
-            </Alert>
+            <div className={`p-4 rounded-xl flex items-start gap-3 border ${testResult.success ? 'bg-green-500/10 border-green-500/20 text-green-200' : 'bg-red-500/10 border-red-500/20 text-red-200'}`}>
+              {testResult.success ? <CheckCircle2 className="h-5 w-5 mt-0.5" /> : <AlertCircle className="h-5 w-5 mt-0.5" />}
+              <div>
+                <h4 className="font-medium mb-1">{testResult.success ? "Успешно" : "Ошибка"}</h4>
+                <p className="text-sm opacity-90">
+                  {testResult.success
+                    ? "Подключение установлено (IMAP и SMTP работают)"
+                    : `Не удалось подключиться: ${testResult.details?.error || "Неизвестная ошибка"}`
+                  }
+                </p>
+              </div>
+            </div>
           )}
 
-          <div className="flex justify-between items-center pt-4">
-            <Button variant="outline" onClick={handleTestConnection} disabled={testing || !settings.email_address}>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/5">
+            <LiquidButton
+              variant="secondary"
+              onClick={handleTestConnection}
+              disabled={testing || !settings.email_address}
+            >
               {testing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Проверить подключение
-            </Button>
+            </LiquidButton>
 
-            <Button onClick={handleSave} disabled={saving}>
+            <LiquidButton
+              variant="primary"
+              onClick={handleSave}
+              disabled={saving}
+            >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Сохранить настройки
-            </Button>
+            </LiquidButton>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </GlassPanel>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Синхронизация</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Автоматическая синхронизация</Label>
-              <p className="text-sm text-muted-foreground">Периодически проверять новые письма</p>
-            </div>
-            <Switch
-              checked={settings.auto_sync_enabled}
-              onCheckedChange={(c) => setSettings({ ...settings, auto_sync_enabled: c })}
-            />
+      <GlassPanel>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-medium text-white tracking-wide">Синхронизация</h3>
+            <p className="text-sm text-gray-400 mt-1">Настройки автоматического обновления</p>
           </div>
-          <div className="space-y-2">
-            <Label>Интервал проверки</Label>
-            <Select
-              value={String(settings.sync_interval_minutes)}
-              onValueChange={(v) => setSettings({ ...settings, sync_interval_minutes: parseInt(v) })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">Каждые 5 минут</SelectItem>
-                <SelectItem value="10">Каждые 10 минут</SelectItem>
-                <SelectItem value="15">Каждые 15 минут</SelectItem>
-                <SelectItem value="30">Каждые 30 минут</SelectItem>
-                <SelectItem value="60">Каждый час</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+
+          {/* Style the Switch as a glass toggle */}
+          <button
+            onClick={() => setSettings({ ...settings, auto_sync_enabled: !settings.auto_sync_enabled })}
+            className={`
+                            relative h-7 w-12 rounded-full transition-colors duration-300
+                            ${settings.auto_sync_enabled ? 'bg-white/80' : 'bg-white/10'}
+                        `}
+          >
+            <span className={`
+                            absolute top-1 left-1 h-5 w-5 rounded-full bg-black shadow-lg transition-transform duration-300
+                            ${settings.auto_sync_enabled ? 'translate-x-5' : 'translate-x-0'}
+                        `} />
+          </button>
+        </div>
+
+        <div className="space-y-2 max-w-xs">
+          <label className="text-sm font-medium text-gray-300">Интервал проверки</label>
+          <GlassSelect
+            value={String(settings.sync_interval_minutes)}
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSettings({ ...settings, sync_interval_minutes: parseInt(e.target.value) })}
+          >
+            <option value="5">Каждые 5 минут</option>
+            <option value="10">Каждые 10 минут</option>
+            <option value="15">Каждые 15 минут</option>
+            <option value="30">Каждые 30 минут</option>
+            <option value="60">Каждый час</option>
+          </GlassSelect>
+        </div>
+      </GlassPanel>
     </div>
   );
 }

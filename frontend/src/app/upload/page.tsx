@@ -164,7 +164,7 @@ export default function UploadPage() {
                                 <p className="text-sm text-gray-400 mb-4">
                                     или
                                 </p>
-                                <div onClick={() => document.getElementById('file-upload-input')?.click()}>
+                                <div onClick={() => document.getElementById('file-upload-input')?.click()} className="flex justify-center">
                                     <LiquidButton
                                         icon={Upload}
                                     >
@@ -246,7 +246,7 @@ export default function UploadPage() {
                                         </label>
                                         <GlassDatePicker
                                             value={periodStart}
-                                            onChange={(e) => setPeriodStart(e.target.value)}
+                                            onChange={(date) => setPeriodStart(date)}
                                         />
                                     </div>
                                     <div>
@@ -255,7 +255,7 @@ export default function UploadPage() {
                                         </label>
                                         <GlassDatePicker
                                             value={periodEnd}
-                                            onChange={(e) => setPeriodEnd(e.target.value)}
+                                            onChange={(date) => setPeriodEnd(date)}
                                         />
                                     </div>
                                 </div>

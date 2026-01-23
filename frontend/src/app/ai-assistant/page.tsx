@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
+import LiquidButton from "@/components/LiquidButton";
 import { useToast } from "@/hooks/use-toast";
 import {
     Plus,
@@ -132,7 +132,7 @@ export default function AIAssistantPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#202020] text-white">
+        <div className="min-h-screen text-white">
             <div className="max-w-7xl mx-auto p-6">
                 {/* Header Section */}
                 {/* Header Section - Only show continuously if there are actions (like Add button) */}
@@ -141,39 +141,36 @@ export default function AIAssistantPage() {
                         <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                             <div /> {/* Spacer or Title placeholder if needed later, but empty for now to push button right if justify-between */}
 
-                            <Button
+                            <LiquidButton
                                 onClick={() => {
                                     setEditingKnowledge(null);
                                     setShowKnowledgeModal(true);
                                 }}
-                                className="bg-cyan-600 text-white hover:bg-cyan-500 rounded-full px-6 h-10 font-medium transition-all shadow-lg shadow-cyan-600/25"
+                                icon={Plus}
+                                variant="primary"
                             >
-                                <Plus className="mr-2 h-4 w-4" />
                                 Добавить запись
-                            </Button>
+                            </LiquidButton>
                         </div>
                     </div>
                 )}
 
                 {/* Tabs Navigation */}
-                <div className="flex gap-2 sm:gap-6 border-b border-[#262626] mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                <div className="flex flex-wrap gap-2 mb-6">
                     {[
                         { id: 'chat', label: 'Чат', icon: MessageSquare },
                         { id: 'status', label: 'Дашборд', icon: Activity },
                         { id: 'knowledge', label: 'База знаний', icon: Book },
                     ].map((tab) => (
-                        <button
+                        <LiquidButton
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as TabType)}
-                            className={`flex items-center gap-2 pb-3 px-1 text-sm font-medium tracking-wide transition-colors relative whitespace-nowrap ${activeTab === tab.id ? 'text-white' : 'text-[#505050] hover:text-[#909090]'
-                                }`}
+                            variant={activeTab === tab.id ? 'primary' : 'secondary'}
+                            icon={tab.icon}
+                            className="min-w-[120px]"
                         >
-                            <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-rose-500' : ''}`} />
                             {tab.label}
-                            {activeTab === tab.id && (
-                                <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-cyan-500 rounded-full shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
-                            )}
-                        </button>
+                        </LiquidButton>
                     ))}
                 </div>
 

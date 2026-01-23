@@ -40,123 +40,80 @@ export function PlanFactGauge({ data }: PlanFactGaugeProps) {
     const colors = getColor(completion);
 
     return (
-        <Card className="bg-[#262626] border-[#333333] backdrop-blur-sm rounded-3xl p-6 h-full flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+        <div className="glass-panel p-6 sm:p-8 rounded-[40px] border border-white/5 relative overflow-hidden h-full flex flex-col items-center justify-between aspect-square">
+            {/* Decorative sheen */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+            {/* Header - Compact for square */}
+            <div className="w-full flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                        <Target className="w-5 h-5 text-purple-400" />
+                    <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
+                        <Target className="w-5 h-5 text-gray-200" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-semibold text-white">План-Факт</h3>
-                        <p className="text-xs text-zinc-500">
-                            {new Date(data.period_start).toLocaleDateString()} -{" "}
-                            {new Date(data.period_end).toLocaleDateString()}
+                        <h3 className="text-lg font-medium text-white tracking-wide leading-tight">План-Факт</h3>
+                        <p className="text-[10px] text-gray-400">
+                            30 дней
                         </p>
                     </div>
                 </div>
             </div>
 
-            {/* Circular Gauge */}
-            <div className="flex-1 flex items-center justify-center">
-                <div className="relative">
-                    <svg width="200" height="200" className="transform -rotate-90">
-                        {/* Background Circle */}
-                        <circle
-                            cx="100"
-                            cy="100"
-                            r={radius}
-                            stroke="#27272a"
-                            strokeWidth="12"
-                            fill="none"
-                        />
-                        {/* Progress Circle */}
-                        <circle
-                            cx="100"
-                            cy="100"
-                            r={radius}
-                            stroke={colors.stroke}
-                            strokeWidth="12"
-                            fill="none"
-                            strokeDasharray={circumference}
-                            strokeDashoffset={circumference - progress}
-                            strokeLinecap="round"
-                            className="transition-all duration-1000 ease-out"
-                            style={{
-                                filter: `drop-shadow(0 0 8px ${colors.stroke}40)`,
-                            }}
-                        />
-                    </svg>
+            {/* Circular Gauge - Responsive */}
+            <div className="relative flex items-center justify-center w-full max-w-[220px] aspect-square">
+                <svg viewBox="0 0 220 220" className="w-full h-full transform -rotate-90">
+                    {/* Background Circle */}
+                    <circle
+                        cx="110"
+                        cy="110"
+                        r={radius}
+                        stroke="rgba(255,255,255,0.05)"
+                        strokeWidth="8"
+                        fill="none"
+                    />
+                    {/* Progress Circle */}
+                    <circle
+                        cx="110"
+                        cy="110"
+                        r={radius}
+                        stroke={colors.stroke}
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={circumference - progress}
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
+                        style={{
+                            filter: `drop-shadow(0 0 10px ${colors.stroke}60)`,
+                        }}
+                    />
+                </svg>
 
-                    {/* Center Content */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-4xl font-bold text-white">
-                            {completion.toFixed(1)}%
-                        </div>
-                        <div className="text-xs text-zinc-500 mt-1">Выполнение</div>
+                {/* Center Content */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center transform translate-y-1">
+                    <div className="text-4xl lg:text-5xl font-light text-white tracking-tighter">
+                        {completion.toFixed(1)}<span className="text-xl lg:text-2xl text-gray-500">%</span>
                     </div>
+                    {revenueMetric && revenueMetric.variance_pct !== 0 && (
+                        <div className={`flex items-center gap-1 mt-2 text-xs font-medium px-2 py-0.5 rounded-full
+                            ${revenueMetric.variance_pct > 0 ? "bg-green-500/10 text-green-300" : "bg-red-500/10 text-red-300"}`}>
+                            {revenueMetric.variance_pct > 0 ? "+" : ""}{revenueMetric.variance_pct.toFixed(1)}%
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* LFL Badge */}
-            {revenueMetric && revenueMetric.variance_pct !== 0 && (
-                <div className="mt-4 flex items-center justify-center">
-                    <Badge
-                        variant="secondary"
-                        className={`rounded-full px-3 py-1 ${revenueMetric.variance_pct > 0
-                            ? "bg-green-500/20 text-green-300 border-green-500/30"
-                            : "bg-red-500/20 text-red-300 border-red-500/30"
-                            }`}
-                    >
-                        {revenueMetric.variance_pct > 0 ? (
-                            <TrendingUp className="h-3 w-3 mr-1" />
-                        ) : (
-                            <TrendingDown className="h-3 w-3 mr-1" />
-                        )}
-                        <span className="text-xs font-medium">
-                            {revenueMetric.variance_pct > 0 ? "+" : ""}
-                            {revenueMetric.variance_pct.toFixed(1)}% vs ПГ
-                        </span>
-                    </Badge>
+            {/* Bottom Metrics - Simplified for Square */}
+            <div className="w-full grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                <div className="text-center">
+                    <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">План</p>
+                    <p className="text-sm font-medium text-white">{revenueMetric ? (revenueMetric.planned / 1000).toFixed(0) : 0}k</p>
                 </div>
-            )}
-
-            {/* Metrics */}
-            <div className="mt-6 space-y-3">
-                {revenueMetric && (
-                    <>
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-zinc-400">План:</span>
-                            <span className="text-white font-semibold">
-                                {revenueMetric.planned.toLocaleString()} Br
-                            </span>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-zinc-400">Факт:</span>
-                            <span className="text-white font-semibold">
-                                {revenueMetric.actual.toLocaleString()} Br
-                            </span>
-                        </div>
-                        {/* Progress Bar */}
-                        <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
-                            <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                    width: `${Math.min(completion, 100)}%`,
-                                    background: `linear-gradient(90deg, ${colors.stroke}, ${colors.stroke}80)`,
-                                }}
-                            />
-                        </div>
-                    </>
-                )}
+                <div className="text-center">
+                    <p className="text-[10px] uppercase tracking-widest text-gray-500 mb-1">Факт</p>
+                    <p className="text-sm font-medium text-white">{revenueMetric ? (revenueMetric.actual / 1000).toFixed(0) : 0}k</p>
+                </div>
             </div>
-
-            {/* No Plan Warning */}
-            {!data.has_plan && (
-                <div className="mt-4 p-3 rounded-lg bg-orange-500/10 border border-orange-500/30">
-                    <p className="text-xs text-orange-300">Нет данных плана для этого периода</p>
-                </div>
-            )}
-        </Card>
+        </div>
     );
 }

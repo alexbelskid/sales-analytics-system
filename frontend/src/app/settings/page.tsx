@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Mail, MessageSquare, Lock, FileSpreadsheet } from "lucide-react";
+import LiquidButton from "@/components/LiquidButton";
 
 const SETTINGS_CARDS = [
     {
@@ -37,45 +38,66 @@ const SETTINGS_CARDS = [
 
 export default function SettingsPage() {
     return (
-        <div className="min-h-screen bg-[#202020] text-white p-8">
-            <div className="max-w-4xl mx-auto space-y-12">
+        <div className="min-h-screen text-white p-8 animate-fade-in"> { /* global background removed */}
+            <div className="max-w-5xl mx-auto space-y-12">
 
                 {/* Header */}
                 <div className="space-y-2">
-                    <h1 className="text-[40px] font-semibold tracking-tight">Настройки</h1>
-                    <p className="text-sm text-[#808080] max-w-md">
+                    <h1 className="text-4xl font-light tracking-tight text-white drop-shadow-lg">
+                        Настройки
+                    </h1>
+                    <p className="text-base text-gray-400 max-w-lg">
                         Персонализируйте работу системы под ваши предпочтения
                     </p>
                 </div>
 
-                <div className="h-[1px] bg-gradient-to-r from-[#333333] to-transparent" />
+                <div className="h-px bg-gradient-to-r from-white/10 to-transparent" />
 
                 {/* Settings Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {SETTINGS_CARDS.map((card) => {
                         const Icon = card.icon;
                         const Content = (
-                            <div className={`relative h-full bg-[#262626] border border-[#333333] rounded-lg p-6 transition-all duration-300 ${card.disabled ? 'opacity-50 grayscale' : 'hover:border-white/30 hover:bg-[#222222] group cursor-pointer'}`}>
-                                <div className="flex flex-col h-full justify-between">
+                            <div className={`
+                                group relative h-full p-8 rounded-3xl
+                                border border-white/5 bg-white/[0.02] backdrop-blur-sm
+                                transition-all duration-500 ease-out
+                                ${card.disabled
+                                    ? 'opacity-50 grayscale cursor-not-allowed'
+                                    : 'hover:bg-white/[0.05] hover:border-white/20 hover:shadow-[0_0_30px_-5px_rgba(255,255,255,0.1)] cursor-pointer'
+                                }
+                            `}>
+                                <div className="flex flex-col h-full justify-between gap-6">
                                     <div>
-                                        <div className="mb-6 inline-flex p-3 rounded-lg bg-black border border-[#333333]">
+                                        <div className={`
+                                            mb-6 inline-flex p-4 rounded-2xl
+                                            bg-gradient-to-br from-white/10 to-transparent
+                                            border border-white/5
+                                            shadow-inner
+                                        `}>
                                             <Icon className={`h-6 w-6 ${card.color}`} />
                                         </div>
-                                        <h3 className="text-lg font-semibold mb-2 group-hover:text-white transition-colors">{card.title}</h3>
-                                        <p className="text-xs leading-relaxed text-[#808080] group-hover:text-[#A0A0A0] transition-colors line-clamp-2">
+                                        <h3 className="text-xl font-medium mb-3 text-white tracking-wide">
+                                            {card.title}
+                                        </h3>
+                                        <p className="text-sm leading-relaxed text-gray-400 group-hover:text-gray-300 transition-colors">
                                             {card.description}
                                         </p>
                                     </div>
 
                                     {!card.disabled && (
-                                        <div className="mt-8 text-[10px] uppercase tracking-widest text-[#404040] group-hover:text-white transition-all duration-300">
-                                            <span>Управлять →</span>
+                                        <div className="flex justify-end opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                                            <span className="text-xs font-bold uppercase tracking-widest text-white/70">
+                                                Открыть →
+                                            </span>
                                         </div>
                                     )}
 
                                     {card.disabled && (
-                                        <div className="mt-8 text-[10px] uppercase tracking-widest text-[#404040]">
-                                            <span>Скоро доступно</span>
+                                        <div className="mt-auto pt-4">
+                                            <span className="text-[10px] uppercase tracking-widest text-white/20 border border-white/10 rounded-full px-3 py-1">
+                                                Скоро
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -93,7 +115,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Footer / System Info */}
-                <div className="pt-12 flex items-center justify-between text-[10px] text-[#404040] uppercase tracking-[0.2em]">
+                <div className="pt-12 flex items-center justify-between text-[10px] text-gray-600 uppercase tracking-[0.2em] font-medium">
                     <span>Sales Analytics System v2.1.0</span>
                     <span>AI Engine: Groq Llama 3.3</span>
                 </div>

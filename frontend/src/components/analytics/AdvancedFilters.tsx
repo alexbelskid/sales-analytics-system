@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Search, X, Calendar, MapPin, User, Package, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import GlassInput from "@/components/GlassInput";
+import LiquidButton from "@/components/LiquidButton";
 import {
     Popover,
     PopoverContent,
@@ -84,10 +84,9 @@ export function AdvancedFilters({
     return (
         <div className="w-full">
             {/* Mobile-first Search Bar */}
-            <div className="relative flex flex-col md:flex-row md:items-center gap-3 rounded-3xl bg-zinc-900/50 border border-zinc-800 px-4 py-3 backdrop-blur-sm">
+            <div className="relative flex flex-col md:flex-row md:items-center gap-3 rounded-[32px] bg-white/[0.03] border border-white/10 px-4 py-3 backdrop-blur-md">
                 {/* Search row */}
                 <div className="flex items-center gap-2 flex-1 min-w-0">
-                    <Search className="h-5 w-5 text-zinc-400 shrink-0" />
 
                     {/* Filter Chips - scrollable on mobile */}
                     <div className="flex items-center gap-2 overflow-x-auto flex-1 min-w-0 scrollbar-hide">
@@ -95,44 +94,46 @@ export function AdvancedFilters({
                             <Badge
                                 key={filter.id}
                                 variant="secondary"
-                                className="rounded-2xl bg-purple-500/20 text-purple-300 border-purple-500/30 pl-2 pr-1 py-1 flex items-center gap-1 shrink-0"
+                                className="rounded-full bg-white/10 text-white border-white/20 pl-3 pr-2 py-1.5 flex items-center gap-2 shrink-0 backdrop-blur-sm"
                             >
                                 {filter.icon}
                                 <span className="text-xs font-medium whitespace-nowrap">{filter.label}</span>
                                 <button
                                     onClick={() => removeFilter(filter.id)}
-                                    className="ml-1 rounded-2xl hover:bg-purple-500/30 p-0.5 min-h-[24px] min-w-[24px] flex items-center justify-center"
+                                    className="ml-1 rounded-full hover:bg-white/20 p-0.5 w-5 h-5 flex items-center justify-center transition-colors"
                                 >
                                     <X className="h-3 w-3" />
                                 </button>
                             </Badge>
                         ))}
 
-                        <Input
-                            type="text"
-                            placeholder="Поиск..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="flex-1 min-w-[120px] border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-500"
-                        />
+                        <div className="flex-1 min-w-[200px]">
+                            <GlassInput
+                                icon={Search}
+                                placeholder="Поиск..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="border-0 bg-transparent shadow-none focus:bg-transparent focus:ring-0 pl-10"
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Quick Filter Buttons - wrap on mobile */}
-                <div className="flex items-center justify-center gap-2 flex-wrap">
+                <div className="flex items-center justify-center gap-2 flex-wrap sm:flex-nowrap">
 
                     {/* Date Picker */}
                     <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
                         <PopoverTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                className="btn-filter min-w-[120px]"
+                            <LiquidButton
+                                variant="secondary"
+                                icon={Calendar}
+                                className="min-w-[100px] h-10 text-xs"
                             >
-                                <Calendar className="h-4 w-4" />
                                 <span className="hidden md:inline">Дата</span>
-                            </Button>
+                            </LiquidButton>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-zinc-900 border-zinc-800">
+                        <PopoverContent className="w-auto p-0 bg-[#0A0A0A] border-white/10 text-gray-100">
                             <CalendarComponent
                                 mode="single"
                                 onSelect={handleDateSelect}
@@ -145,15 +146,15 @@ export function AdvancedFilters({
                     {availableRegions.length > 0 && (
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    className="btn-filter min-w-[120px]"
+                                <LiquidButton
+                                    variant="secondary"
+                                    icon={MapPin}
+                                    className="min-w-[100px] h-10 text-xs"
                                 >
-                                    <MapPin className="h-4 w-4" />
                                     <span className="hidden md:inline">Регион</span>
-                                </Button>
+                                </LiquidButton>
                             </PopoverTrigger>
-                            <PopoverContent className="w-48 bg-zinc-900 border-zinc-800">
+                            <PopoverContent className="w-48 bg-[#0A0A0A] border-white/10">
                                 <div className="space-y-1">
                                     {availableRegions.map((region) => (
                                         <button
@@ -166,7 +167,7 @@ export function AdvancedFilters({
                                                     icon: <MapPin className="h-3 w-3" />,
                                                 });
                                             }}
-                                            className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-zinc-800 text-zinc-300"
+                                            className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-white/10 text-gray-300 transition-colors"
                                         >
                                             {region}
                                         </button>
@@ -180,15 +181,15 @@ export function AdvancedFilters({
                     {availableAgents.length > 0 && (
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    className="btn-filter min-w-[120px]"
+                                <LiquidButton
+                                    variant="secondary"
+                                    icon={User}
+                                    className="min-w-[100px] h-10 text-xs"
                                 >
-                                    <User className="h-4 w-4" />
                                     <span className="hidden md:inline">Агент</span>
-                                </Button>
+                                </LiquidButton>
                             </PopoverTrigger>
-                            <PopoverContent className="w-48 bg-zinc-900 border-zinc-800">
+                            <PopoverContent className="w-48 bg-[#0A0A0A] border-white/10">
                                 <div className="space-y-1">
                                     {availableAgents.map((agent) => (
                                         <button
@@ -201,7 +202,7 @@ export function AdvancedFilters({
                                                     icon: <User className="h-3 w-3" />,
                                                 });
                                             }}
-                                            className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-zinc-800 text-zinc-300"
+                                            className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-white/10 text-gray-300 transition-colors"
                                         >
                                             {agent.name}
                                         </button>

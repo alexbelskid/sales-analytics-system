@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { FileText, Plus, Trash2, Download, Sparkles } from 'lucide-react';
 import { proposalsApi } from '@/lib/api';
 import { formatCurrency, downloadBlob } from '@/lib/utils';
+import LiquidButton from '@/components/LiquidButton';
+import GlassInput from '@/components/GlassInput';
 
 interface ProposalItem {
     id: string;
@@ -101,7 +103,7 @@ export default function ProposalsPage() {
         downloadBlob(blob, `KP_${customer.name.replace(/\s/g, '_')}.pdf`);
     }
 
-    const inputClasses = "rounded-xl border border-[#333333] bg-[#262626] px-4 py-2.5 text-sm text-white placeholder:text-[#404040] focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300";
+    const glassTextareaClasses = "w-full resize-none rounded-2xl border border-gray-800 bg-[#050505]/60 px-4 py-3 text-sm text-gray-100 placeholder:text-gray-600 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] transition-all duration-300 focus:border-gray-600 focus:ring-1 focus:ring-gray-600/50 focus:bg-gray-900/80 focus:outline-none";
 
     return (
         <div className="space-y-6">
@@ -119,19 +121,17 @@ export default function ProposalsPage() {
                     <div className="ui-card">
                         <h3 className="font-semibold mb-4">Клиент</h3>
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <input
+                            <GlassInput
                                 type="text"
                                 placeholder="ФИО контактного лица"
                                 value={customer.name}
                                 onChange={(e) => setCustomer({ ...customer, name: e.target.value })}
-                                className={inputClasses}
                             />
-                            <input
+                            <GlassInput
                                 type="text"
                                 placeholder="Компания"
                                 value={customer.company}
                                 onChange={(e) => setCustomer({ ...customer, company: e.target.value })}
-                                className={inputClasses}
                             />
                         </div>
                     </div>
@@ -140,12 +140,14 @@ export default function ProposalsPage() {
                     <div className="ui-card">
                         <div className="flex items-center justify-between mb-4">
                             <h3 className="font-semibold">Товары/Услуги</h3>
-                            <button
+                            <LiquidButton
                                 onClick={addItem}
-                                className="flex items-center gap-1 text-sm text-white hover:text-[#808080] transition-colors"
+                                icon={Plus}
+                                variant="secondary"
+                                className="h-8 text-xs font-normal"
                             >
-                                <Plus className="h-4 w-4" /> Добавить
-                            </button>
+                                Добавить
+                            </LiquidButton>
                         </div>
 
                         <div className="space-y-3">
@@ -153,43 +155,48 @@ export default function ProposalsPage() {
                                 <div key={item.id} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                                     <span className="text-sm text-[#808080] w-6 hidden sm:inline">{index + 1}.</span>
                                     <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full">
-                                        <input
-                                            type="text"
-                                            placeholder="Наименование"
-                                            value={item.product_name}
-                                            onChange={(e) => updateItem(item.id, 'product_name', e.target.value)}
-                                            className={`flex-1 ${inputClasses}`}
-                                        />
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="number"
-                                                placeholder="Кол-во"
-                                                value={item.quantity}
-                                                onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
-                                                className={`w-24 ${inputClasses}`}
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="Цена"
-                                                value={item.price}
-                                                onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
-                                                className={`w-28 ${inputClasses}`}
-                                            />
-                                            <input
-                                                type="number"
-                                                placeholder="%"
-                                                value={item.discount}
-                                                onChange={(e) => updateItem(item.id, 'discount', Number(e.target.value))}
-                                                className={`w-20 ${inputClasses}`}
+                                        <div className="flex-1">
+                                            <GlassInput
+                                                type="text"
+                                                placeholder="Наименование"
+                                                value={item.product_name}
+                                                onChange={(e) => updateItem(item.id, 'product_name', e.target.value)}
                                             />
                                         </div>
+                                        <div className="flex gap-2">
+                                            <div className="w-24">
+                                                <GlassInput
+                                                    type="number"
+                                                    placeholder="Кол-во"
+                                                    value={item.quantity}
+                                                    onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
+                                                />
+                                            </div>
+                                            <div className="w-28">
+                                                <GlassInput
+                                                    type="number"
+                                                    placeholder="Цена"
+                                                    value={item.price}
+                                                    onChange={(e) => updateItem(item.id, 'price', Number(e.target.value))}
+                                                />
+                                            </div>
+                                            <div className="w-20">
+                                                <GlassInput
+                                                    type="number"
+                                                    placeholder="%"
+                                                    value={item.discount}
+                                                    onChange={(e) => updateItem(item.id, 'discount', Number(e.target.value))}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button
+                                    <LiquidButton
                                         onClick={() => removeItem(item.id)}
-                                        className="p-2 text-[#808080] hover:text-red-400 transition-colors self-end sm:self-auto"
+                                        variant="secondary"
+                                        className="h-11 w-11 p-0 text-red-500/70 hover:text-red-400 hover:bg-red-500/10 border-red-500/20 self-end sm:self-auto"
                                     >
                                         <Trash2 className="h-4 w-4" />
-                                    </button>
+                                    </LiquidButton>
                                 </div>
                             ))}
                         </div>
@@ -207,7 +214,7 @@ export default function ProposalsPage() {
                             value={conditions}
                             onChange={(e) => setConditions(e.target.value)}
                             rows={3}
-                            className={`w-full resize-none ${inputClasses}`}
+                            className={glassTextareaClasses}
                         />
                     </div>
                 </div>
@@ -220,38 +227,41 @@ export default function ProposalsPage() {
                             <h3 className="font-semibold">Предпросмотр</h3>
                         </div>
 
-                        <button
+                        <LiquidButton
                             onClick={generate}
                             disabled={!customer.name || items.length === 0 || loading}
-                            className="flex w-full items-center justify-center gap-2 rounded-full bg-rose-800 hover:bg-rose-700 py-3 font-medium text-white disabled:opacity-50 transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
+                            icon={Sparkles}
+                            variant="primary"
+                            className="w-full"
                         >
-                            <Sparkles className="h-4 w-4" />
                             {loading ? 'Генерация...' : 'Сгенерировать текст'}
-                        </button>
+                        </LiquidButton>
 
                         {generatedText && (
-                            <div className="rounded-lg bg-[#202020] p-4 border border-[#333333]">
-                                <pre className="whitespace-pre-wrap text-sm text-[#808080]">{generatedText}</pre>
+                            <div className="rounded-2xl bg-white/[0.03] p-6 border border-white/5 shadow-inner backdrop-blur-sm">
+                                <pre className="whitespace-pre-wrap text-sm text-gray-300 font-mono leading-relaxed">{generatedText}</pre>
                             </div>
                         )}
                     </div>
 
                     <div className="ui-card">
                         <h3 className="font-semibold mb-3">Экспорт</h3>
-                        <button
+                        <LiquidButton
                             onClick={exportDocx}
-                            className="flex w-full items-center justify-center gap-2 rounded-full border border-[#333333] py-2.5 font-medium text-white hover:bg-[#333333] transition-all duration-300"
+                            variant="secondary"
+                            icon={Download}
+                            className="w-full"
                         >
-                            <Download className="h-4 w-4" />
                             Скачать DOCX
-                        </button>
-                        <button
+                        </LiquidButton>
+                        <LiquidButton
                             onClick={exportPdf}
-                            className="flex w-full items-center justify-center gap-2 rounded-full border border-[#333333] py-2.5 font-medium text-white hover:bg-[#333333] transition-all duration-300"
+                            variant="secondary"
+                            icon={Download}
+                            className="w-full"
                         >
-                            <Download className="h-4 w-4" />
                             Скачать PDF
-                        </button>
+                        </LiquidButton>
                     </div>
                 </div>
             </div>

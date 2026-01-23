@@ -3,15 +3,22 @@
 import { useEffect, useState } from "react";
 import { AdvancedFilters, FilterChip } from "@/components/analytics/AdvancedFilters";
 import { ABCXYZMatrix } from "@/components/analytics/ABCXYZMatrix";
-import { PlanFactGauge } from "@/components/analytics/PlanFactGauge";
 import { GeoMap } from "@/components/analytics/GeoMap";
 import { BostonMatrix } from "@/components/analytics/BostonMatrix";
 import { WhatIfSimulator } from "@/components/analytics/WhatIfSimulator";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://athletic-alignment-production-db41.up.railway.app";
+
+// Glass Panel Helper
+function AnalyticsCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+    return (
+        <div className={`glass-panel p-6 ${className}`}>
+            {children}
+        </div>
+    );
+}
 
 export default function AdvancedAnalyticsPage() {
     const [filters, setFilters] = useState<FilterChip[]>([]);
@@ -21,63 +28,50 @@ export default function AdvancedAnalyticsPage() {
         agents: Array<{ id: string; name: string }>;
     }>({ regions: [], categories: [], agents: [] });
 
+    // Data states
     const [abcXyzData, setAbcXyzData] = useState<any>(null);
-    const [planFactData, setPlanFactData] = useState<any>(null);
-    const [lflData, setLflData] = useState<any>(null);
     const [geoData, setGeoData] = useState<any>(null);
+    const [lflData, setLflData] = useState<any>(null);
     const [bostonData, setBostonData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch filter options
+    // Initial Data Fetch
     useEffect(() => {
+        // Options
         fetch(`${API_BASE_URL}/api/analytics/filter-options`)
             .then((res) => res.json())
             .then((data) => setFilterOptions(data))
-            .catch((err) => console.error("Ошибка загрузки опций фильтрации:", err));
-    }, []);
+            .catch((err) => console.error("Filter options error:", err));
 
-    // Fetch analytics data
-    useEffect(() => {
+        // Main Data
         const fetchData = async () => {
             setLoading(true);
             try {
-                // ABC-XYZ Матрица
+                // ABC-XYZ
                 const abcXyzRes = await fetch(`${API_BASE_URL}/api/analytics/abc-xyz?days=90`);
-                const abcXyz = await abcXyzRes.json();
-                setAbcXyzData(abcXyz);
+                setAbcXyzData(await abcXyzRes.json());
 
-                // План-Факт
+                // Geo
+                const geoRes = await fetch(`${API_BASE_URL}/api/analytics/geo?days=90`);
+                setGeoData(await geoRes.json());
+
+                // LFL
                 const today = new Date();
                 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                 const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-                const planFactRes = await fetch(
-                    `${API_BASE_URL}/api/analytics/plan-fact?period_start=${firstDay.toISOString().split("T")[0]}&period_end=${lastDay.toISOString().split("T")[0]}`
-                );
-                const planFact = await planFactRes.json();
-                setPlanFactData(planFact);
-
-                // LFL Сравнение (этот месяц vs прошлый месяц)
                 const lastMonthFirst = new Date(today.getFullYear(), today.getMonth() - 1, 1);
                 const lastMonthLast = new Date(today.getFullYear(), today.getMonth(), 0);
-
                 const lflRes = await fetch(
                     `${API_BASE_URL}/api/analytics/lfl?period1_start=${firstDay.toISOString().split("T")[0]}&period1_end=${lastDay.toISOString().split("T")[0]}&period2_start=${lastMonthFirst.toISOString().split("T")[0]}&period2_end=${lastMonthLast.toISOString().split("T")[0]}`
                 );
-                const lfl = await lflRes.json();
-                setLflData(lfl);
+                setLflData(await lflRes.json());
 
-                // Гео визуализация
-                const geoRes = await fetch(`${API_BASE_URL}/api/analytics/geo?days=90`);
-                const geo = await geoRes.json();
-                setGeoData(geo);
-
-                // Бостонская матрица
+                // Boston
                 const bostonRes = await fetch(`${API_BASE_URL}/api/analytics/boston-matrix?days=90`);
-                const boston = await bostonRes.json();
-                setBostonData(boston);
+                setBostonData(await bostonRes.json());
+
             } catch (err) {
-                console.error("Ошибка загрузки данных аналитики:", err);
+                console.error("Analytics data error:", err);
             } finally {
                 setLoading(false);
             }
@@ -91,119 +85,82 @@ export default function AdvancedAnalyticsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#202020] overflow-x-hidden">
-            <div className="max-w-full lg:max-w-[1600px] mx-auto space-y-6 p-6 mobile-container">
-                {/* Header */}
+        <div className="min-h-screen overflow-x-hidden animate-fade-in">
+            <div className="max-w-[1100px] mx-auto space-y-8 p-6 mobile-container">
 
-
-                {/* Advanced Filters */}
-                <AdvancedFilters
-                    onFiltersChange={handleFiltersChange}
-                    availableRegions={filterOptions.regions}
-                    availableCategories={filterOptions.categories}
-                    availableAgents={filterOptions.agents}
-                />
-
-                {/* KPI Карточки с LFL */}
-                {lflData && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {lflData.map((metric: any, idx: number) => (
-                            <Card
-                                key={idx}
-                                className="bg-[#262626] border-[#333333] backdrop-blur-sm rounded-2xl p-6"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-zinc-500">{metric.metric}</p>
-                                        <p className="text-2xl font-bold text-white mt-1">
-                                            {metric.period2_value.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <Badge
-                                        variant="secondary"
-                                        className={`rounded-full px-2 py-1 ${metric.change_percent > 0
-                                            ? "bg-green-500/20 text-green-300 border-green-500/30"
-                                            : metric.change_percent < 0
-                                                ? "bg-red-500/20 text-red-300 border-red-500/30"
-                                                : "bg-zinc-600/20 text-zinc-400 border-zinc-600/30"
-                                            }`}
-                                    >
-                                        {metric.change_percent > 0 ? (
-                                            <TrendingUp className="h-3 w-3 mr-1 inline" />
-                                        ) : metric.change_percent < 0 ? (
-                                            <TrendingDown className="h-3 w-3 mr-1 inline" />
-                                        ) : null}
-                                        <span className="text-xs font-medium">
-                                            {metric.change_percent > 0 ? "+" : ""}
-                                            {metric.change_percent.toFixed(1)}% vs ПГ
-                                        </span>
-                                    </Badge>
-                                </div>
-                            </Card>
-                        ))}
+                {/* 1. Header & Filters (Keep minimal) */}
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h1 className="text-3xl font-light tracking-tight text-white">Аналитика</h1>
+                        {lflData && lflData[0] && (
+                            <div className="flex items-center gap-4 text-sm">
+                                <span className="text-gray-400">Выручка</span>
+                                <span className="text-xl font-bold text-white tracking-wide">{lflData[0].period2_value.toLocaleString()} Br</span>
+                                <Badge variant="outline" className={`${lflData[0].change_percent >= 0 ? 'text-green-400 border-green-500/30' : 'text-red-400 border-red-500/30'}`}>
+                                    {lflData[0].change_percent > 0 ? '+' : ''}{lflData[0].change_percent}%
+                                </Badge>
+                            </div>
+                        )}
                     </div>
-                )}
+                    <AdvancedFilters
+                        onFiltersChange={handleFiltersChange}
+                        availableRegions={filterOptions.regions}
+                        availableCategories={filterOptions.categories}
+                        availableAgents={filterOptions.agents}
+                    />
+                </div>
 
-                {/* Bento Grid Layout - Phase 2 */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* ABC-XYZ Матрица - занимает 2 колонки */}
-                    <div className="lg:col-span-2">
+                {/* 2. THE CRYSTAL GRID (Vertical Stack: ABC/XYZ & Boston) */}
+                <div className="grid grid-cols-1 gap-12">
+
+                    {/* Left: ABC/XYZ Matrix */}
+                    <div className="aspect-square w-full">
                         {abcXyzData && !loading ? (
                             <ABCXYZMatrix data={abcXyzData} />
                         ) : (
-                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[600px] flex items-center justify-center">
-                                <div className="text-zinc-500">Загрузка ABC-XYZ Матрицы...</div>
-                            </Card>
+                            <div className="glass-panel h-full w-full flex items-center justify-center">
+                                <div className="text-gray-500">Загрузка...</div>
+                            </div>
                         )}
                     </div>
 
-                    {/* План-Факт Индикатор - занимает 1 колонку */}
-                    <div className="lg:col-span-1">
-                        {planFactData && !loading ? (
-                            <PlanFactGauge data={planFactData} />
-                        ) : (
-                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[600px] flex items-center justify-center">
-                                <div className="text-zinc-500">Загрузка План-Факт...</div>
-                            </Card>
-                        )}
-                    </div>
-                </div>
-
-                {/* Фаза 3: Гео + Бостонская матрица */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Гео визуализация */}
-                    <div>
-                        {geoData && !loading ? (
-                            <GeoMap data={geoData} />
-                        ) : (
-                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[400px] flex items-center justify-center">
-                                <div className="text-zinc-500">Загрузка географии...</div>
-                            </Card>
-                        )}
-                    </div>
-
-                    {/* Бостонская матрица */}
-                    <div>
+                    {/* Right: Boston Matrix */}
+                    <div className="aspect-square w-full">
                         {bostonData && !loading ? (
                             <BostonMatrix data={bostonData} />
                         ) : (
-                            <Card className="bg-[#262626] border-[#333333] rounded-3xl p-6 h-[400px] flex items-center justify-center">
-                                <div className="text-zinc-500">Загрузка Бостонской матрицы...</div>
-                            </Card>
+                            <div className="glass-panel h-full w-full flex items-center justify-center">
+                                <div className="animate-pulse bg-white/5 w-full h-full rounded-[40px]" />
+                            </div>
                         )}
                     </div>
+
                 </div>
 
-                {/* Фаза 3: What-If Симулятор */}
-                <WhatIfSimulator
-                    baseMetrics={{
-                        revenue: lflData?.[0]?.period2_value || 0,
-                        orders: 0,
-                        quantity: 0,
-                        customers: 0,
-                        avg_check: 0,
-                    }}
-                />
+                {/* 3. SALES GEOGRAPHY (Full Width) */}
+                <div>
+                    {geoData && !loading ? (
+                        <GeoMap data={geoData} />
+                    ) : (
+                        <div className="glass-panel h-full w-full flex items-center justify-center min-h-[300px]">
+                            <div className="animate-pulse bg-white/5 w-24 h-24 rounded-full" />
+                        </div>
+                    )}
+                </div>
+
+                {/* 4. Footer / Additional Tools (What-If) */}
+                <div className="pt-8 border-t border-white/5">
+                    <WhatIfSimulator
+                        baseMetrics={{
+                            revenue: lflData?.[0]?.period2_value || 0,
+                            orders: 0,
+                            quantity: 0,
+                            customers: 0,
+                            avg_check: 0,
+                        }}
+                    />
+                </div>
+
             </div>
         </div>
     );

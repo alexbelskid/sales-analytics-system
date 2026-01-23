@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Dashboard from '@/components/Dashboard';
 import AgentDashboard from '@/components/AgentDashboard';
+import LiquidButton from '@/components/LiquidButton';
 
 export default function DashboardPage() {
     const [activeTab, setActiveTab] = useState<'sales' | 'agents'>('agents');
@@ -10,25 +11,21 @@ export default function DashboardPage() {
     return (
         <div className="p-8 max-w-7xl mx-auto">
             {/* Tab Navigation */}
-            <div className="flex gap-2 mb-8 border-b border-[#262626]">
-                <button
+            <div className="flex gap-4 mb-8">
+                <LiquidButton
                     onClick={() => setActiveTab('sales')}
-                    className={`px-6 py-3 font-medium transition-all ${activeTab === 'sales'
-                        ? 'text-white border-b-2 border-rose-800'
-                        : 'text-[#808080] hover:text-white'
-                        }`}
+                    variant={activeTab === 'sales' ? 'primary' : 'secondary'}
+                    className="min-w-[120px]"
                 >
                     Продажи
-                </button>
-                <button
+                </LiquidButton>
+                <LiquidButton
                     onClick={() => setActiveTab('agents')}
-                    className={`px-6 py-3 font-medium transition-all ${activeTab === 'agents'
-                        ? 'text-white border-b-2 border-rose-800'
-                        : 'text-[#808080] hover:text-white'
-                        }`}
+                    variant={activeTab === 'agents' ? 'primary' : 'secondary'}
+                    className="min-w-[120px]"
                 >
                     Агенты
-                </button>
+                </LiquidButton>
             </div>
 
             {/* Tab Content */}

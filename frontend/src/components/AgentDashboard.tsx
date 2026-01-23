@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Upload, RefreshCw, Users, Target, Award, ArrowUpDown, Search } from 'lucide-react';
+import { TrendingUp, TrendingDown, Upload, RefreshCw, Users, Target, Award, ArrowUpDown, Search, ChevronDown } from 'lucide-react';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import { agentAnalyticsApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import AgentCard from './AgentCard';
@@ -159,27 +164,56 @@ export default function AgentDashboard() {
                 <div className="flex flex-wrap items-center justify-center gap-3">
                     <GlassDatePicker
                         value={periodStart}
-                        onChange={(e) => setPeriodStart(e.target.value)}
+                        onChange={(date) => setPeriodStart(date)}
                         className="min-w-[160px]"
                     />
                     <GlassDatePicker
                         value={periodEnd}
-                        onChange={(e) => setPeriodEnd(e.target.value)}
+                        onChange={(date) => setPeriodEnd(date)}
                         className="min-w-[160px]"
                     />
 
-                    <GlassSelect
-                        value={selectedRegion || ''}
-                        onChange={(e) => setSelectedRegion(e.target.value || null)}
-                        className="min-w-[160px]"
-                    >
-                        <option value="">Все регионы</option>
-                        <option value="БРЕСТ">БРЕСТ</option>
-                        <option value="ВИТЕБСК">ВИТЕБСК</option>
-                        <option value="ГОМЕЛЬ">ГОМЕЛЬ</option>
-                        <option value="ГРОДНО">ГРОДНО</option>
-                        <option value="МИНСК">МИНСК</option>
-                    </GlassSelect>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <LiquidButton
+                                variant="secondary"
+                                className="min-w-[160px] justify-between px-4"
+                            >
+                                <span className="mr-2">
+                                    {selectedRegion
+                                        ? (selectedRegion.charAt(0) + selectedRegion.slice(1).toLowerCase())
+                                        : 'Все регионы'}
+                                </span>
+                                <ChevronDown className="h-4 w-4 opacity-50" />
+                            </LiquidButton>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[160px] p-1 bg-[#1A1A1A] border-[#333333] rounded-2xl shadow-xl backdrop-blur-xl">
+                            <div className="flex flex-col gap-1">
+                                <button
+                                    onClick={() => setSelectedRegion(null)}
+                                    className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 ${!selectedRegion ? 'bg-white/10 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                                >
+                                    Все регионы
+                                </button>
+                                {[
+                                    { id: 'БРЕСТ', label: 'Брест' },
+                                    { id: 'ВИТЕБСК', label: 'Витебск' },
+                                    { id: 'ГОМЕЛЬ', label: 'Гомель' },
+                                    { id: 'ГРОДНО', label: 'Гродно' },
+                                    { id: 'МИНСК', label: 'Минск' },
+                                    { id: 'МОГИЛЕВ', label: 'Могилев' }
+                                ].map((region) => (
+                                    <button
+                                        key={region.id}
+                                        onClick={() => setSelectedRegion(region.id)}
+                                        className={`w-full text-left px-3 py-2.5 text-sm rounded-xl transition-all duration-200 ${selectedRegion === region.id ? 'bg-white/10 text-white' : 'text-gray-300 hover:bg-white/5 hover:text-white'}`}
+                                    >
+                                        {region.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
 
                     <LiquidButton
                         onClick={() => setShowImporter(!showImporter)}

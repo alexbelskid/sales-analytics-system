@@ -10,6 +10,9 @@ import { Loader2, Copy, Sparkles, GraduationCap, MessageSquare, Plus } from "luc
 import { aiApi } from "@/lib/api";
 import TrainingTab from "@/components/ai-assistant/TrainingTab";
 import TrainingModal from "@/components/ai-assistant/TrainingModal";
+import LiquidButton from "@/components/LiquidButton";
+import GlassInput from "@/components/GlassInput";
+import GlassSelect from "@/components/GlassSelect";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
 
@@ -193,7 +196,7 @@ export default function EmailsPage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-[#202020] text-white">
+        <div className="min-h-screen text-white">
             <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8 p-6">
 
                 {/* Header */}
@@ -202,16 +205,15 @@ export default function EmailsPage() {
                         <h1 className="text-2xl sm:text-[32px] font-semibold mb-2">Автоответы</h1>
 
                         {activeTab === 'training' && (
-                            <Button
+                            <LiquidButton
                                 onClick={() => {
                                     setEditingTraining(null);
                                     setShowTrainingModal(true);
                                 }}
-                                className="bg-rose-600 text-white hover:bg-rose-700 rounded-full px-6 h-10 font-medium transition-all shadow-lg shadow-rose-900/20"
+                                icon={Plus}
                             >
-                                <Plus className="mr-2 h-4 w-4" />
                                 Добавить пример
-                            </Button>
+                            </LiquidButton>
                         )}
                     </div>
                     {/* Tabs Navigation */}
@@ -250,20 +252,18 @@ export default function EmailsPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm text-[#808080] mb-2">От кого</label>
-                                        <Input
+                                        <GlassInput
                                             placeholder="client@example.com"
                                             value={sender}
                                             onChange={(e) => setSender(e.target.value)}
-                                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300 min-h-[44px]"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm text-[#808080] mb-2">Тема</label>
-                                        <Input
+                                        <GlassInput
                                             placeholder="Запрос коммерческого предложения"
                                             value={subject}
                                             onChange={(e) => setSubject(e.target.value)}
-                                            className="bg-[#262626] border-[#333333] text-white placeholder:text-[#404040] rounded-xl h-12 px-4 focus-visible:ring-2 focus-visible:ring-rose-800/25 focus-visible:ring-offset-0 focus-visible:border-rose-800 transition-all duration-300"
                                         />
                                     </div>
                                 </div>
@@ -282,42 +282,27 @@ export default function EmailsPage() {
                                 {/* Tone Dropdown */}
                                 <div>
                                     <label className="block text-sm text-[#808080] mb-2">Тон ответа</label>
-                                    <select
+                                    <GlassSelect
                                         value={tone}
                                         onChange={(e) => setTone(e.target.value)}
-                                        className="w-full bg-[#262626] border border-[#333333] text-white rounded-xl h-12 px-4 focus:outline-none focus:border-rose-800 focus:ring-2 focus:ring-rose-800/25 transition-all duration-300 appearance-none cursor-pointer"
-                                        style={{
-                                            backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
-                                            backgroundRepeat: 'no-repeat',
-                                            backgroundPosition: 'right 16px center',
-                                        }}
                                     >
                                         {TONES.map((t) => (
-                                            <option key={t.id} value={t.id} className="bg-[#262626]">
+                                            <option key={t.id} value={t.id}>
                                                 {t.label}
                                             </option>
                                         ))}
-                                    </select>
+                                    </GlassSelect>
                                 </div>
 
                                 {/* Generate Button */}
-                                <Button
+                                <LiquidButton
                                     onClick={handleGenerate}
                                     disabled={loading || !body}
-                                    className="w-full bg-rose-800 text-white hover:bg-rose-700 rounded-full h-12 font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-rose-800/25"
+                                    className="w-full"
+                                    icon={loading ? Loader2 : Sparkles}
                                 >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            AI думает...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Sparkles className="mr-2 h-4 w-4" />
-                                            Сгенерировать
-                                        </>
-                                    )}
-                                </Button>
+                                    {loading ? 'AI думает...' : 'Сгенерировать'}
+                                </LiquidButton>
                             </div>
 
                             {/* Divider */}
@@ -341,23 +326,21 @@ export default function EmailsPage() {
                                             onChange={(e) => setGeneratedResponse(e.target.value)}
                                         />
                                         <div className="flex gap-3">
-                                            <Button
+                                            <LiquidButton
                                                 onClick={() => {
                                                     setGeneratedResponse("");
                                                     setConfidence(0);
                                                 }}
-                                                variant="outline"
-                                                className="bg-transparent border-[#333333] text-white hover:bg-[#262626] hover:text-white rounded-full h-10 transition-all duration-300"
+                                                variant="secondary"
                                             >
                                                 Очистить
-                                            </Button>
-                                            <Button
+                                            </LiquidButton>
+                                            <LiquidButton
                                                 onClick={handleCopy}
-                                                className="bg-rose-800 text-white hover:bg-rose-700 rounded-full h-10 transition-all duration-300 hover:shadow-lg hover:shadow-rose-800/25"
+                                                icon={Copy}
                                             >
-                                                <Copy className="mr-2 h-4 w-4" />
                                                 Копировать
-                                            </Button>
+                                            </LiquidButton>
                                         </div>
                                     </div>
                                 ) : (
