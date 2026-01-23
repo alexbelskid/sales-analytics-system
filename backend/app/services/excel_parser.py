@@ -492,16 +492,9 @@ class ExcelParser:
         
         return None
     
-    def _normalize_name(self, name: str) -> str:
-        """Normalize company/product name for deduplication"""
-        if not name:
-            return ''
-        
-        # Convert to lowercase
-        normalized = name.lower().strip()
-        
-        # Remove common prefixes/suffixes
-        remove_patterns = [
+    # Compiled patterns for normalization
+    _REMOVE_PATTERNS = [
+        re.compile(p) for p in [
             r'^ооо\s+',
             r'^оао\s+',
             r'^зао\s+',
@@ -513,9 +506,19 @@ class ExcelParser:
             r'"',
             r"'",
         ]
+    ]
+
+    def _normalize_name(self, name: str) -> str:
+        """Normalize company/product name for deduplication"""
+        if not name:
+            return ''
         
-        for pattern in remove_patterns:
-            normalized = re.sub(pattern, '', normalized)
+        # Convert to lowercase
+        normalized = name.lower().strip()
+
+        # Remove common prefixes/suffixes
+        for pattern in self._REMOVE_PATTERNS:
+            normalized = pattern.sub('', normalized)
         
         # Remove extra whitespace
         normalized = ' '.join(normalized.split())
