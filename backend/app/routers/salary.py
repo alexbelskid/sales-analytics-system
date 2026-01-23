@@ -43,16 +43,37 @@ async def calculate_salary(
             next_month = f"{year}-{month + 1:02d}-01"
         current_month = f"{year}-{month:02d}-01"
         
-        for agent in agents:
-            # Получаем продажи агента за месяц
-            sales_result = supabase.table("sales")\
-                .select("total_amount")\
-                .eq("agent_id", agent["id"])\
-                .gte("sale_date", current_month)\
-                .lt("sale_date", next_month)\
-                .execute()
+        agent_ids = [agent["id"] for agent in agents]
+
+        # Получаем продажи для всех агентов за месяц одним запросом
+        all_sales = supabase.table("sales")\
+            .select("agent_id, total_amount")\
+            .in_("agent_id", agent_ids)\
+            .gte("sale_date", current_month)\
+            .lt("sale_date", next_month)\
+            .execute()
             
-            total_sales = sum(float(s.get("total_amount", 0)) for s in sales_result.data)
+        sales_by_agent = {}
+        for sale in all_sales.data:
+            aid = sale.get("agent_id")
+            if aid not in sales_by_agent:
+                sales_by_agent[aid] = []
+            sales_by_agent[aid].append(sale)
+
+        # Получаем сохранённые расчёты для всех агентов одним запросом
+        all_calcs = supabase.table("salary_calculations")\
+            .select("agent_id, penalty, bonus, notes")\
+            .in_("agent_id", agent_ids)\
+            .eq("year", year)\
+            .eq("month", month)\
+            .execute()
+
+        calcs_by_agent = {c.get("agent_id"): c for c in all_calcs.data}
+
+        for agent in agents:
+            # Получаем продажи агента из кэша
+            agent_sales = sales_by_agent.get(agent["id"], [])
+            total_sales = sum(float(s.get("total_amount", 0)) for s in agent_sales)
             
             # Расчёт комиссии
             commission_rate = float(agent.get("commission_rate", 5.0))
@@ -66,19 +87,14 @@ async def calculate_salary(
             bonus = bonus_amount if total_sales >= bonus_threshold else 0
             
             # Проверяем есть ли сохранённый расчёт со штрафами
-            saved = supabase.table("salary_calculations")\
-                .select("penalty, bonus, notes")\
-                .eq("agent_id", agent["id"])\
-                .eq("year", year)\
-                .eq("month", month)\
-                .execute()
+            saved_calc = calcs_by_agent.get(agent["id"])
             
             penalty = 0
-            if saved.data:
-                penalty = float(saved.data[0].get("penalty", 0))
+            if saved_calc:
+                penalty = float(saved_calc.get("penalty", 0))
                 # Если бонус был вручную изменён
-                if saved.data[0].get("bonus") is not None:
-                    bonus = float(saved.data[0].get("bonus", 0))
+                if saved_calc.get("bonus") is not None:
+                    bonus = float(saved_calc.get("bonus", 0))
             
             total_salary = base_salary + commission + bonus - penalty
             
