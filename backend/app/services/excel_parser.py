@@ -178,7 +178,7 @@ class ExcelParser:
         chunk_num = 0
         parsed_chunk: List[Dict[str, Any]] = []
         
-        for idx, row in df.iterrows():
+        for idx, row in enumerate(df.itertuples(index=False, name=None)):
             try:
                 parsed = self._parse_pandas_row(row, idx + 2)  # +2 for 1-indexed + header
                 if parsed:
@@ -241,11 +241,14 @@ class ExcelParser:
             logger.warning(f"Calamine direct read failed: {e}")
             return None
     
-    def _parse_pandas_row(self, row: pd.Series, row_num: int) -> Optional[Dict[str, Any]]:
-        """Parse a pandas row into structured data"""
+    def _parse_pandas_row(self, row: Any, row_num: int) -> Optional[Dict[str, Any]]:
+        """Parse a pandas row (Series or tuple) into structured data"""
         
         # Get values by column index
-        cols = row.values
+        if hasattr(row, 'values'):
+            cols = row.values
+        else:
+            cols = row
         
         # Use auto-detected column map with safe fallbacks
         cmap = self._column_map
