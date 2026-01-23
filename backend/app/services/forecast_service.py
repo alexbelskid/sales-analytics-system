@@ -57,39 +57,74 @@ class ForecastService:
             }
         
         try:
-            # Получаем исторические данные
-            query = supabase.table("sales").select("sale_date, total_amount")
+            # Limit history to 5 years
+            start_date = (datetime.now() - timedelta(days=365 * 5)).strftime('%Y-%m-%d')
             
+            # Получаем исторические данные
             if product_id:
-                # Фильтр по товару через sale_items
-                sales_with_product = supabase.table("sale_items")\
-                    .select("sale_id")\
-                    .eq("product_id", product_id)\
-                    .execute()
-                if sales_with_product.data:
-                    sale_ids = [s["sale_id"] for s in sales_with_product.data]
-                    query = query.in_("id", sale_ids)
+                # Optimized filtering using join
+                query = supabase.table("sales")\
+                    .select("sale_date, total_amount, sale_items!inner(product_id)")\
+                    .eq("sale_items.product_id", product_id)
+            else:
+                query = supabase.table("sales").select("sale_date, total_amount")
+
+            query = query.gte("sale_date", start_date)
             
             if customer_id:
                 query = query.eq("customer_id", customer_id)
             
-            result = query.execute()
+            # Pagination with incremental aggregation
+            PAGE_SIZE = 1000
+            offset = 0
+            aggregated_df = pd.DataFrame()
+            total_records_fetched = 0
+
+            while True:
+                # Fetch page
+                result = query.range(offset, offset + PAGE_SIZE - 1).execute()
+
+                if not result.data:
+                    break
+
+                # Process batch
+                batch_df = pd.DataFrame(result.data)
+                batch_df['ds'] = pd.to_datetime(batch_df['sale_date'])
+                batch_df['y'] = batch_df['total_amount'].astype(float)
+
+                # Pre-aggregate batch
+                batch_agg = batch_df.groupby('ds')['y'].sum().reset_index()
+
+                if aggregated_df.empty:
+                    aggregated_df = batch_agg
+                else:
+                    aggregated_df = pd.concat([aggregated_df, batch_agg])
+                    # Re-aggregate to keep size small
+                    aggregated_df = aggregated_df.groupby('ds')['y'].sum().reset_index()
+
+                fetched_count = len(result.data)
+                total_records_fetched += fetched_count
+
+                if fetched_count < PAGE_SIZE:
+                    break
+
+                offset += PAGE_SIZE
+
+                # Safety break to avoid infinite loops
+                if offset > 1000000:
+                    import logging
+                    logging.getLogger(__name__).warning("Forecast training hit 1M rows limit")
+                    break
             
-            if not result.data or len(result.data) < 10:
+            df = aggregated_df
+
+            if df.empty or len(df) < 10:
                 return {
                     "status": "error",
                     "message": "Недостаточно данных для обучения (минимум 10 записей)",
-                    "records_used": len(result.data) if result.data else 0,
+                    "records_used": total_records_fetched,
                     "metrics": {}
                 }
-            
-            # Подготовка данных для Prophet
-            df = pd.DataFrame(result.data)
-            df['ds'] = pd.to_datetime(df['sale_date'])
-            df['y'] = df['total_amount'].astype(float)
-            
-            # Агрегация по дням
-            df = df.groupby('ds')['y'].sum().reset_index()
             
             # Обучаем Prophet
             self.model = Prophet(
@@ -185,7 +220,11 @@ class ForecastService:
     
     async def _simple_forecast(self, months_ahead: int) -> Dict[str, Any]:
         """Простой прогноз без Prophet"""
-        result = supabase.table("sales").select("sale_date, total_amount").execute()
+        # Limit history to 2 years for simple forecast
+        start_date = (datetime.now() - timedelta(days=365 * 2)).strftime('%Y-%m-%d')
+        result = supabase.table("sales").select("sale_date, total_amount")\
+            .gte("sale_date", start_date)\
+            .execute()
         
         if not result.data:
             return {
@@ -226,7 +265,11 @@ class ForecastService:
         Returns:
             Список аномальных дней
         """
-        result = supabase.table("sales").select("sale_date, total_amount").execute()
+        # Limit to 5 years
+        start_date = (datetime.now() - timedelta(days=365 * 5)).strftime('%Y-%m-%d')
+        result = supabase.table("sales").select("sale_date, total_amount")\
+            .gte("sale_date", start_date)\
+            .execute()
         
         if not result.data or len(result.data) < 10:
             return []
@@ -267,8 +310,11 @@ class ForecastService:
         Returns:
             Данные о месячной и дневной сезонности
         """
-        # Get all sales (date and amount)
-        result = supabase.table("sales").select("sale_date, total_amount").execute()
+        # Get all sales (date and amount) - limit to 5 years
+        start_date = (datetime.now() - timedelta(days=365 * 5)).strftime('%Y-%m-%d')
+        result = supabase.table("sales").select("sale_date, total_amount")\
+            .gte("sale_date", start_date)\
+            .execute()
         
         if not result.data:
             return {"monthly": [], "weekly": []}
