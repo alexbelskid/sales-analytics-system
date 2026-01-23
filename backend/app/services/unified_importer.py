@@ -258,25 +258,88 @@ class UnifiedImporter:
                 
                 logger.info(f"[BATCH {batch_start//BATCH_SIZE + 1}] Processing rows {batch_start}-{batch_end} ({len(batch_df)} rows)")
                 
+                # ==========================================================
+                # OPTIMIZATION: Bulk Resolve Customers and Products
+                # ==========================================================
+
+                # 1. Collect all names
+                customer_names = set()
+                product_names = set()
+
+                for row in batch_df.itertuples(index=False):
+                    c_name = str(getattr(row, 'customer_name', 'Unknown'))
+                    customer_names.add(c_name)
+
+                    p_name = getattr(row, 'product_name', None)
+                    if p_name:
+                        product_names.add(str(p_name))
+
+                # 2. Bulk fetch existing IDs
+                customer_map = {} # name -> id
+                product_map = {}  # name -> id
+
+                # Customers
+                if customer_names:
+                    names_list = list(customer_names)
+                    # Fetch in chunks to avoid URL limit
+                    for i in range(0, len(names_list), 100):
+                        chunk = names_list[i:i+100]
+                        res = supabase.table("customers").select("id, name").in_("name", chunk).execute()
+                        for r in res.data:
+                            customer_map[r["name"]] = r["id"]
+
+                # Products
+                if product_names:
+                    names_list = list(product_names)
+                    for i in range(0, len(names_list), 100):
+                        chunk = names_list[i:i+100]
+                        res = supabase.table("products").select("id, name").in_("name", chunk).execute()
+                        for r in res.data:
+                            product_map[r["name"]] = r["id"]
+
+                # 3. Identify and Create Missing
+                missing_customers = [name for name in customer_names if name not in customer_map]
+                missing_products = [name for name in product_names if name not in product_map]
+
+                # Bulk insert missing customers
+                if missing_customers:
+                    new_customers = [
+                        {"name": name, "normalized_name": name.lower().strip()}
+                        for name in missing_customers
+                    ]
+                    # Insert and return IDs
+                    res = supabase.table("customers").insert(new_customers).select().execute()
+                    for r in res.data:
+                        customer_map[r["name"]] = r["id"]
+
+                # Bulk insert missing products
+                if missing_products:
+                    new_products = [
+                        {"name": name, "normalized_name": name.lower().strip()}
+                        for name in missing_products
+                    ]
+                    res = supabase.table("products").insert(new_products).select().execute()
+                    for r in res.data:
+                        product_map[r["name"]] = r["id"]
+
+                # ==========================================================
+                # Prepare Bulk Insert Data
+                # ==========================================================
+
+                sales_to_insert = []
+                sale_items_to_insert = []
+
                 for row in batch_df.itertuples(index=True):
                     idx = row.Index
                     try:
-                        # Get or create customer
-                        customer_name = str(getattr(row, 'customer_name', 'Unknown'))
-                        customer_result = supabase.table("customers").select("id").eq("name", customer_name).execute()
-                        
-                        if customer_result.data:
-                            customer_id = customer_result.data[0]["id"]
-                        else:
-                            # Create normalized name (lowercase, stripped)
-                            normalized_name = customer_name.lower().strip()
-                            new_customer = supabase.table("customers").insert({
-                                "name": customer_name,
-                                "normalized_name": normalized_name
-                            }).execute()
-                            customer_id = new_customer.data[0]["id"]
-                        
-                        # Parse date with GUARANTEED fallback values
+                        # Resolve Customer ID
+                        c_name = str(getattr(row, 'customer_name', 'Unknown'))
+                        customer_id = customer_map.get(c_name)
+                        if not customer_id:
+                             # Should not happen if logic above is correct
+                             raise ValueError(f"Could not resolve customer: {c_name}")
+
+                        # Parse date (logic from original)
                         sale_date = None
                         year = None
                         month = None
@@ -285,13 +348,11 @@ class UnifiedImporter:
                             raw_date = getattr(row, 'date', None)
                             if raw_date is not None and raw_date != '':
                                 if isinstance(raw_date, str):
-                                    # String date
                                     sale_date_obj = pd.to_datetime(raw_date).date()
                                     sale_date = sale_date_obj.isoformat()
                                     year = sale_date_obj.year
                                     month = sale_date_obj.month
                                 elif hasattr(raw_date, 'year') and hasattr(raw_date, 'month'):
-                                    # Date/datetime object
                                     if hasattr(raw_date, 'date'):
                                         sale_date_obj = raw_date.date()
                                     else:
@@ -302,59 +363,47 @@ class UnifiedImporter:
                         except Exception as date_error:
                             logger.warning(f"Date parsing failed: {date_error}, using current date")
                         
-                        # GUARANTEED fallback to current date if parsing failed
                         if sale_date is None or year is None or month is None:
                             now = datetime.now()
                             sale_date = now.date().isoformat()
                             year = now.year
                             month = now.month
                         
-                        # Get total amount with fallback
                         total = float(getattr(row, 'amount', getattr(row, 'total', 0)))
                         
-                        # Create sale with ALL required fields + import_id for tracking
-                        sale = supabase.table("sales").insert({
+                        # Generate ID locally
+                        sale_id = str(uuid4())
+
+                        sales_to_insert.append({
+                            "id": sale_id,
                             "customer_id": customer_id,
                             "sale_date": sale_date,
                             "year": year,
                             "month": month,
                             "total_amount": total,
-                            "import_id": import_id  # ✅ Track which import created this sale
-                        }).execute()
-                        
-                        sale_id = sale.data[0]["id"]
+                            "import_id": import_id
+                        })
                         sale_ids.append(sale_id)
                         
-                        # Add sale items if product info present
+                        # Prepare Sale Item
                         product_name_val = getattr(row, 'product_name', None)
                         if product_name_val:
-                            product_name = str(product_name_val)
-                            product_result = supabase.table("products").select("id").eq("name", product_name).execute()
-                            
-                            if product_result.data:
-                                product_id = product_result.data[0]["id"]
-                            else:
-                                # Create normalized name
-                                normalized_name = product_name.lower().strip()
-                                new_product = supabase.table("products").insert({
-                                    "name": product_name,
-                                    "normalized_name": normalized_name
-                                }).execute()
-                                product_id = new_product.data[0]["id"]
+                            p_name = str(product_name_val)
+                            product_id = product_map.get(p_name)
+                            if not product_id:
+                                raise ValueError(f"Could not resolve product: {p_name}")
                             
                             quantity = int(getattr(row, 'quantity', 1))
                             unit_price = float(getattr(row, 'price', total / quantity if quantity > 0 else 0))
                             
-                            supabase.table("sale_items").insert({
+                            sale_items_to_insert.append({
                                 "sale_id": sale_id,
                                 "product_id": product_id,
                                 "quantity": quantity,
                                 "unit_price": unit_price,
                                 "amount": quantity * unit_price
-                            }).execute()
-                        
-                        imported += 1
-                    
+                            })
+
                     except Exception as e:
                         error_msg = f"Row {idx}: {str(e)[:100]}"
                         logger.error(f"[ROW ERROR] {error_msg}", exc_info=False)
@@ -366,6 +415,42 @@ class UnifiedImporter:
                         })
                         failed += 1
                 
+                # ==========================================================
+                # Bulk Execute
+                # ==========================================================
+
+                if sales_to_insert:
+                    try:
+                        # Insert Sales
+                        supabase.table("sales").insert(sales_to_insert).execute()
+
+                        # Insert Items
+                        if sale_items_to_insert:
+                            supabase.table("sale_items").insert(sale_items_to_insert).execute()
+
+                        imported += len(sales_to_insert)
+
+                    except Exception as e:
+                        logger.error(f"Batch insert failed: {e}. Attempting fallback to individual rows.")
+
+                        # Fallback: One by one
+                        for sale in sales_to_insert:
+                            try:
+                                # Insert Sale
+                                supabase.table("sales").insert(sale).execute()
+
+                                # Insert Items for this sale
+                                items = [item for item in sale_items_to_insert if item["sale_id"] == sale["id"]]
+                                if items:
+                                    supabase.table("sale_items").insert(items).execute()
+
+                                imported += 1
+                            except Exception as inner_e:
+                                error_msg = f"Fallback insert failed for sale {sale['id']}: {str(inner_e)[:100]}"
+                                logger.error(f"[ROW ERROR] {error_msg}")
+                                errors.append({'row': -1, 'error': str(inner_e)[:200]})
+                                failed += 1
+
                 # Explicit cleanup after each batch
                 del batch_df
                 
