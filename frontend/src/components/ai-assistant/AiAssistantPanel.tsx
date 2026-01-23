@@ -130,7 +130,7 @@ export default function AiAssistantPanel() {
 
     // --- UNIFIED RENDER WITH TRANSITIONS ---
     return (
-        <div className="h-[600px] flex flex-col relative overflow-hidden">
+        <div className="h-full flex flex-col relative overflow-hidden">
 
             {/* Messages Area - Expands when started */}
             <div className={cn(

@@ -132,8 +132,8 @@ export default function AIAssistantPage() {
     };
 
     return (
-        <div className="min-h-screen text-white">
-            <div className="max-w-7xl mx-auto p-6">
+        <div className="h-[calc(100vh-160px)] flex flex-col overflow-hidden text-white">
+            <div className="flex-none p-6 pb-0"> {/* Header fixed at top */}
                 {/* Header Section */}
                 {/* Header Section - Only show continuously if there are actions (like Add button) */}
                 {(activeTab === 'knowledge') && (
@@ -173,50 +173,58 @@ export default function AIAssistantPage() {
                         </LiquidButton>
                     ))}
                 </div>
+            </div>
 
-                {/* Content Area */}
-                <div className="animate-in fade-in duration-500 min-h-[500px]">
-                    {activeTab === 'chat' && <AiAssistantPanel />}
-
-                    {loading ? (
-                        <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <div className="h-8 w-8 border-2 border-rose-500/20 border-t-rose-500 rounded-full animate-spin" />
-                            <p className="text-sm text-[#404040]">Загрузка данных...</p>
-                        </div>
-                    ) : (
-                        <>
-                            {activeTab === 'knowledge' && (
-                                <KnowledgeTab
-                                    items={knowledgeItems}
-                                    categories={CATEGORIES}
-                                    onEdit={(item) => {
-                                        setEditingKnowledge(item);
-                                        setShowKnowledgeModal(true);
-                                    }}
-                                    onDelete={handleDeleteKnowledge}
-                                />
-                            )}
-                            {activeTab === 'status' && (
-                                <StatusTab
-                                    status={aiStatus}
-                                    knowledgeCount={knowledgeItems.length}
-                                    trainingCount={0}
-                                />
-                            )}
-                        </>
-                    )}
-                </div>
-
-                {/* Modals */}
-                {showKnowledgeModal && (
-                    <KnowledgeModal
-                        item={editingKnowledge}
-                        categories={CATEGORIES}
-                        onClose={() => setShowKnowledgeModal(false)}
-                        onSave={handleSaveKnowledge}
-                    />
+            {/* Content Area - Scrollable */}
+            <div className="flex-1 min-h-0 overflow-hidden relative">
+                {activeTab === 'chat' ? (
+                    /* Chat handles its own scrolling internally */
+                    <div className="h-full">
+                        <AiAssistantPanel />
+                    </div>
+                ) : (
+                    /* Other tabs need a scroll container */
+                    <div className="h-full overflow-y-auto p-6 pt-0 animate-in fade-in duration-500">
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                <div className="h-8 w-8 border-2 border-rose-500/20 border-t-rose-500 rounded-full animate-spin" />
+                                <p className="text-sm text-[#404040]">Загрузка данных...</p>
+                            </div>
+                        ) : (
+                            <>
+                                {activeTab === 'knowledge' && (
+                                    <KnowledgeTab
+                                        items={knowledgeItems}
+                                        categories={CATEGORIES}
+                                        onEdit={(item) => {
+                                            setEditingKnowledge(item);
+                                            setShowKnowledgeModal(true);
+                                        }}
+                                        onDelete={handleDeleteKnowledge}
+                                    />
+                                )}
+                                {activeTab === 'status' && (
+                                    <StatusTab
+                                        status={aiStatus}
+                                        knowledgeCount={knowledgeItems.length}
+                                        trainingCount={0}
+                                    />
+                                )}
+                            </>
+                        )}
+                    </div>
                 )}
             </div>
+
+            {/* Modals */}
+            {showKnowledgeModal && (
+                <KnowledgeModal
+                    item={editingKnowledge}
+                    categories={CATEGORIES}
+                    onClose={() => setShowKnowledgeModal(false)}
+                    onSave={handleSaveKnowledge}
+                />
+            )}
         </div>
     );
 }

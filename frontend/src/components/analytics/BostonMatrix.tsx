@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Star, HelpCircle, DollarSign, Dog } from "lucide-react";
+import { TrendingUp, TrendingDown, Star, HelpCircle, DollarSign, Dog, LayoutDashboard } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -104,7 +104,7 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
         return (
             <div
                 onClick={() => { setSelectedQuadrant(quadrant); setShowModal(true); }}
-                className="relative group w-full h-full flex flex-col pt-3 px-3 pb-0 cursor-pointer overflow-hidden transition-colors hover:bg-white/[0.02]"
+                className="relative group h-full w-full rounded-xl border border-white/20 bg-white/[0.06] hover:bg-white/[0.12] hover:border-white/30 transition-colors duration-300 cursor-pointer flex flex-col p-3 overflow-hidden"
             >
                 {/* Header - Minimal */}
                 <div className="flex items-center justify-between mb-2 shrink-0 px-1">
@@ -129,7 +129,7 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
                 </div>
 
                 {/* Footer / More Indicator */}
-                <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-auto pb-2 px-1">
+                <div className="flex items-center justify-between pt-2 border-t border-white/10 mt-auto pb-2 px-1">
                     <span className="text-[9px] text-gray-600 font-mono tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
                         ПОДРОБНЕЕ
                     </span>
@@ -144,62 +144,55 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
     };
 
     return (
-        <div className="glass-panel p-8 rounded-[40px] border border-white/5 relative h-full flex flex-col hover:!transform-none hover:!shadow-none transition-none">
+        <div className="relative overflow-hidden rounded-[40px] border border-white/[0.08] backdrop-blur-[30px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8),inset_0_0_40px_0_rgba(255,255,255,0.02)] p-8 h-full flex flex-col highlight-none">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
             {/* Header */}
             <div className="flex items-center justify-between mb-8 shrink-0">
-                <div>
-                    <h3 className="text-xl font-medium text-white tracking-wide">BCG Matrix</h3>
-                    <p className="text-sm text-gray-400">
-                        Стратегический анализ: Рост (Vertical) vs Доля рынка (Horizontal)
-                    </p>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-2">
-                        <Star className="w-3 h-3 text-purple-400" />
-                        <span>Лидеры</span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                        <DollarSign className="w-3 h-3 text-green-400" />
-                        <span>Cash Cows</span>
-                    </span>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
+                        <LayoutDashboard className="w-6 h-6 text-gray-200" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-medium text-white tracking-wide">BCG Matrix</h3>
+                    </div>
                 </div>
             </div>
 
             {/* Matrix Container */}
             <div className="flex-1 flex gap-4 min-h-0">
                 {/* Y-Axis Labels (Growth) */}
-                <div className="flex flex-col justify-between py-8 text-gray-400 text-xs font-bold w-6 shrink-0">
-                    <div className="h-1/2 flex items-center justify-center -rotate-90 text-[10px] tracking-widest text-gray-500">ВЫСОКИЙ</div>
-                    <div className="h-1/2 flex items-center justify-center -rotate-90 text-[10px] tracking-widest text-gray-600">НИЗКИЙ</div>
+                <div className="grid grid-rows-2 gap-2 text-gray-400 text-xs font-bold w-6 shrink-0">
+                    <div className="flex items-center justify-center -rotate-90 text-[10px] tracking-widest text-gray-500">ВЫСОКИЙ</div>
+                    <div className="flex items-center justify-center -rotate-90 text-[10px] tracking-widest text-gray-600">НИЗКИЙ</div>
                 </div>
 
                 {/* The Grid + X-Axis Labels */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col gap-2">
                     {/* The 2x2 Grid */}
-                    <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-1 rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/40">
+                    <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2">
                         {/* Row 1 */}
-                        <div className="relative border-r border-b border-white/5 bg-white/[0.02]">
+                        <div className="relative rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
                             {renderQuadrant("question_mark")}
                         </div>
-                        <div className="relative border-b border-white/5 bg-white/[0.02]">
+                        <div className="relative rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
                             {renderQuadrant("star")}
                         </div>
 
                         {/* Row 2 */}
-                        <div className="relative border-r border-white/5 bg-white/[0.02]">
+                        <div className="relative rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
                             {renderQuadrant("dog")}
                         </div>
-                        <div className="relative bg-white/[0.02]">
+                        <div className="relative rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden">
                             {renderQuadrant("cash_cow")}
                         </div>
                     </div>
 
                     {/* X-Axis Labels (Share) */}
-                    <div className="flex justify-between px-16 pt-4 text-gray-400 text-xs font-bold h-10 shrink-0">
-                        <div className="w-1/2 flex justify-center text-center">
+                    <div className="grid grid-cols-2 gap-2 text-gray-400 text-xs font-bold h-6 shrink-0 px-0">
+                        <div className="flex items-center justify-center text-center">
                             <span className="text-[10px] tracking-widest text-gray-600">НИЗКАЯ ДОЛЯ</span>
                         </div>
-                        <div className="w-1/2 flex justify-center text-center">
+                        <div className="flex items-center justify-center text-center">
                             <span className="text-[10px] tracking-widest text-gray-500">ВЫСОКАЯ ДОЛЯ</span>
                         </div>
                     </div>
@@ -208,7 +201,8 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
 
             {/* Modal for Details */}
             <Dialog open={showModal} onOpenChange={setShowModal}>
-                <DialogContent className="glass-panel border-white/10 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] overflow-hidden border border-white/[0.1] backdrop-blur-[40px] shadow-2xl bg-black/40 text-white max-w-2xl max-h-[80vh] overflow-y-auto z-[100]">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none" />
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-light">
                             {selectedQuadrant && quadrantConfig[selectedQuadrant]?.label}
@@ -221,18 +215,17 @@ export function BostonMatrix({ data }: BostonMatrixProps) {
                         {selectedQuadrant && products
                             .filter(p => p.quadrant === selectedQuadrant)
                             .map((p) => (
-                                <div key={p.product_id} className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
-                                    <span className="text-sm font-medium">{p.name}</span>
-                                    <div className="flex items-center gap-6 text-sm text-gray-400">
-                                        <div className="flex items-center gap-2">
+                                <div key={p.product_id} className="grid grid-cols-[1fr,auto] items-center gap-4 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/20 transition-colors cursor-default">
+                                    <span className="text-sm font-medium truncate" title={p.name}>{p.name}</span>
+                                    <div className="flex items-center gap-4 shrink-0 justify-end w-[240px]">
+                                        <div className="w-[80px] flex items-center justify-end gap-1">
                                             <TrendingUp className="w-3 h-3 text-gray-500" />
-                                            <span>{p.revenue_growth > 0 ? '+' : ''}{p.revenue_growth.toFixed(1)}%</span>
+                                            <span className="text-sm text-gray-400 font-mono">{p.revenue_growth > 0 ? '+' : ''}{p.revenue_growth.toFixed(1)}%</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-xs text-gray-500">Доля:</span>
-                                            <span>{p.market_share.toFixed(1)}%</span>
+                                        <div className="w-[60px] flex items-center justify-end gap-1">
+                                            <span className="text-sm text-gray-400 font-mono">{p.market_share.toFixed(1)}%</span>
                                         </div>
-                                        <span className="font-mono">{p.revenue.toLocaleString()} Br</span>
+                                        <span className="text-sm text-gray-400 font-mono w-[80px] text-right">{p.revenue.toLocaleString()} Br</span>
                                     </div>
                                 </div>
                             ))}

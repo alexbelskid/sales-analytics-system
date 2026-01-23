@@ -105,9 +105,10 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
     };
 
     return (
-        <div className="glass-panel p-8 rounded-[40px] relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-[40px] border border-white/[0.08] backdrop-blur-[30px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8),inset_0_0_40px_0_rgba(255,255,255,0.02)] p-8 highlight-none">
             {/* Decorative sheen */}
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
 
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
@@ -117,7 +118,6 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                     </div>
                     <div>
                         <h3 className="text-xl font-medium text-white tracking-wide">What-If сценарии</h3>
-                        <p className="text-sm text-gray-400">Симуляция влияния на выручку</p>
                     </div>
                 </div>
             </div>
@@ -202,7 +202,7 @@ export function WhatIfSimulator({ baseMetrics, onSimulate }: WhatIfSimulatorProp
                         <button
                             key={idx}
                             onClick={() => applyPreset(preset)}
-                            className="w-full p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-300 text-left group"
+                            className="w-full p-4 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-colors duration-300 text-left group"
                         >
                             <h4 className="font-medium text-white text-sm mb-1 group-hover:text-gray-200">{preset.name}</h4>
                             <p className="text-xs text-gray-500 group-hover:text-gray-400">{preset.description}</p>
