@@ -46,3 +46,6 @@ slowapi==0.1.9
 requests==2.32.0
 pytest==8.0.0
 
+sqlparse
+groq
+pytest-asyncio
