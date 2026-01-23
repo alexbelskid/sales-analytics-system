@@ -1,4 +1,4 @@
-from openai import OpenAI
+from openai import AsyncOpenAI
 from app.config import settings
 from app.database import supabase
 from typing import List, Dict
@@ -7,7 +7,7 @@ from typing import List, Dict
 client = None
 if settings.openai_api_key:
     try:
-        client = OpenAI(api_key=settings.openai_api_key)
+        client = AsyncOpenAI(api_key=settings.openai_api_key)
     except Exception as e:
         print(f"Failed to initialize OpenAI client: {e}")
         client = None
@@ -55,7 +55,7 @@ async def generate_email_reply(email_content: str, email_type: str = "general") 
 {"Используй эту информацию для ответа:" + chr(10) + context if context else ""}"""
 
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=settings.openai_model,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -112,7 +112,7 @@ async def generate_proposal_text(customer: str, products: List[Dict], conditions
 5. Не более 200 слов"""
 
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=settings.openai_model,
             messages=[
                 {"role": "system", "content": "Ты составляешь коммерческие предложения. Пиши профессионально и убедительно на русском языке."},
@@ -187,7 +187,7 @@ Rules:
     """
 
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=settings.openai_model,
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -398,7 +398,7 @@ async def generate_ai_response_with_files(question: str) -> str:
 """
     
     try:
-        response = client.chat.completions.create(
+        response = await client.chat.completions.create(
             model=settings.openai_model,
             messages=[
                 {"role": "system", "content": system_prompt},
