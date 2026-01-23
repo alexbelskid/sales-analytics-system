@@ -4,6 +4,9 @@ Provides formatted context from sales data for Groq AI assistant
 """
 
 from typing import Optional, Dict, Any
+import json
+from openai import OpenAI
+from app.config import settings
 from app.services.extended_analytics_service import extended_analytics
 from app.database import supabase, supabase_admin
 import logging
@@ -503,6 +506,52 @@ class AIContextService:
             return ""
     
     @staticmethod
+    def _extract_entities_with_llm(email_body: str) -> Dict[str, Optional[str]]:
+        """
+        Extract entities from email body using LLM
+        """
+        # Initialize client (prefer Groq if available)
+        api_key = settings.groq_api_key or settings.openai_api_key
+        base_url = "https://api.groq.com/openai/v1" if settings.groq_api_key else None
+        model = "llama-3.3-70b-versatile" if settings.groq_api_key else settings.openai_model
+
+        if not api_key:
+            return {}
+
+        try:
+            client = OpenAI(api_key=api_key, base_url=base_url)
+
+            prompt = f"""
+            Extract the following entities from the email text below:
+            - customer_name: The name of the customer or company sending the email or being discussed.
+            - product_name: The main product being discussed or inquired about.
+            - agent_name: The name of the sales agent mentioned (if any).
+
+            Return ONLY a valid JSON object with keys: "customer_name", "product_name", "agent_name".
+            If an entity is not found, set the value to null.
+
+            Email text:
+            {email_body[:2000]}
+            """
+
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful entity extraction assistant. Output valid JSON only."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0,
+                response_format={"type": "json_object"}
+            )
+
+            content = response.choices[0].message.content
+            return json.loads(content)
+
+        except Exception as e:
+            logger.error(f"Error extracting entities: {e}")
+            return {}
+
+    @staticmethod
     def build_prompt_context(email_body: str) -> str:
         """
         Analyze email and build relevant context
@@ -510,10 +559,20 @@ class AIContextService:
         Attempts to detect customer or product mentions in email
         and provides relevant context
         """
-        context = AIContextService.get_context_for_ai(include_general=True)
+        # Extract entities using NLP
+        entities = AIContextService._extract_entities_with_llm(email_body)
+
+        customer_name = entities.get('customer_name')
+        product_name = entities.get('product_name')
+        agent_name = entities.get('agent_name')
         
-        # TODO: Use NLP to extract customer/product names from email
-        # For now, just return general context
+        # Build specific context
+        context = AIContextService.get_context_for_ai(
+            customer_name=customer_name,
+            product_name=product_name,
+            agent_name=agent_name,
+            include_general=True
+        )
         
         return context
 
