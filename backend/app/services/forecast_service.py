@@ -245,20 +245,17 @@ class ForecastService:
         df['is_anomaly'] = abs(df['z_score']) > threshold
         
         anomalies = df[df['is_anomaly']].copy()
-        anomalies['type'] = anomalies['z_score'].apply(
-            lambda x: 'high' if x > 0 else 'low'
-        )
-        
-        return [
-            {
-                "date": row['ds'].strftime('%Y-%m-%d'),
-                "amount": round(row['y'], 2),
-                "expected": round(mean, 2),
-                "deviation": round(row['z_score'], 2),
-                "type": row['type']
-            }
-            for _, row in anomalies.iterrows()
-        ]
+        anomalies['type'] = np.where(anomalies['z_score'] > 0, 'high', 'low')
+
+        if anomalies.empty:
+            return []
+
+        anomalies['date'] = anomalies['ds'].dt.strftime('%Y-%m-%d')
+        anomalies['amount'] = anomalies['y'].round(2)
+        anomalies['expected'] = round(mean, 2)
+        anomalies['deviation'] = anomalies['z_score'].round(2)
+
+        return anomalies[['date', 'amount', 'expected', 'deviation', 'type']].to_dict('records')
     
     async def get_seasonality(self) -> Dict[str, Any]:
         """
