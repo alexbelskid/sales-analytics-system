@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from io import BytesIO
+import asyncio
 import pandas as pd
 from app.database import supabase
 from app.models.agents import SalaryCalculation
@@ -181,6 +182,39 @@ async def save_salary_calculation(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def _generate_excel_sync(data: List[SalaryCalculation], month: int, year: int) -> BytesIO:
+    """Synchronous function to generate Excel file, avoiding blocking the event loop."""
+    # Конвертируем в DataFrame
+    records = [
+        {
+            "Агент": s.agent_name,
+            "Оклад": s.base_salary,
+            "Продажи": s.sales_amount,
+            "% комиссии": s.commission_rate,
+            "Комиссия": s.commission,
+            "Бонус": s.bonus,
+            "Штраф": s.penalty,
+            "ИТОГО": s.total_salary
+        }
+        for s in data
+    ]
+
+    df = pd.DataFrame(records)
+
+    # Добавляем итоговую строку
+    totals = df[["Оклад", "Продажи", "Комиссия", "Бонус", "Штраф", "ИТОГО"]].sum()
+    totals["Агент"] = "ИТОГО"
+    totals["% комиссии"] = ""
+    df = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
+
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name=f'Зарплаты {month:02d}.{year}')
+
+    output.seek(0)
+    return output
+
+
 @router.get("/export")
 async def export_salary_excel(
     year: int = Query(..., ge=2000, le=2100),
@@ -190,34 +224,9 @@ async def export_salary_excel(
     try:
         data = await calculate_salary(year, month)
         
-        # Конвертируем в DataFrame
-        records = [
-            {
-                "Агент": s.agent_name,
-                "Оклад": s.base_salary,
-                "Продажи": s.sales_amount,
-                "% комиссии": s.commission_rate,
-                "Комиссия": s.commission,
-                "Бонус": s.bonus,
-                "Штраф": s.penalty,
-                "ИТОГО": s.total_salary
-            }
-            for s in data
-        ]
-        
-        df = pd.DataFrame(records)
-        
-        # Добавляем итоговую строку
-        totals = df[["Оклад", "Продажи", "Комиссия", "Бонус", "Штраф", "ИТОГО"]].sum()
-        totals["Агент"] = "ИТОГО"
-        totals["% комиссии"] = ""
-        df = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
-        
-        output = BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name=f'Зарплаты {month:02d}.{year}')
-        
-        output.seek(0)
+        output = await asyncio.get_running_loop().run_in_executor(
+            None, _generate_excel_sync, data, month, year
+        )
         
         filename = f"salary_{year}_{month:02d}.xlsx"
         
