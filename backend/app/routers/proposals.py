@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from io import BytesIO
+import asyncio
+import functools
 from app.database import supabase
 from app.services.ai_service import generate_proposal_text
 from app.services.document_service import generate_proposal_docx, generate_proposal_pdf
@@ -96,13 +98,18 @@ async def export_docx(request: ProposalRequest):
             for item in request.items
         ]
         
-        docx_buffer = generate_proposal_docx(
-            customer_name=request.customer_name,
-            customer_company=request.customer_company,
-            items=items_data,
-            total=total,
-            conditions=request.conditions,
-            valid_days=request.valid_days
+        loop = asyncio.get_running_loop()
+        docx_buffer = await loop.run_in_executor(
+            None,
+            functools.partial(
+                generate_proposal_docx,
+                customer_name=request.customer_name,
+                customer_company=request.customer_company,
+                items=items_data,
+                total=total,
+                conditions=request.conditions,
+                valid_days=request.valid_days
+            )
         )
         
         filename = f"KP_{request.customer_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx"
