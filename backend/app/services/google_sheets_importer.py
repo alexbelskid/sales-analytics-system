@@ -43,6 +43,9 @@ class GoogleSheetsImporter:
     # Все допустимые значения для поля "регион" (включая команды)
     ALL_REGION_HEADERS = REGIONS + TEAMS
     
+    # Pre-compiled regex for float cleanup
+    FLOAT_CLEANUP_PATTERN = re.compile(r'[^\d.-]')
+
     def __init__(self):
         # CRITICAL FIX: Use admin client to bypass RLS for imports!
         # Regular supabase client has RLS which blocks agent creation
@@ -395,7 +398,7 @@ class GoogleSheetsImporter:
             s = str(value).strip().replace(' ', '').replace(',', '.')
             
             # Remove any non-numeric characters except dot and minus
-            s = re.sub(r'[^\d.-]', '', s)
+            s = self.FLOAT_CLEANUP_PATTERN.sub('', s)
             
             if not s or s == '-':
                 return None
