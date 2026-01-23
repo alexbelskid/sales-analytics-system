@@ -258,10 +258,11 @@ class UnifiedImporter:
                 
                 logger.info(f"[BATCH {batch_start//BATCH_SIZE + 1}] Processing rows {batch_start}-{batch_end} ({len(batch_df)} rows)")
                 
-                for idx, row in batch_df.iterrows():
+                for row in batch_df.itertuples(index=True):
+                    idx = row.Index
                     try:
                         # Get or create customer
-                        customer_name = str(row.get('customer_name', 'Unknown'))
+                        customer_name = str(getattr(row, 'customer_name', 'Unknown'))
                         customer_result = supabase.table("customers").select("id").eq("name", customer_name).execute()
                         
                         if customer_result.data:
@@ -281,7 +282,7 @@ class UnifiedImporter:
                         month = None
                         
                         try:
-                            raw_date = row.get('date')
+                            raw_date = getattr(row, 'date', None)
                             if raw_date is not None and raw_date != '':
                                 if isinstance(raw_date, str):
                                     # String date
@@ -309,7 +310,7 @@ class UnifiedImporter:
                             month = now.month
                         
                         # Get total amount with fallback
-                        total = float(row.get('amount', row.get('total', 0)))
+                        total = float(getattr(row, 'amount', getattr(row, 'total', 0)))
                         
                         # Create sale with ALL required fields + import_id for tracking
                         sale = supabase.table("sales").insert({
@@ -325,8 +326,9 @@ class UnifiedImporter:
                         sale_ids.append(sale_id)
                         
                         # Add sale items if product info present
-                        if 'product_name' in row and row.get('product_name'):
-                            product_name = str(row['product_name'])
+                        product_name_val = getattr(row, 'product_name', None)
+                        if product_name_val:
+                            product_name = str(product_name_val)
                             product_result = supabase.table("products").select("id").eq("name", product_name).execute()
                             
                             if product_result.data:
@@ -340,8 +342,8 @@ class UnifiedImporter:
                                 }).execute()
                                 product_id = new_product.data[0]["id"]
                             
-                            quantity = int(row.get('quantity', 1))
-                            unit_price = float(row.get('price', total / quantity if quantity > 0 else 0))
+                            quantity = int(getattr(row, 'quantity', 1))
+                            unit_price = float(getattr(row, 'price', total / quantity if quantity > 0 else 0))
                             
                             supabase.table("sale_items").insert({
                                 "sale_id": sale_id,
@@ -356,10 +358,10 @@ class UnifiedImporter:
                     except Exception as e:
                         error_msg = f"Row {idx}: {str(e)[:100]}"
                         logger.error(f"[ROW ERROR] {error_msg}", exc_info=False)
-                        logger.debug(f"Row data: customer={row.get('customer_name')}, date={row.get('date')}, amount={row.get('amount')}")
+                        logger.debug(f"Row data: customer={getattr(row, 'customer_name', 'Unknown')}, date={getattr(row, 'date', None)}, amount={getattr(row, 'amount', None)}")
                         errors.append({
                             'row': int(idx),
-                            'customer': str(row.get('customer_name', 'Unknown')),
+                            'customer': str(getattr(row, 'customer_name', 'Unknown')),
                             'error': str(e)[:200]
                         })
                         failed += 1
