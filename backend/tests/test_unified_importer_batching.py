@@ -65,12 +65,12 @@ async def test_file_size_validation():
     """Verify files larger than 50MB are rejected"""
     # Create mock large DataFrame
     df = pd.DataFrame({
-        'customer_name': ['Test'] * 15000  # Exceeds MAX_ROWS limit
+        'customer_name': ['Test'] * 51000  # Exceeds MAX_ROWS limit (50000)
     })
     
     importer = UnifiedImporter()
     
-    # This should fail validation (10000 row limit)
+    # This should fail validation (50000 row limit)
     result = await importer.import_data(
         df=df,
         filename='large_test.csv',

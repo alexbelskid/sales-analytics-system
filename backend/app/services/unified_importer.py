@@ -372,7 +372,7 @@ class UnifiedImporter:
                 # ✅ Real-time progress update
                 batch_time = time.time() - batch_start_time
                 progress_percent = min(int((batch_end / total_rows) * 100), 99)  # Cap at 99% until completion
-                rows_per_sec = len(batch_df) / batch_time if batch_time > 0 else 0
+                rows_per_sec = (batch_end - batch_start) / batch_time if batch_time > 0 else 0
                 
                 try:
                     supabase.table('import_history').update({
@@ -510,42 +510,166 @@ class UnifiedImporter:
             
             imported = 0
             failed = 0
+            errors = []
             
-            for _, row in df.iterrows():
-                try:
-                    product_name = str(row.get('name', ''))
+            # Safe string helper
+            def safe_str(val):
+                return str(val) if val is not None and not pd.isna(val) else ''
+
+            # BATCH PROCESSING
+            BATCH_SIZE = 500
+            total_rows = len(df)
+
+            import time
+            import_start_time = time.time()
+            logger.info(f"[IMPORT START] Processing {total_rows} rows in batches of {BATCH_SIZE}")
+
+            for batch_start in range(0, total_rows, BATCH_SIZE):
+                batch_end = min(batch_start + BATCH_SIZE, total_rows)
+                batch_df = df.iloc[batch_start:batch_end]
+                batch_start_time = time.time()
+
+                # Pre-fetch existing products to avoid N+1 queries
+                existing_skus = set()
+                existing_names = set()
+
+                if mode == "append":
+                    skus_to_check = set()
+                    names_to_check = set()
                     
-                    # Check for duplicates in append mode
-                    if mode == "append":
-                        sku = str(row.get('sku', ''))
+                    for _, row in batch_df.iterrows():
+                        sku = safe_str(row.get('sku', ''))
+                        name = safe_str(row.get('name', ''))
                         if sku:
-                            existing = supabase.table("products").select("id").eq("sku", sku).execute()
-                        else:
-                            existing = supabase.table("products").select("id").eq("name", product_name).execute()
+                            skus_to_check.add(sku)
+                        elif name:
+                            names_to_check.add(name)
+
+                    # Chunked queries to avoid URL length limits
+                    CHUNK_SIZE = 100
+
+                    # Check SKUs
+                    skus_list = list(skus_to_check)
+                    for i in range(0, len(skus_list), CHUNK_SIZE):
+                        chunk = skus_list[i:i + CHUNK_SIZE]
+                        if chunk:
+                            try:
+                                res = supabase.table("products").select("sku").in_("sku", chunk).execute()
+                                if res.data:
+                                    existing_skus.update(item['sku'] for item in res.data)
+                            except Exception as e:
+                                logger.error(f"Error checking existing SKUs: {e}")
+
+                    # Check Names
+                    names_list = list(names_to_check)
+                    for i in range(0, len(names_list), CHUNK_SIZE):
+                        chunk = names_list[i:i + CHUNK_SIZE]
+                        if chunk:
+                            try:
+                                res = supabase.table("products").select("name").in_("name", chunk).execute()
+                                if res.data:
+                                    existing_names.update(item['name'] for item in res.data)
+                            except Exception as e:
+                                logger.error(f"Error checking existing Names: {e}")
+
+                to_insert = []
+                # batch_seen_skus/names to handle duplicates within the batch
+                batch_seen_skus = set()
+                batch_seen_names = set()
+
+                # Prepare insertion list
+                for idx, row in batch_df.iterrows():
+                    try:
+                        product_name = safe_str(row.get('name', ''))
+                        sku = safe_str(row.get('sku', ''))
                         
-                        if existing.data:
+                        # Logic to skip
+                        skip = False
+
+                        if mode == "append":
+                            if sku:
+                                if sku in existing_skus or sku in batch_seen_skus:
+                                    skip = True
+                            else:
+                                if product_name in existing_names or product_name in batch_seen_names:
+                                    skip = True
+                        else:
+                            # Replace mode: duplicates within file check
+                            if sku and sku in batch_seen_skus:
+                                skip = True
+                            elif not sku and product_name in batch_seen_names:
+                                skip = True
+
+                        if skip:
                             failed += 1
                             continue
-                    
-                    supabase.table("products").insert({
-                        "name": product_name,
-                        "sku": str(row.get('sku', '')) or None,
-                        "price": float(row.get('price', 0)),
-                        "category": str(row.get('category', '')) or None,
-                        "in_stock": int(row.get('in_stock', 0)) if row.get('in_stock') else 0
-                    }).execute()
-                    
-                    imported += 1
+
+                        if sku:
+                            batch_seen_skus.add(sku)
+                        else:
+                            batch_seen_names.add(product_name)
+
+                        item = {
+                            "name": product_name,
+                            "sku": sku or None,
+                            "price": float(row.get('price', 0)),
+                            "category": safe_str(row.get('category', '')) or None,
+                            "in_stock": int(row.get('in_stock', 0)) if row.get('in_stock') else 0
+                        }
+                        to_insert.append(item)
+
+                    except Exception as e:
+                        logger.error(f"Error preparing product row: {e}")
+                        failed += 1
+                        errors.append(str(e))
+
+                # Bulk insert
+                if to_insert:
+                    try:
+                        supabase.table("products").insert(to_insert).execute()
+                        imported += len(to_insert)
+                    except Exception as e:
+                        logger.error(f"Bulk insert failed: {e}. Falling back to individual insert.")
+                        # Fallback to individual
+                        for item in to_insert:
+                            try:
+                                supabase.table("products").insert(item).execute()
+                                imported += 1
+                            except Exception as inner_e:
+                                failed += 1
+                                logger.error(f"Individual insert error: {inner_e}")
+                                errors.append(str(inner_e))
+
+                # Explicit cleanup
+                del batch_df
                 
-                except Exception as e:
-                    logger.error(f"Error importing product row: {e}")
-                    failed += 1
-            
+                # Progress update
+                batch_time = time.time() - batch_start_time
+                progress_percent = min(int((batch_end / total_rows) * 100), 99)
+                rows_per_sec = (batch_end - batch_start) / batch_time if batch_time > 0 else 0
+
+                try:
+                    supabase.table('import_history').update({
+                        'progress_percent': progress_percent,
+                        'imported_rows': imported,
+                        'failed_rows': failed
+                    }).eq('id', import_id).execute()
+                    logger.info(f"[BATCH COMPLETE] Rows {batch_start}-{batch_end}: {progress_percent}% | "
+                               f"Imported: {imported}/{total_rows} | Failed: {failed} | "
+                               f"Speed: {rows_per_sec:.1f} rows/sec")
+                except Exception as update_error:
+                    logger.error(f"[PROGRESS UPDATE FAILED] {update_error}")
+
+            total_time = time.time() - import_start_time
+            avg_speed = imported / total_time if total_time > 0 else 0
+            logger.info(f"[IMPORT COMPLETE] Total: {imported} imported, {failed} failed in {total_time:.2f}s")
+
             return {
                 'success': True,
                 'imported_rows': imported,
                 'failed_rows': failed,
-                'message': f"Imported {imported} products"
+                'message': f"Imported {imported} products",
+                'errors': errors[:100]
             }
         
         except Exception as e:
