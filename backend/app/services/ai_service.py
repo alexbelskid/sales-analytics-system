@@ -3,13 +3,16 @@ from app.config import settings
 from app.database import supabase
 from typing import List, Dict
 
-# Initialize OpenAI client
+# Initialize OpenAI client (pointed to Groq)
 client = None
-if settings.openai_api_key:
+if settings.groq_api_key:
     try:
-        client = OpenAI(api_key=settings.openai_api_key)
+        client = OpenAI(
+            api_key=settings.groq_api_key,
+            base_url="https://api.groq.com/openai/v1"
+        )
     except Exception as e:
-        print(f"Failed to initialize OpenAI client: {e}")
+        print(f"Failed to initialize Groq client: {e}")
         client = None
 
 
@@ -56,7 +59,7 @@ async def generate_email_reply(email_content: str, email_type: str = "general") 
 
     try:
         response = client.chat.completions.create(
-            model=settings.openai_model,
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Напиши ответ на это письмо:\n\n{email_content}"}
@@ -67,7 +70,7 @@ async def generate_email_reply(email_content: str, email_type: str = "general") 
         
         return response.choices[0].message.content
     except Exception as e:
-        print(f"OpenAI error: {e}")
+        print(f"Groq API error: {e}")
         return _generate_template_reply(email_type)
 
 
@@ -113,7 +116,7 @@ async def generate_proposal_text(customer: str, products: List[Dict], conditions
 
     try:
         response = client.chat.completions.create(
-            model=settings.openai_model,
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "Ты составляешь коммерческие предложения. Пиши профессионально и убедительно на русском языке."},
                 {"role": "user", "content": prompt}
@@ -124,7 +127,7 @@ async def generate_proposal_text(customer: str, products: List[Dict], conditions
         
         return response.choices[0].message.content
     except Exception as e:
-        print(f"OpenAI error: {e}")
+        print(f"Groq API error: {e}")
         return _generate_simple_proposal(customer, products, conditions)
 
 
@@ -188,7 +191,7 @@ Rules:
 
     try:
         response = client.chat.completions.create(
-            model=settings.openai_model,
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"From: {sender}\nSubject: {subject}\n\nBody:\n{body}"}
@@ -198,7 +201,7 @@ Rules:
         )
         return response.choices[0].message.content
     except Exception as e:
-        print(f"OpenAI error: {e}")
+        print(f"Groq API error: {e}")
         return _generate_tone_template(subject, sender, tone)
 
 
@@ -379,7 +382,7 @@ async def generate_ai_response_with_files(question: str) -> str:
         Ответ AI
     """
     if not client:
-        return "AI не настроен. Пожалуйста, добавьте OPENAI_API_KEY в настройки."
+        return "AI не настроен. Пожалуйста, добавьте GROQ_API_KEY в настройки."
     
     # Получить контекст из файлов
     files_context = await get_files_context()
@@ -399,7 +402,7 @@ async def generate_ai_response_with_files(question: str) -> str:
     
     try:
         response = client.chat.completions.create(
-            model=settings.openai_model,
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question}
@@ -410,5 +413,5 @@ async def generate_ai_response_with_files(question: str) -> str:
         
         return response.choices[0].message.content
     except Exception as e:
-        print(f"OpenAI error: {e}")
+        print(f"Groq API error: {e}")
         return f"Ошибка AI: {str(e)}"

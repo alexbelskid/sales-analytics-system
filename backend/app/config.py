@@ -14,8 +14,6 @@ class Settings(BaseSettings):
     storage_bucket: str = "import-files"  # Supabase Storage bucket for uploaded files
     
     # AI APIs
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4-turbo-preview"
     groq_api_key: str = ""
     tavily_api_key: str = ""  # For web search
     web_search_max_results: int = 5

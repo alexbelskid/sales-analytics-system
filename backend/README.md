@@ -22,7 +22,6 @@ cp .env.example .env
 |------------|----------|-----------|
 | `SUPABASE_URL` | URL вашего Supabase проекта | [Supabase Dashboard](https://supabase.com/dashboard) → Settings → API |
 | `SUPABASE_KEY` | Anon/Public ключ | Там же |
-| `GOOGLE_GEMINI_API_KEY` | API ключ для Gemini AI | [Google AI Studio](https://aistudio.google.com/app/apikey) |
 | `DATABASE_URL` | PostgreSQL connection string | Supabase → Settings → Database → Connection string |
 
 ## 🔧 Ручной запуск
