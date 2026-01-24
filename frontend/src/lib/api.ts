@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
+// Use empty string for client-side to leverage Next.js rewrites (avoids CORS issues)
+// The rewrites in next.config.js will proxy /api/* to the backend
+const API_BASE = typeof window !== 'undefined' ? '' : (process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app');
 
 interface FetchOptions extends RequestInit {
     params?: Record<string, string | number | boolean | undefined>;
