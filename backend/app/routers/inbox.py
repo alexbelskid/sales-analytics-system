@@ -8,6 +8,7 @@ from email.header import decode_header
 import datetime
 import socket
 import time
+import asyncio
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -16,14 +17,9 @@ class EmailConfig(BaseModel):
     email: str
     app_password: str
 
-@router.post("/sync")
-async def sync_emails(config: Optional[EmailConfig] = None):
-    """Sync emails using IMAP with timeout protection"""
+def _sync_emails_blocking(config: Optional[EmailConfig] = None):
+    """Blocking function to handle IMAP sync"""
     start_time = time.time()
-    
-    # Set socket timeout to prevent hanging
-    socket.setdefaulttimeout(10)
-    
     try:
         # 1. Get credentials
         email_addr = ""
@@ -60,7 +56,8 @@ async def sync_emails(config: Optional[EmailConfig] = None):
             imap_server = user_settings.get("imap_server") or "imap.yandex.ru"
             imap_port = int(user_settings.get("imap_port") or 993)
 
-        mail = imaplib.IMAP4_SSL(imap_server, imap_port)
+        # Use timeout in constructor instead of socket.setdefaulttimeout
+        mail = imaplib.IMAP4_SSL(imap_server, imap_port, timeout=10)
         mail.login(email_addr, app_password)
         mail.select("inbox")
         
@@ -145,9 +142,13 @@ async def sync_emails(config: Optional[EmailConfig] = None):
             "message": str(e), 
             "new_emails_count": 0
         }
-    finally:
-        # Reset socket timeout to default
-        socket.setdefaulttimeout(None)
+
+
+@router.post("/sync")
+async def sync_emails(config: Optional[EmailConfig] = None):
+    """Sync emails using IMAP with timeout protection"""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _sync_emails_blocking, config)
 
 @router.get("/inbox")
 async def get_inbox(filter_status: str = "new", limit: int = 50):
