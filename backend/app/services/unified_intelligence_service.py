@@ -32,10 +32,10 @@ class UnifiedIntelligenceService:
     """
 
     def __init__(self):
-        # Prefer Groq for speed/formatting, fall back to OpenAI
-        self.api_key = settings.groq_api_key or settings.openai_api_key
-        self.base_url = "https://api.groq.com/openai/v1" if settings.groq_api_key else None
-        self.model = "llama-3.3-70b-versatile" if settings.groq_api_key else settings.openai_model
+        # Use Groq for speed/formatting
+        self.api_key = settings.groq_api_key
+        self.base_url = "https://api.groq.com/openai/v1"
+        self.model = "llama-3.3-70b-versatile"
         
         self.client = None
         if self.api_key:
@@ -157,7 +157,7 @@ class UnifiedIntelligenceService:
         
         # Check if AI client is available
         if not self.client:
-            return "Извините, AI-сервис недоступен. Пожалуйста, настройте GROQ_API_KEY или OPENAI_API_KEY в конфигурации системы."
+            return "Извините, AI-сервис недоступен. Пожалуйста, настройте GROQ_API_KEY в конфигурации системы."
         
         # HYBRID APPROACH: Use BOTH SQL data AND knowledge base context
         # SQL gives us FACTS (numbers, names, dates)
