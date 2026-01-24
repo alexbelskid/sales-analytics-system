@@ -1,7 +1,7 @@
-'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { TrendingUp, TrendingDown, Upload as UploadIcon, FileSpreadsheet, Check, AlertCircle, Download, RefreshCw, Calendar, Plus, ChevronDown } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 import {
     Popover,
     PopoverContent,
@@ -437,21 +437,34 @@ export default function Dashboard() {
             <div>
                 <h2 className="text-lg font-semibold mb-4">Ключевые метрики</h2>
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                    {metricCards.map((metric) => (
-                        <div key={metric.title} className="ui-card">
-                            <div className="flex items-center justify-between mb-4">
-                                <p className="text-sm text-[#808080] group-hover:text-gray-400 transition-colors uppercase tracking-wider text-[10px]">{metric.title}</p>
-                                {metric.change !== null && (
-                                    <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${metric.trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'
-                                        }`}>
-                                        {metric.trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                                        {metric.change}
-                                    </div>
-                                )}
+                    {loading ? (
+                        // Skeleton State for Metrics
+                        Array(3).fill(0).map((_, i) => (
+                            <div key={i} className="ui-card space-y-3">
+                                <div className="flex justify-between items-center">
+                                    <Skeleton className="h-4 w-24 bg-white/5" />
+                                    <Skeleton className="h-5 w-12 rounded-full bg-white/5" />
+                                </div>
+                                <Skeleton className="h-9 w-32 bg-white/10" />
                             </div>
-                            <p className="text-3xl font-bold tracking-tight">{metric.value}</p>
-                        </div>
-                    ))}
+                        ))
+                    ) : (
+                        metricCards.map((metric) => (
+                            <div key={metric.title} className="ui-card group">
+                                <div className="flex items-center justify-between mb-4">
+                                    <p className="text-sm text-[#808080] group-hover:text-gray-400 transition-colors uppercase tracking-wider text-[10px]">{metric.title}</p>
+                                    {metric.change !== null && (
+                                        <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${metric.trend === 'up' ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-400'
+                                            }`}>
+                                            {metric.trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                            {metric.change}
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-3xl font-bold tracking-tight">{metric.value}</p>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
 

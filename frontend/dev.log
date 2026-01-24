@@ -15,52 +15,36 @@
 - Environments: .env.local, .env.development
 
 ✓ Starting...
-✓ Ready in 738ms
- GET /ai-assistant 200 in 636ms (compile: 240ms, render: 396ms)
- GET /sales-dashboard 200 in 619ms (compile: 365ms, render: 254ms)
- GET / 200 in 644ms (compile: 465ms, render: 179ms)
- GET / 200 in 70ms (compile: 5ms, render: 65ms)
- GET /sales-dashboard 200 in 23ms (compile: 8ms, render: 15ms)
+✓ Ready in 1327ms
 
 warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
 warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
- GET /advanced-analytics 200 in 1662ms (compile: 1643ms, render: 19ms)
- GET /sales-dashboard 200 in 27ms (compile: 9ms, render: 18ms)
- GET /advanced-analytics 200 in 20ms (compile: 5ms, render: 15ms)
- GET /advanced-analytics 200 in 87ms (compile: 7ms, render: 80ms)
- GET /advanced-analytics 200 in 56ms (compile: 11ms, render: 45ms)
- GET /advanced-analytics 200 in 71ms (compile: 16ms, render: 56ms)
- GET / 200 in 80ms (compile: 29ms, render: 51ms)
- GET /advanced-analytics 200 in 17ms (compile: 6ms, render: 11ms)
+○ Compiling / ...
+ GET / 200 in 4.6s (compile: 4.2s, render: 354ms)
+
 
 warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
 warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
-✓ Compiled in 233ms
-✓ Compiled in 83ms
-✓ Compiled in 105ms
-✓ Compiled in 145ms
-✓ Compiled in 56ms
- GET /advanced-analytics 200 in 68ms (compile: 17ms, render: 52ms)
- GET / 200 in 104ms (compile: 67ms, render: 38ms)
- GET /sales-dashboard 200 in 145ms (compile: 118ms, render: 27ms)
- GET /advanced-analytics 200 in 16ms (compile: 3ms, render: 13ms)
- GET / 200 in 27ms (compile: 9ms, render: 18ms)
- GET /sales-dashboard 200 in 19ms (compile: 5ms, render: 15ms)
- GET /advanced-analytics 200 in 19ms (compile: 4ms, render: 15ms)
- GET /ai-assistant 200 in 32ms (compile: 21ms, render: 10ms)
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+ GET / 200 in 111ms (compile: 36ms, render: 75ms)
+
+
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+○ Compiling /sales-dashboard ...
 
 warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
 warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
 
 warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
 warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
-
-warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
-warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
-
-warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
-warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
- GET /files 200 in 2.4s (compile: 2.3s, render: 25ms)
+ GET /sales-dashboard 200 in 4.5s (compile: 4.3s, render: 269ms)
 
 warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
 warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
@@ -73,11 +57,17 @@ warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bez
 
 warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
 warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
- GET /proposals 200 in 1685ms (compile: 1628ms, render: 57ms)
- GET / 200 in 37ms (compile: 20ms, render: 18ms)
- GET /sales-dashboard 200 in 13ms (compile: 4ms, render: 8ms)
- GET /advanced-analytics 200 in 19ms (compile: 5ms, render: 15ms)
-✓ Compiled in 206ms
- GET / 200 in 253ms (compile: 28ms, render: 226ms)
- GET /advanced-analytics 200 in 203ms (compile: 159ms, render: 44ms)
- GET / 200 in 39ms (compile: 6ms, render: 33ms)
+
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+○ Compiling /ai-assistant ...
+
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+
+warn - The class `ease-[cubic-bezier(0.2,0.8,0.2,1)]` is ambiguous and matches multiple utilities.
+warn - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.2,0.8,0.2,1)&rsqb;` to silence this warning.
+ GET /ai-assistant 200 in 4.8s (compile: 4.5s, render: 226ms)

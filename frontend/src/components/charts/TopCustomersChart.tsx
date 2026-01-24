@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { analyticsApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Demo data
 const demoData = [
@@ -59,6 +60,21 @@ export default function TopCustomersChart() {
     };
 
     const maxTotal = Math.max(...data.map(d => d.total), 1);
+
+    if (loading) {
+        return (
+            <div className="h-64 w-full animate-pulse">
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-4 w-24 bg-white/5" />
+                            <Skeleton className="h-6 flex-1 bg-white/5 rounded-r-lg" style={{ width: `${Math.max(40, 90 - (i * 10))}%` }} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (active && payload && payload.length) {

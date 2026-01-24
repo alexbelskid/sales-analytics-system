@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { TrendingUp, TrendingDown, MapPin, Trophy, Eye, User } from 'lucide-react';
+import { TrendingUp, TrendingDown, MapPin, Trophy, User } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import AgentDetailsModal from './AgentDetailsModal';
-import LiquidButton from './LiquidButton';
+
 
 interface AgentCardProps {
     agent: {
@@ -57,38 +57,57 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
             <div
                 onClick={() => setShowDetails(true)}
                 className={`
-                    glass-panel
-                    cursor-pointer transition-all duration-300 
-                    hover:border-rose-800/50 hover:shadow-lg hover:shadow-rose-900/20 hover:scale-[1.02]
+                    relative overflow-hidden
+                    rounded-[32px] 
+                    border border-white/[0.08] 
+                    backdrop-blur-[30px] 
+                    bg-gradient-to-br from-white/[0.02] to-transparent
+                    shadow-[0_20px_60px_-20px_rgba(0,0,0,0.6),inset_0_0_40px_0_rgba(255,255,255,0.02)]
+                    cursor-pointer 
+                    transition-all duration-500 ease-out
+                    hover:border-rose-500/30 
+                    hover:shadow-[0_30px_80px_-20px_rgba(244,63,94,0.4),inset_0_0_60px_0_rgba(255,255,255,0.04)]
+                    hover:scale-[1.02]
+                    hover:-translate-y-1
+                    group
                     ${isTopPerformer ? 'ring-1 ring-yellow-500/20' : ''}
                 `}
             >
-                {/* Top performer glow */}
-                {isTopPerformer && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500/50 via-amber-400/50 to-yellow-500/50" />
-                )}
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.03] to-transparent pointer-events-none" />
 
-                <div className="p-5">
+                {/* Top Sheen */}
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                {/* Top performer glow - REMOVED per user request */}
+
+                <div className="relative p-6">
                     {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            {/* Avatar */}
+                            {/* Avatar with glass effect */}
                             <div className={`
-                                w-10 h-10 rounded-full flex items-center justify-center
+                                relative w-12 h-12 rounded-full flex items-center justify-center
+                                backdrop-blur-sm
+                                border border-white/10
+                                shadow-lg
+                                transition-all duration-300
+                                group-hover:scale-110
                                 ${isTopPerformer
-                                    ? `bg-gradient-to-br ${rankColors[rank]}`
-                                    : 'bg-gradient-to-br from-[#333] to-[#222]'
+                                    ? `bg-gradient-to-br ${rankColors[rank]} shadow-${rank === 1 ? 'yellow' : rank === 2 ? 'gray' : 'orange'}-500/40`
+                                    : 'bg-gradient-to-br from-white/10 to-white/5'
                                 }
                             `}>
+                                <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent" />
                                 {isTopPerformer ? (
-                                    <Trophy className="h-5 w-5 text-white" />
+                                    <Trophy className="h-6 w-6 text-white relative z-10" />
                                 ) : (
-                                    <User className="h-5 w-5 text-[#808080]" />
+                                    <User className="h-6 w-6 text-gray-300 relative z-10" />
                                 )}
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-base truncate text-gray-100">{agent.agent_name}</h3>
+                                <h3 className="font-semibold text-base truncate text-white mb-1">{agent.agent_name}</h3>
                                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
                                     <MapPin className="h-3 w-3" />
                                     <span className="truncate">{agent.region}</span>
@@ -98,65 +117,71 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
 
                         {isTopPerformer && (
                             <div className={`
-                                flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold text-white
+                                flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white
                                 bg-gradient-to-r ${rankColors[rank]}
+                                shadow-lg backdrop-blur-sm
+                                border border-white/20
                             `}>
+                                <Trophy className="h-3 w-3" />
                                 #{rank}
                             </div>
                         )}
                     </div>
 
-                    {/* Sales Info */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                        <div className="bg-[#0a0a0a] rounded-lg p-3">
-                            <div className="text-xs text-[#666] mb-1">План</div>
-                            <div className="text-sm font-semibold">{formatCurrency(agent.plan_amount)}</div>
+                    {/* Sales Info with glass panels */}
+                    <div className="grid grid-cols-2 gap-3 mb-5">
+                        <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-black/20 backdrop-blur-sm p-4 group/card">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
+                            <div className="relative z-10">
+                                <div className="text-xs text-gray-500 mb-1.5 font-medium uppercase tracking-wider">План</div>
+                                <div className="text-sm font-bold text-white">{formatCurrency(agent.plan_amount)}</div>
+                            </div>
                         </div>
-                        <div className="bg-[#0a0a0a] rounded-lg p-3">
-                            <div className="text-xs text-[#666] mb-1">Факт</div>
-                            <div className="text-sm font-semibold">{formatCurrency(agent.actual_sales)}</div>
+                        <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-black/20 backdrop-blur-sm p-4 group/card">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent" />
+                            <div className="relative z-10">
+                                <div className="text-xs text-gray-500 mb-1.5 font-medium uppercase tracking-wider">Факт</div>
+                                <div className="text-sm font-bold text-white">{formatCurrency(agent.actual_sales)}</div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Progress */}
-                    <div className="mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-[#666]">Выполнение</span>
-                            <span className={`text-xl font-bold ${fulfillmentColor}`}>
+                    {/* Progress with enhanced glass effect */}
+                    <div className="mb-5">
+                        <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Выполнение</span>
+                            <span className={`text-2xl font-bold ${fulfillmentColor} drop-shadow-lg`}>
                                 {agent.fulfillment_percent.toFixed(1)}%
                             </span>
                         </div>
-                        <div className="w-full h-2.5 bg-[#1a1a1a] rounded-full overflow-hidden">
+                        <div className="relative w-full h-3 rounded-full overflow-hidden bg-black/40 border border-white/5 backdrop-blur-sm">
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/[0.03] to-transparent" />
                             <div
-                                className={`h-full bg-gradient-to-r ${progressColor} transition-all duration-700 ease-out`}
+                                className={`
+                                    relative h-full bg-gradient-to-r ${progressColor} 
+                                    transition-all duration-700 ease-out
+                                    shadow-lg
+                                    before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/20 before:to-transparent
+                                `}
                                 style={{ width: `${Math.min(agent.fulfillment_percent, 100)}%` }}
                             />
                         </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between pt-3 border-t border-[#1f1f1f]">
+                    {/* Footer with glass separator */}
+                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
                         <div className="flex items-center gap-2">
                             {getTrendIcon()}
                             {agent.forecast_fulfillment_percent && (
-                                <span className="text-xs text-[#666]">
+                                <span className="text-xs text-gray-500">
                                     Прогноз: {agent.forecast_fulfillment_percent.toFixed(1)}%
                                 </span>
                             )}
                         </div>
-                        <div onClick={(e) => e.stopPropagation()}>
-                            <LiquidButton
-                                onClick={() => setShowDetails(true)}
-                                variant="secondary"
-                                icon={Eye}
-                                className="h-9 px-4 text-xs min-h-0" // Override for card footer to avoid too much bulk, but keep capsule shape
-                            >
-                                Детали
-                            </LiquidButton>
-                        </div>
+
                     </div>
                 </div>
-            </div >
+            </div>
 
             {/* Details Modal */}
             {

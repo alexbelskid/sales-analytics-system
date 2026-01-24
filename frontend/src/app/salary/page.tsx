@@ -6,6 +6,7 @@ import { salaryApi } from '@/lib/api';
 import { formatCurrency, downloadBlob, monthNames } from '@/lib/utils';
 import LiquidButton from '@/components/LiquidButton';
 import GlassSelect from '@/components/GlassSelect';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SalaryData {
     agent_id: string;
@@ -136,27 +137,41 @@ export default function SalaryPage() {
 
             {/* Summary Cards */}
             <div className="grid gap-4 md:grid-cols-3">
-                <div className="metric-card">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Users className="h-5 w-5" />
-                        <span>Агентов</span>
-                    </div>
-                    <p className="mt-2 text-3xl font-bold">{salaries.length}</p>
-                </div>
-                <div className="metric-card">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calculator className="h-5 w-5" />
-                        <span>Общий ФОТ</span>
-                    </div>
-                    <p className="mt-2 text-3xl font-bold">{formatCurrency(totalSalary)}</p>
-                </div>
-                <div className="metric-card">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calculator className="h-5 w-5" />
-                        <span>Общие продажи</span>
-                    </div>
-                    <p className="mt-2 text-3xl font-bold">{formatCurrency(totalSales)}</p>
-                </div>
+                {loading ? (
+                    Array(3).fill(0).map((_, i) => (
+                        <div key={i} className="metric-card space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Skeleton className="h-5 w-5 bg-white/5 rounded" />
+                                <Skeleton className="h-4 w-24 bg-white/5" />
+                            </div>
+                            <Skeleton className="h-9 w-32 bg-white/10" />
+                        </div>
+                    ))
+                ) : (
+                    <>
+                        <div className="metric-card">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Users className="h-5 w-5" />
+                                <span>Агентов</span>
+                            </div>
+                            <p className="mt-2 text-3xl font-bold">{salaries.length}</p>
+                        </div>
+                        <div className="metric-card">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calculator className="h-5 w-5" />
+                                <span>Общий ФОТ</span>
+                            </div>
+                            <p className="mt-2 text-3xl font-bold">{formatCurrency(totalSalary)}</p>
+                        </div>
+                        <div className="metric-card">
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                                <Calculator className="h-5 w-5" />
+                                <span>Общие продажи</span>
+                            </div>
+                            <p className="mt-2 text-3xl font-bold">{formatCurrency(totalSales)}</p>
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Salary Table */}
@@ -176,55 +191,72 @@ export default function SalaryPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {salaries.map((salary) => (
-                                <tr key={salary.agent_id} className="border-b border-border last:border-0">
-                                    <td className="px-4 py-3 font-medium">{salary.agent_name}</td>
-                                    <td className="px-4 py-3 text-right">{formatCurrency(salary.base_salary)}</td>
-                                    <td className="px-4 py-3 text-right text-muted-foreground">
-                                        {formatCurrency(salary.sales_amount)}
+                            {loading ? (
+                                Array(5).fill(0).map((_, i) => (
+                                    <tr key={i} className="border-b border-border last:border-0 h-14">
+                                        <td className="px-4 py-3"><Skeleton className="h-4 w-32 bg-white/5" /></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-20 bg-white/5" /></div></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-24 bg-white/5" /></div></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-8 bg-white/5" /></div></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-16 bg-white/5" /></div></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-16 bg-white/5" /></div></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-16 bg-white/5" /></div></td>
+                                        <td className="px-4 py-3"><div className="flex justify-end"><Skeleton className="h-4 w-24 bg-white/10" /></div></td>
+                                    </tr>
+                                ))
+                            ) : (
+                                salaries.map((salary) => (
+                                    <tr key={salary.agent_id} className="border-b border-border last:border-0">
+                                        <td className="px-4 py-3 font-medium">{salary.agent_name}</td>
+                                        <td className="px-4 py-3 text-right">{formatCurrency(salary.base_salary)}</td>
+                                        <td className="px-4 py-3 text-right text-muted-foreground">
+                                            {formatCurrency(salary.sales_amount)}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-muted-foreground">
+                                            {salary.commission_rate}%
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-white font-medium">
+                                            +{formatCurrency(salary.commission)}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-white font-medium">
+                                            {salary.bonus > 0 ? `+${formatCurrency(salary.bonus)}` : '—'}
+                                        </td>
+                                        <td className="px-4 py-3 text-right text-red-400">
+                                            {salary.penalty > 0 ? `-${formatCurrency(salary.penalty)}` : '—'}
+                                        </td>
+                                        <td className="px-4 py-3 text-right font-bold">
+                                            {formatCurrency(salary.total_salary)}
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                        {!loading && (
+                            <tfoot>
+                                <tr className="bg-secondary/50">
+                                    <td className="px-4 py-3 font-bold">ИТОГО</td>
+                                    <td className="px-4 py-3 text-right font-medium">
+                                        {formatCurrency(salaries.reduce((s, x) => s + x.base_salary, 0))}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-muted-foreground">
-                                        {salary.commission_rate}%
+                                    <td className="px-4 py-3 text-right font-medium">
+                                        {formatCurrency(totalSales)}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-white font-medium">
-                                        +{formatCurrency(salary.commission)}
+                                    <td className="px-4 py-3"></td>
+                                    <td className="px-4 py-3 text-right font-medium text-white">
+                                        +{formatCurrency(salaries.reduce((s, x) => s + x.commission, 0))}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-white font-medium">
-                                        {salary.bonus > 0 ? `+${formatCurrency(salary.bonus)}` : '—'}
+                                    <td className="px-4 py-3 text-right font-medium text-white">
+                                        +{formatCurrency(salaries.reduce((s, x) => s + x.bonus, 0))}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-red-400">
-                                        {salary.penalty > 0 ? `-${formatCurrency(salary.penalty)}` : '—'}
+                                    <td className="px-4 py-3 text-right font-medium text-red-400">
+                                        -{formatCurrency(salaries.reduce((s, x) => s + x.penalty, 0))}
                                     </td>
-                                    <td className="px-4 py-3 text-right font-bold">
-                                        {formatCurrency(salary.total_salary)}
+                                    <td className="px-4 py-3 text-right font-bold text-lg">
+                                        {formatCurrency(totalSalary)}
                                     </td>
                                 </tr>
-                            ))}
-                        </tbody>
-                        <tfoot>
-                            <tr className="bg-secondary/50">
-                                <td className="px-4 py-3 font-bold">ИТОГО</td>
-                                <td className="px-4 py-3 text-right font-medium">
-                                    {formatCurrency(salaries.reduce((s, x) => s + x.base_salary, 0))}
-                                </td>
-                                <td className="px-4 py-3 text-right font-medium">
-                                    {formatCurrency(totalSales)}
-                                </td>
-                                <td className="px-4 py-3"></td>
-                                <td className="px-4 py-3 text-right font-medium text-white">
-                                    +{formatCurrency(salaries.reduce((s, x) => s + x.commission, 0))}
-                                </td>
-                                <td className="px-4 py-3 text-right font-medium text-white">
-                                    +{formatCurrency(salaries.reduce((s, x) => s + x.bonus, 0))}
-                                </td>
-                                <td className="px-4 py-3 text-right font-medium text-red-400">
-                                    -{formatCurrency(salaries.reduce((s, x) => s + x.penalty, 0))}
-                                </td>
-                                <td className="px-4 py-3 text-right font-bold text-lg">
-                                    {formatCurrency(totalSalary)}
-                                </td>
-                            </tr>
-                        </tfoot>
+                            </tfoot>
+                        )}
                     </table>
                 </div>
             </div>

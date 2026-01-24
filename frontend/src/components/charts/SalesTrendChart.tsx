@@ -15,6 +15,7 @@ import {
 import { analyticsApi } from '@/lib/api';
 import { formatCurrency } from '@/lib/utils';
 import { TrendingUp } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TrendData {
     period: string;
@@ -66,10 +67,17 @@ export default function SalesTrendChart() {
 
     if (loading) {
         return (
-            <div className="h-80 flex items-center justify-center">
-                <div className="text-[#808080] text-sm">Загрузка...</div>
+            <div className="h-80 w-full animate-pulse">
+                <div className="flex items-center justify-between mb-6">
+                    <Skeleton className="h-6 w-32 bg-white/5" />
+                </div>
+                <div className="h-[250px] w-full bg-white/5 rounded-xl border border-white/5 relative overflow-hidden">
+                    <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-gradient-to-t from-white/5 to-transparent opacity-50" />
+                </div>
             </div>
         );
+
+
     }
 
     if (!hasRealData || data.length === 0) {

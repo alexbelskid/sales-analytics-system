@@ -14,6 +14,7 @@ import {
 import { analyticsApi } from '@/lib/api';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { Package } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const COLORS = [
     '#FFFFFF',
@@ -84,8 +85,15 @@ export default function TopProductsChart() {
 
     if (loading) {
         return (
-            <div className="h-72 flex items-center justify-center">
-                <div className="text-[#808080] text-sm">Загрузка...</div>
+            <div className="h-72 w-full animate-pulse">
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="flex items-center gap-4">
+                            <Skeleton className="h-4 w-32 bg-white/5" />
+                            <Skeleton className="h-8 flex-1 bg-white/5 rounded-r-lg" style={{ width: `${Math.max(30, 100 - (i * 15))}%` }} />
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

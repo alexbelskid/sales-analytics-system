@@ -15,6 +15,7 @@ import LiquidButton from './LiquidButton';
 import GlassInput from './GlassInput';
 import GlassDatePicker from './GlassDatePicker';
 import GlassSelect from './GlassSelect';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Agent {
     agent_id: string;
@@ -271,7 +272,19 @@ export default function AgentDashboard() {
             )}
 
             {/* KPI Metrics */}
-            {metrics && (
+            {loading ? (
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    {Array(4).fill(0).map((_, i) => (
+                        <div key={i} className="ui-card space-y-4">
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-9 w-9 rounded-lg bg-white/5" />
+                                <Skeleton className="h-4 w-24 bg-white/5" />
+                            </div>
+                            <Skeleton className="h-9 w-32 bg-white/10" />
+                        </div>
+                    ))}
+                </div>
+            ) : metrics && (
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="ui-card">
                         <div className="flex items-center gap-3 mb-4">
@@ -362,16 +375,37 @@ export default function AgentDashboard() {
                     )}
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {sortedAgents.map((agent, idx) => (
-                        <AgentCard
-                            key={agent.agent_id}
-                            agent={agent}
-                            rank={idx + 1}
-                        />
-                    ))}
+                    {loading ? (
+                        Array(6).fill(0).map((_, i) => (
+                            <div key={i} className="ui-card space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Skeleton className="h-10 w-10 rounded-full bg-white/5" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-32 bg-white/5" />
+                                        <Skeleton className="h-3 w-40 bg-white/5" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between">
+                                        <Skeleton className="h-3 w-16 bg-white/5" />
+                                        <Skeleton className="h-3 w-12 bg-white/5" />
+                                    </div>
+                                    <Skeleton className="h-2 w-full rounded-full bg-white/5" />
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        sortedAgents.map((agent, idx) => (
+                            <AgentCard
+                                key={agent.agent_id}
+                                agent={agent}
+                                rank={idx + 1}
+                            />
+                        ))
+                    )}
                 </div>
 
-                {sortedAgents.length === 0 && (
+                {!loading && sortedAgents.length === 0 && (
                     <div className="text-center py-12 text-[#808080]">
                         <p>Нет данных для отображения</p>
                     </div>

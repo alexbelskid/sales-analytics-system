@@ -8,6 +8,7 @@ import { BostonMatrix } from "@/components/analytics/BostonMatrix";
 import { WhatIfSimulator } from "@/components/analytics/WhatIfSimulator";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://athletic-alignment-production-db41.up.railway.app";
 
@@ -118,8 +119,16 @@ export default function AdvancedAnalyticsPage() {
                         {abcXyzData && !loading ? (
                             <ABCXYZMatrix data={abcXyzData} />
                         ) : (
-                            <div className="glass-panel h-full w-full flex items-center justify-center">
-                                <div className="text-gray-500">Загрузка...</div>
+                            <div className="glass-panel h-full w-full p-8 flex flex-col">
+                                <div className="flex items-center gap-4 mb-8">
+                                    <Skeleton className="w-12 h-12 rounded-full bg-white/5" />
+                                    <Skeleton className="h-6 w-40 bg-white/5" />
+                                </div>
+                                <div className="flex-1 grid grid-cols-3 grid-rows-3 gap-2">
+                                    {Array(9).fill(0).map((_, i) => (
+                                        <Skeleton key={i} className="h-full w-full rounded-xl bg-white/5" />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -129,8 +138,16 @@ export default function AdvancedAnalyticsPage() {
                         {bostonData && !loading ? (
                             <BostonMatrix data={bostonData} />
                         ) : (
-                            <div className="glass-panel h-full w-full flex items-center justify-center">
-                                <div className="animate-pulse bg-white/5 w-full h-full rounded-[40px]" />
+                            <div className="glass-panel h-full w-full p-8 flex flex-col">
+                                <div className="flex items-center gap-4 mb-8">
+                                    <Skeleton className="w-12 h-12 rounded-full bg-white/5" />
+                                    <Skeleton className="h-6 w-40 bg-white/5" />
+                                </div>
+                                <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2">
+                                    {Array(4).fill(0).map((_, i) => (
+                                        <Skeleton key={i} className="h-full w-full rounded-xl bg-white/5" />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -142,14 +159,27 @@ export default function AdvancedAnalyticsPage() {
                     {geoData && !loading ? (
                         <GeoMap data={geoData} />
                     ) : (
-                        <div className="glass-panel h-full w-full flex items-center justify-center min-h-[300px]">
-                            <div className="animate-pulse bg-white/5 w-24 h-24 rounded-full" />
+                        <div className="glass-panel h-full w-full p-8 flex flex-col">
+                            <div className="flex items-center gap-4 mb-8">
+                                <Skeleton className="w-12 h-12 rounded-full bg-white/5" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-6 w-48 bg-white/5" />
+                                    <Skeleton className="h-4 w-32 bg-white/5" />
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                {Array(5).fill(0).map((_, i) => (
+                                    <div key={i} className="flex items-center gap-4">
+                                        <Skeleton className="h-12 flex-1 rounded-2xl bg-white/5" />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
 
                 {/* 4. Footer / Additional Tools (What-If) */}
-                <div className="pt-8 border-t border-white/5">
+                < div className="pt-8 border-t border-white/5" >
                     <WhatIfSimulator
                         baseMetrics={{
                             revenue: lflData?.[0]?.period2_value || 0,
@@ -159,9 +189,9 @@ export default function AdvancedAnalyticsPage() {
                             avg_check: 0,
                         }}
                     />
-                </div>
+                </div >
 
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
