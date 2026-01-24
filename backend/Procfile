@@ -1,0 +1,1 @@
+web: LD_LIBRARY_PATH=$(find /nix -name 'libstdc++.so.6' -exec dirname {} \; 2>/dev/null | head -1):$LD_LIBRARY_PATH python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
