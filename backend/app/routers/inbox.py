@@ -66,6 +66,7 @@ def _sync_emails_blocking(config: Optional[EmailConfig] = None):
         email_ids = messages[0].split()
         
         new_emails_count = 0
+        emails_to_insert = []
         
         for email_id in email_ids[-5:]:  # Last 5 unseen (optimized for speed)
             try:
@@ -91,7 +92,7 @@ def _sync_emails_blocking(config: Optional[EmailConfig] = None):
                 else:
                     body = msg.get_payload(decode=True).decode(errors="ignore")
                 
-                # Save to DB
+                # Prepare for DB
                 if supabase:
                     # Check if exists (simplified)
                     email_data = {
@@ -103,16 +104,27 @@ def _sync_emails_blocking(config: Optional[EmailConfig] = None):
                         "folder": "inbox", # Required by schema usually
                         "settings_id": user_settings["id"] if user_settings else None
                     }
+                    emails_to_insert.append(email_data)
+
+            except Exception as e:
+                print(f"Error processing email {email_id}: {e}")
+                continue
+
+        # Batch insert to DB
+        if supabase and emails_to_insert:
+            try:
+                supabase.table("incoming_emails").insert(emails_to_insert).execute()
+                new_emails_count = len(emails_to_insert)
+            except Exception as batch_err:
+                print(f"Batch insert error: {batch_err}. Falling back to individual inserts.")
+                # Fallback to individual inserts
+                for email_data in emails_to_insert:
                     try:
                         supabase.table("incoming_emails").insert(email_data).execute()
                         new_emails_count += 1
                     except Exception as insert_err:
                         print(f"Insert error: {insert_err}")
                         pass # Ignore duplicates or schema mismatch for now
-                        
-            except Exception as e:
-                print(f"Error processing email {email_id}: {e}")
-                continue
                 
         mail.close()
         mail.logout()
