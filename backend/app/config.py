@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     port: int = 8000
     environment: str = "development"
     
+    # Security
+    admin_secret_key: Optional[str] = None  # Key for destructive operations (delete all)
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
