@@ -5,13 +5,38 @@ Verifies that large files are processed in batches without memory issues
 
 import pytest
 import pandas as pd
+from unittest.mock import MagicMock
 from datetime import datetime
 from app.services.unified_importer import UnifiedImporter
 
 
 @pytest.mark.asyncio
-async def test_large_file_batching():
+async def test_large_file_batching(mock_supabase):
     """Verify large files (2000 rows) are processed in batches without memory issues"""
+
+    # Configure mock for bulk insert to return data with names
+    def side_effect_insert(data, *args, **kwargs):
+        return_data = []
+        if isinstance(data, list):
+            for i, item in enumerate(data):
+                item_copy = item.copy()
+                item_copy['id'] = f'mock-id-{i}'
+                return_data.append(item_copy)
+        else:
+            item_copy = data.copy()
+            item_copy['id'] = 'mock-id-single'
+            return_data = [item_copy]
+
+        result_mock = MagicMock()
+        result_mock.data = return_data
+
+        chain_mock = MagicMock()
+        chain_mock.execute.return_value = result_mock
+        chain_mock.select.return_value.execute.return_value = result_mock
+        return chain_mock
+
+    mock_supabase.table.return_value.insert.side_effect = side_effect_insert
+
     # Create large DataFrame (2000 rows)
     df = pd.DataFrame({
         'customer_name': [f'Customer {i}' for i in range(2000)],
@@ -37,8 +62,32 @@ async def test_large_file_batching():
 
 
 @pytest.mark.asyncio
-async def test_small_file_no_batching_issues():
+async def test_small_file_no_batching_issues(mock_supabase):
     """Verify small files (10 rows) also work correctly"""
+
+    # Configure mock for bulk insert to return data with names
+    def side_effect_insert(data, *args, **kwargs):
+        return_data = []
+        if isinstance(data, list):
+            for i, item in enumerate(data):
+                item_copy = item.copy()
+                item_copy['id'] = f'mock-id-{i}'
+                return_data.append(item_copy)
+        else:
+            item_copy = data.copy()
+            item_copy['id'] = 'mock-id-single'
+            return_data = [item_copy]
+
+        result_mock = MagicMock()
+        result_mock.data = return_data
+
+        chain_mock = MagicMock()
+        chain_mock.execute.return_value = result_mock
+        chain_mock.select.return_value.execute.return_value = result_mock
+        return chain_mock
+
+    mock_supabase.table.return_value.insert.side_effect = side_effect_insert
+
     df = pd.DataFrame({
         'customer_name': [f'Customer {i}' for i in range(10)],
         'product_name': [f'Product {i}' for i in range(10)],
