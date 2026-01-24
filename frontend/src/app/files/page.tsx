@@ -35,7 +35,8 @@ interface ImportFile {
     metadata?: any;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
+// Use empty string for client-side to leverage Next.js rewrites
+const API_BASE = '';
 
 export default function FilesPage() {
     const [files, setFiles] = useState<ImportFile[]>([]);

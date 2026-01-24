@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://athletic-alignment-production-db41.up.railway.app";
+// Use empty string for client-side to leverage Next.js rewrites
+const API_BASE_URL = "";
 
 // Glass Panel Helper
 function AnalyticsCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {

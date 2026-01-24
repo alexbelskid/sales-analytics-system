@@ -14,7 +14,8 @@ import LiquidButton from "@/components/LiquidButton";
 import GlassInput from "@/components/GlassInput";
 import GlassSelect from "@/components/GlassSelect";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
+// Use empty string for client-side to leverage Next.js rewrites
+const API_BASE = '';
 
 interface TrainingExample {
     id: string;

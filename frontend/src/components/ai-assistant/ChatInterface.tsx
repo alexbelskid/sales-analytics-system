@@ -38,7 +38,8 @@ export default function ChatInterface() {
         }
     }, [messages, isThinking, thinkingStep]);
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    // Use empty string for client-side to leverage Next.js rewrites
+    const API_BASE = '';
 
     const handleSend = async (text: string) => {
         if (!text.trim()) return;

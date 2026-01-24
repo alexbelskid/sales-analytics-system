@@ -74,7 +74,8 @@ export default function AiAssistantPanel() {
             // Step 2: Call real API
             setThinkingStep("Запрашиваю данные из базы...");
 
-            const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://athletic-alignment-production-db41.up.railway.app';
+            // Use empty string for client-side to leverage Next.js rewrites
+            const API_BASE = '';
 
             const response = await fetch(`${API_BASE}/api/ai-chat/chat`, {
                 method: 'POST',
