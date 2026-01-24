@@ -260,14 +260,13 @@ async def test_imap_only(config: EmailConfig):
         socket.setdefaulttimeout(None)
 
 
-@router.post("/test-smtp-only")
-async def test_smtp_only(config: EmailConfig):
-    """Test SMTP connection only - trying PORT 587 (STARTTLS)"""
+def _test_smtp_blocking(config: EmailConfig):
+    """Blocking function to handle SMTP test"""
     import smtplib
     import ssl
     
     start_time = time.time()
-    socket.setdefaulttimeout(15)
+    # Removed global socket.setdefaulttimeout(15) to be thread-safe
     
     steps = []
     try:
@@ -275,8 +274,8 @@ async def test_smtp_only(config: EmailConfig):
         steps.append(f"2. Email: {config.email}")
         steps.append("3. Connecting to smtp.gmail.com:587 (TLS)...")
         
-        # Try connect without SSL first
-        server = smtplib.SMTP("smtp.gmail.com", 587)
+        # Try connect without SSL first, using explicit timeout
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=15)
         elapsed = time.time() - start_time
         steps.append(f"4. Connected in {elapsed:.2f}s")
         
@@ -316,5 +315,9 @@ async def test_smtp_only(config: EmailConfig):
             "time_seconds": round(elapsed, 2),
             "steps": steps
         }
-    finally:
-        socket.setdefaulttimeout(None)
+
+@router.post("/test-smtp-only")
+async def test_smtp_only(config: EmailConfig):
+    """Test SMTP connection only - trying PORT 587 (STARTTLS)"""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _test_smtp_blocking, config)
