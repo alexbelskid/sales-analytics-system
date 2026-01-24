@@ -7,8 +7,8 @@ RUN npm ci
 
 COPY . .
 
-# Build-time env var (will be overridden by Railway env vars)
-ARG NEXT_PUBLIC_API_URL
+# Build-time env var with production default
+ARG NEXT_PUBLIC_API_URL=https://athletic-alignment-production-db41.up.railway.app
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN npm run build
