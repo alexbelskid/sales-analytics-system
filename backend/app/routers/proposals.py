@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from io import BytesIO
+import asyncio
 from app.database import supabase
 from app.services.ai_service import generate_proposal_text
 from app.services.document_service import generate_proposal_docx, generate_proposal_pdf
@@ -96,7 +97,8 @@ async def export_docx(request: ProposalRequest):
             for item in request.items
         ]
         
-        docx_buffer = generate_proposal_docx(
+        docx_buffer = await asyncio.to_thread(
+            generate_proposal_docx,
             customer_name=request.customer_name,
             customer_company=request.customer_company,
             items=items_data,
@@ -135,7 +137,8 @@ async def export_pdf(request: ProposalRequest):
             for item in request.items
         ]
         
-        pdf_buffer = generate_proposal_pdf(
+        pdf_buffer = await asyncio.to_thread(
+            generate_proposal_pdf,
             customer_name=request.customer_name,
             customer_company=request.customer_company,
             items=items_data,
