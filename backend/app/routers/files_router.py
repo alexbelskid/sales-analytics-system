@@ -149,19 +149,15 @@ async def delete_all_sales_data():
             logger.warning(f"RPC reset failed ({e}), falling back to batch delete")
             rpc_error = e
             
-            # Fallback: Delete sales in batches
-            while True:
-                try:
-                    batch = db.table("sales").select("id").limit(1000).execute()
-                    if not batch.data:
-                        break
-                    
-                    ids = [r["id"] for r in batch.data]
-                    db.table("sales").delete().in_("id", ids).execute()
-                    deleted_sales += len(ids)
-                except Exception as batch_err:
-                    logger.error(f"Batch delete error: {batch_err}")
-                    break
+            # Fallback: Delete sales in one go
+            try:
+                # Use neq to delete all records where id is not 00000000-0000-0000-0000-000000000000
+                db.table("sales").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+                # We don't get exact deleted count here easily without another query,
+                # but for fallback it matters less. We just know it's not -1 (RPC).
+                deleted_sales = 1 # Mark as deleted via batch/single query
+            except Exception as batch_err:
+                logger.error(f"Single query delete error: {batch_err}")
             
             # Fallback: Delete import_history
             db.table("import_history").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
@@ -530,23 +526,9 @@ async def delete_all_sales():
         total_count = count_result.count or 0
         
         if total_count > 0:
-            # Delete in batches to avoid timeout
-            # Supabase doesn't have DELETE ALL, so we need to select IDs first
-            batch_size = 1000
-            deleted = 0
-            
-            while True:
-                # Get batch of IDs
-                batch = supabase.table("sales").select("id").limit(batch_size).execute()
-                if not batch.data:
-                    break
-                
-                ids = [r["id"] for r in batch.data]
-                supabase.table("sales").delete().in_("id", ids).execute()
-                deleted += len(ids)
-                
-                if len(ids) < batch_size:
-                    break
+            # Delete all using a single query
+            # Supabase requires a filter for delete, so we use neq nil UUID
+            supabase.table("sales").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
         
         # Clear analytics cache
         from app.services.cache_service import cache
