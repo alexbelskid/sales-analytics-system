@@ -1,3 +1,4 @@
+import asyncio
 from openai import OpenAI
 from app.config import settings
 from app.database import supabase
@@ -297,6 +298,39 @@ def _generate_simple_proposal(customer: str, products: List[Dict], conditions: s
 Отдел продаж"""
 
 
+def _analyze_excel_file(file_data: bytes) -> List[str]:
+    """
+    Synchronously parse and analyze Excel file data.
+    Designed to be run in a separate thread.
+    """
+    import pandas as pd
+    import io
+
+    parts = []
+    # Парсить Excel файл
+    df = pd.read_excel(io.BytesIO(file_data))
+
+    # Получить базовую статистику
+    parts.append(f"   Колонок: {len(df.columns)}")
+    parts.append(f"   Колонки: {', '.join(df.columns.tolist()[:10])}")
+
+    # Если есть колонка с агентами
+    if 'agent_name' in df.columns or 'Агент' in df.columns:
+        agent_col = 'agent_name' if 'agent_name' in df.columns else 'Агент'
+        unique_agents = df[agent_col].nunique()
+        parts.append(f"   Уникальных агентов: {unique_agents}")
+
+    # Если есть колонка с суммами
+    amount_cols = ['amount', 'total', 'сумма', 'Amount', 'Total']
+    for col in amount_cols:
+        if col in df.columns:
+            total_amount = df[col].sum()
+            parts.append(f"   Общая сумма: {total_amount:,.0f}")
+            break
+
+    return parts
+
+
 async def get_files_context() -> str:
     """
     Читает все загруженные Excel файлы из Storage
@@ -305,9 +339,6 @@ async def get_files_context() -> str:
     Returns:
         Текстовый контекст с данными из файлов
     """
-    import pandas as pd
-    import io
-    
     if not supabase:
         return ""
     
@@ -340,26 +371,9 @@ async def get_files_context() -> str:
                     file_data = supabase.storage.from_(settings.storage_bucket).download(storage_path)
                     
                     if file_data:
-                        # Парсить Excel файл
-                        df = pd.read_excel(io.BytesIO(file_data))
-                        
-                        # Получить базовую статистику
-                        context_parts.append(f"   Колонок: {len(df.columns)}")
-                        context_parts.append(f"   Колонки: {', '.join(df.columns.tolist()[:10])}")
-                        
-                        # Если есть колонка с агентами
-                        if 'agent_name' in df.columns or 'Агент' in df.columns:
-                            agent_col = 'agent_name' if 'agent_name' in df.columns else 'Агент'
-                            unique_agents = df[agent_col].nunique()
-                            context_parts.append(f"   Уникальных агентов: {unique_agents}")
-                        
-                        # Если есть колонка с суммами
-                        amount_cols = ['amount', 'total', 'сумма', 'Amount', 'Total']
-                        for col in amount_cols:
-                            if col in df.columns:
-                                total_amount = df[col].sum()
-                                context_parts.append(f"   Общая сумма: {total_amount:,.0f}")
-                                break
+                        # Run CPU-bound parsing in a thread pool
+                        stats = await asyncio.to_thread(_analyze_excel_file, file_data)
+                        context_parts.extend(stats)
                         
                 except Exception as e:
                     context_parts.append(f"   ⚠️ Ошибка чтения файла: {str(e)[:50]}")
