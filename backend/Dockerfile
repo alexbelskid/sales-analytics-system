@@ -2,10 +2,11 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies for Prophet
+# Install system dependencies for Prophet and pandas
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
