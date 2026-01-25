@@ -4,50 +4,104 @@
 
 @layer base {
     :root {
-        /* Kortix Dark Theme */
-        --background: 0 0% 4%;
-        /* #0A0A0A - Very dark, almost black */
-        --foreground: 0 0% 100%;
-        /* #FFFFFF - Pure white */
-        --card: 0 0% 8%;
-        /* #141414 - Dark gray cards */
-        --card-foreground: 0 0% 100%;
-        /* #FFFFFF */
-        --popover: 0 0% 8%;
-        --popover-foreground: 0 0% 100%;
-        --primary: 0 0% 100%;
-        /* White primary */
-        --primary-foreground: 0 0% 0%;
-        /* Black text on white */
-        --secondary: 0 0% 12%;
-        /* #1F1F1F */
-        --secondary-foreground: 0 0% 100%;
-        --muted: 0 0% 12%;
-        --muted-foreground: 0 0% 50%;
-        /* #808080 - Gray */
-        --accent: 348 70% 36%;
-        /* Burgundy accent #9B1B30 */
-        --accent-foreground: 0 0% 100%;
-        --destructive: 0 80% 55%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 0 0% 100% / 0.08;
-        /* rgba(255, 255, 255, 0.08) - Semi-transparent white */
-        --input: 0 0% 12%;
-        --ring: 348 70% 36%;
-        --radius: 1.5rem;
-        /* 24px - Kortix style large radius */
-
-        /* --- MONOLITH PHYSICS (Glass & Motion) --- */
+        /* ============================================
+           UNIFIED DESIGN SYSTEM - COLOR TOKENS
+           All colors are centralized here for consistency
+           ============================================ */
+        
+        /* Background Colors */
+        --background: 0 0% 4%;              /* #0A0A0A - Main app background */
+        --background-secondary: 0 0% 8%;    /* #141414 - Card/panel background */
+        --background-tertiary: 0 0% 12%;    /* #1F1F1F - Muted elements */
+        --background-hover: 0 0% 100% / 0.05; /* Hover state */
+        
+        /* Foreground (Text) Colors */
+        --foreground: 0 0% 100%;            /* #FFFFFF - Primary text */
+        --foreground-secondary: 0 0% 70%;   /* #B3B3B3 - Secondary text */
+        --foreground-muted: 0 0% 50%;       /* #808080 - Muted text */
+        --foreground-disabled: 0 0% 30%;    /* #4D4D4D - Disabled text */
+        
+        /* Brand Colors */
+        --brand-primary: 348 70% 36%;       /* #9B1B30 - Burgundy accent */
+        --brand-primary-hover: 348 70% 42%; /* Lighter burgundy */
+        --brand-secondary: 0 0% 100%;       /* White */
+        
+        /* Semantic Colors */
+        --success: 142 71% 45%;             /* #22C55E - Green */
+        --success-muted: 142 71% 45% / 0.1;
+        --warning: 38 92% 50%;              /* #F59E0B - Amber */
+        --warning-muted: 38 92% 50% / 0.1;
+        --destructive: 0 80% 55%;           /* #E33D3D - Red */
+        --destructive-muted: 0 80% 55% / 0.1;
+        --info: 188 78% 41%;                /* #14B8A6 - Cyan */
+        --info-muted: 188 78% 41% / 0.1;
+        
+        /* Component Colors (Semantic Mapping) */
+        --card: var(--background-secondary);
+        --card-foreground: var(--foreground);
+        --popover: var(--background-secondary);
+        --popover-foreground: var(--foreground);
+        --primary: var(--brand-primary);
+        --primary-foreground: 0 0% 100%;
+        --secondary: var(--background-tertiary);
+        --secondary-foreground: var(--foreground);
+        --muted: var(--background-tertiary);
+        --muted-foreground: var(--foreground-muted);
+        --accent: var(--brand-primary);
+        --accent-foreground: var(--foreground);
+        --destructive-foreground: var(--foreground);
+        
+        /* Border Colors */
+        --border: 0 0% 100% / 0.08;         /* Default border */
+        --border-muted: 0 0% 100% / 0.05;   /* Very subtle border */
+        --border-emphasis: 0 0% 100% / 0.12; /* More visible border */
+        --border-focus: var(--brand-primary);
+        
+        /* Input Colors */
+        --input: var(--background-tertiary);
+        --ring: var(--brand-primary);
+        
+        /* Glass Effect */
         --glass-border: rgba(255, 255, 255, 0.08);
         --glass-surface: rgba(255, 255, 255, 0.02);
         --glass-highlight: rgba(255, 255, 255, 0.05);
-        --ease-satin: cubic-bezier(0.2, 0.8, 0.2, 1);
-
-        /* Table Colors */
+        
+        /* ============================================
+           DESIGN SYSTEM - SPACING & SIZING
+           ============================================ */
+        
+        /* Border Radius */
+        --radius: 1rem;                     /* 16px - Base radius */
+        --radius-sm: 0.5rem;                /* 8px */
+        --radius-md: 0.75rem;               /* 12px */
+        --radius-lg: 1.5rem;                /* 24px */
+        --radius-xl: 2rem;                  /* 32px */
+        --radius-2xl: 2.5rem;               /* 40px - Glass panels */
+        --radius-full: 9999px;              /* Fully rounded */
+        
+        /* ============================================
+           DESIGN SYSTEM - MOTION & ANIMATION
+           ============================================ */
+        
+        /* Easing Functions */
+        --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+        --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);  /* Liquid smooth */
+        --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        
+        /* Transition Durations */
+        --duration-fast: 150ms;
+        --duration-normal: 300ms;
+        --duration-slow: 600ms;
+        
+        /* Backdrop Filters */
+        --backdrop-glass: blur(30px) saturate(100%);
+        --backdrop-heavy: blur(40px) saturate(120%);
+        --backdrop-light: blur(20px) saturate(100%);
+        
+        /* Legacy support (keeping for compatibility) */
+        --ease-satin: var(--ease-smooth);
         --pale-slate: #C0C0C0;
-        /* Placeholder for th color */
         --bright-snow: #FFFFFF;
-        /* Placeholder for td color */
     }
 }
 
@@ -82,104 +136,23 @@
 }
 
 @layer components {
-    .metric-card {
-        @apply glass-panel p-6;
-    }
+    /* ============================================
+       UNIFIED COMPONENT SYSTEM
+       All reusable component styles in one place
+       ============================================ */
 
-    /* Universal card/block component - Kortix style */
+    /* --- CARDS --- */
     .ui-card {
         @apply glass-panel p-6;
     }
 
-    .ui-card:hover {
-        @apply opacity-90 scale-[1.01];
-    }
-
-    /* Compact card variant */
     .ui-card-compact {
-        @apply bg-card border border-border rounded-2xl p-4 transition-all duration-150 ease-in-out;
+        @apply glass-panel p-4;
     }
 
-    .ui-card-compact:hover {
-        @apply opacity-90;
-    }
-
-    /* Global button styles - Kortix style */
-    button {
-        @apply rounded-2xl transition-all duration-150 ease-in-out;
-    }
-
-    button:hover {
-        @apply opacity-90;
-    }
-
-    button:active {
-        @apply opacity-80;
-    }
-
-    /* Accent button variant */
-    .btn-accent {
-        @apply bg-[hsl(348, 70%, 36%)] hover:opacity-90 text-white;
-    }
-
-    /* ========================================
-     PIXEL-PERFECT BUTTON SYSTEM
-     Design Tokens for Consistent UI
-     ======================================== */
-
-    .btn-primary {
-        @apply flex items-center justify-center gap-2;
-        @apply rounded-full bg-cyan-600 text-white;
-        @apply px-6 transition-all;
-        @apply hover:bg-cyan-500 disabled:opacity-50;
-        @apply font-medium text-sm;
-        @apply shadow-lg shadow-cyan-600/25;
-        height: 44px;
-        min-width: 120px;
-    }
-
-    /* Secondary Action Buttons - 44px height */
-    .btn-secondary {
-        @apply flex items-center justify-center gap-2;
-        @apply rounded-full border border-border text-white;
-        @apply px-5 transition-all;
-        @apply hover:opacity-90 hover:bg-white/5;
-        @apply font-normal text-sm;
-        height: 44px;
-        min-width: 110px;
-    }
-
-    /* Filter Chip Buttons - 44px height (touch-friendly) */
-    .btn-filter {
-        @apply flex items-center justify-center gap-2;
-        @apply rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400;
-        @apply px-4 transition-all;
-        @apply hover:bg-cyan-500/20 hover:border-cyan-500/50;
-        @apply font-medium text-sm;
-        height: 44px;
-        min-width: 100px;
-    }
-
-    /* Icon-only Buttons - 44x44px square */
-    .btn-icon {
-        @apply flex items-center justify-center;
-        @apply rounded-full border border-border text-white;
-        @apply transition-all;
-        @apply hover:opacity-90 hover:bg-white/5;
-        width: 44px;
-        height: 44px;
-        padding: 0;
-    }
-
-    /* Button Group Container - ensures consistent spacing */
-    .btn-group {
-        @apply flex flex-wrap items-center gap-3;
-    }
-
-    /* Touch-safe utility - ensures minimum 44x44px */
-    .touch-target-safe {
-        min-width: 44px;
-        min-height: 44px;
+    /* Legacy support */
+    .metric-card {
+        @apply glass-panel p-6;
     }
 
     /* --- LAYER 1: FILM GRAIN (FIXED) --- */
@@ -194,35 +167,36 @@
         /* Soften digital edges */
     }
 
-    /* --- THE MASTERPIECE: LIQUID SMOOTH CARD --- */
+    /* --- GLASS PANEL: LIQUID SMOOTH CARD --- */
     .glass-panel {
         @apply relative overflow-hidden;
-        /* No fixed height */
-        border-radius: 40px;
+        border-radius: var(--radius-2xl); /* 40px */
 
-        /* 1. Ghost Refraction (Top Gradient) */
+        /* Glass Surface with subtle gradient */
         background: linear-gradient(180deg,
                 var(--glass-surface) 0%,
-                rgba(233, 236, 239, 0.0) 40%);
+                rgba(255, 255, 255, 0.0) 40%);
 
-        /* Anti-aliasing Secret: Padding Box Clip */
+        /* Anti-aliasing */
         background-clip: padding-box;
 
-        backdrop-filter: blur(30px) saturate(100%);
-        -webkit-backdrop-filter: blur(30px) saturate(100%);
+        /* Glass effect */
+        backdrop-filter: var(--backdrop-glass);
+        -webkit-backdrop-filter: var(--backdrop-glass);
 
-        /* 2. Vector Perfect Border (Single Line) */
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        /* Border */
+        border: 1px solid var(--glass-border);
 
-        /* 3. Clean Volume (No Edge Insets) */
+        /* Shadow */
         box-shadow:
             0 40px 80px -20px rgba(0, 0, 0, 0.8),
-            inset 0 0 40px 0 rgba(255, 255, 255, 0.02);
+            inset 0 0 40px 0 var(--glass-surface);
 
-        /* Hardware Acceleration */
+        /* Hardware Acceleration & Transitions */
         will-change: transform;
         transform: translateZ(0);
-        transition: transform 0.6s var(--ease-satin), box-shadow 0.6s var(--ease-satin);
+        transition: transform var(--duration-slow) var(--ease-smooth), 
+                    box-shadow var(--duration-slow) var(--ease-smooth);
         transform-style: preserve-3d;
     }
 
@@ -230,7 +204,7 @@
         transform: translateY(-8px) translateZ(0) scale(1.01);
         box-shadow:
             0 50px 100px -20px rgba(0, 0, 0, 0.9),
-            inset 0 0 60px 0 rgba(255, 255, 255, 0.04);
+            inset 0 0 60px 0 var(--glass-highlight);
         border-color: var(--glass-highlight);
     }
 }

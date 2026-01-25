@@ -16,35 +16,49 @@ module.exports = {
         },
         extend: {
             colors: {
-                // --- MONOLITH STEALTH PALETTE (Stealth Edition) ---
-                gray: {
-                    50: '#f8f9fa',  // Bright Snow
-                    100: '#e9ecef', // Platinum
-                    200: '#dee2e6', // Alabaster
-                    300: '#ced4da', // Pale Slate
-                    400: '#adb5bd', // Icons
-                    500: '#6c757d',
-                    600: '#495057',
-                    700: '#343a40', // Gunmetal - THE BORDER COLOR
-                    800: '#212529', // Carbon Black - THE GLASS SURFACE
-                    900: '#050505', // Deep Void - THE APP BACKGROUND
+                // Unified color system mapped to CSS variables
+                border: {
+                    DEFAULT: "hsl(var(--border))",
+                    muted: "hsl(var(--border-muted))",
+                    emphasis: "hsl(var(--border-emphasis))",
+                    focus: "hsl(var(--border-focus))",
                 },
-
-                // Data Brutalism Color System
-                obsidian: "hsl(var(--obsidian))",
-                charcoal: "hsl(var(--charcoal))",
-                slate: "hsl(var(--slate))",
-                'amber-glow': "hsl(var(--amber-glow))",
-                'emerald-data': "hsl(var(--emerald-data))",
-                'crimson-alert': "hsl(var(--crimson-alert))",
-                frost: "hsl(var(--frost))",
-
-                // Semantic tokens
-                border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
-                background: "hsl(var(--background))",
-                foreground: "hsl(var(--foreground))",
+                background: {
+                    DEFAULT: "hsl(var(--background))",
+                    secondary: "hsl(var(--background-secondary))",
+                    tertiary: "hsl(var(--background-tertiary))",
+                    hover: "hsl(var(--background-hover))",
+                },
+                foreground: {
+                    DEFAULT: "hsl(var(--foreground))",
+                    secondary: "hsl(var(--foreground-secondary))",
+                    muted: "hsl(var(--foreground-muted))",
+                    disabled: "hsl(var(--foreground-disabled))",
+                },
+                brand: {
+                    primary: "hsl(var(--brand-primary))",
+                    'primary-hover': "hsl(var(--brand-primary-hover))",
+                    secondary: "hsl(var(--brand-secondary))",
+                },
+                success: {
+                    DEFAULT: "hsl(var(--success))",
+                    muted: "hsl(var(--success-muted))",
+                },
+                warning: {
+                    DEFAULT: "hsl(var(--warning))",
+                    muted: "hsl(var(--warning-muted))",
+                },
+                destructive: {
+                    DEFAULT: "hsl(var(--destructive))",
+                    foreground: "hsl(var(--destructive-foreground))",
+                    muted: "hsl(var(--destructive-muted))",
+                },
+                info: {
+                    DEFAULT: "hsl(var(--info))",
+                    muted: "hsl(var(--info-muted))",
+                },
                 primary: {
                     DEFAULT: "hsl(var(--primary))",
                     foreground: "hsl(var(--primary-foreground))",
@@ -52,10 +66,6 @@ module.exports = {
                 secondary: {
                     DEFAULT: "hsl(var(--secondary))",
                     foreground: "hsl(var(--secondary-foreground))",
-                },
-                destructive: {
-                    DEFAULT: "hsl(var(--destructive))",
-                    foreground: "hsl(var(--destructive-foreground))",
                 },
                 muted: {
                     DEFAULT: "hsl(var(--muted))",
@@ -75,14 +85,30 @@ module.exports = {
                 },
             },
             fontFamily: {
-                display: ['var(--font-display)', 'serif'],
-                body: ['var(--font-body)', 'sans-serif'],
-                mono: ['var(--font-mono)', 'monospace'],
+                sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', '"Inter"', 'sans-serif'],
+                mono: ['"SF Mono"', '"Monaco"', '"Inconsolata"', 'monospace'],
             },
             borderRadius: {
-                lg: "var(--radius)",
-                md: "calc(var(--radius) - 2px)",
-                sm: "calc(var(--radius) - 4px)",
+                sm: "var(--radius-sm)",
+                md: "var(--radius-md)",
+                lg: "var(--radius-lg)",
+                xl: "var(--radius-xl)",
+                "2xl": "var(--radius-2xl)",
+                full: "var(--radius-full)",
+            },
+            transitionDuration: {
+                fast: "var(--duration-fast)",
+                normal: "var(--duration-normal)",
+                slow: "var(--duration-slow)",
+            },
+            transitionTimingFunction: {
+                smooth: "var(--ease-smooth)",
+                spring: "var(--ease-spring)",
+            },
+            backdropBlur: {
+                glass: "30px",
+                heavy: "40px",
+                light: "20px",
             },
             keyframes: {
                 "fade-in": {
@@ -93,10 +119,15 @@ module.exports = {
                     "0%": { transform: "translateX(-100%)" },
                     "100%": { transform: "translateX(0)" },
                 },
+                "scale-in": {
+                    "0%": { opacity: "0", transform: "scale(0.95)" },
+                    "100%": { opacity: "1", transform: "scale(1)" },
+                },
             },
             animation: {
                 "fade-in": "fade-in 0.3s ease-out",
                 "slide-in": "slide-in 0.3s ease-out",
+                "scale-in": "scale-in 0.2s ease-out",
             },
         },
     },
