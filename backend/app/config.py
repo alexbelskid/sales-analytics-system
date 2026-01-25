@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     
     # App
     app_name: str = "Alterini AI API"
+    admin_secret_key: str = "unsafe-default-secret-key"  # Change this in production!
     debug: bool = True
     frontend_url: str = "http://localhost:3000"
     api_base_url: str = "http://localhost:8000"
