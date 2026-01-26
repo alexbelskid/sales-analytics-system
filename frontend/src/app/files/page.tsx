@@ -45,6 +45,7 @@ export default function FilesPage() {
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [sourceFilter, setSourceFilter] = useState<string>('');
     const [typeFilter, setTypeFilter] = useState<string>('');
+    const [adminPassword, setAdminPassword] = useState<string>('');
 
     const fetchFiles = async () => {
         try {
@@ -77,8 +78,20 @@ export default function FilesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Удалить запись об импорте?')) return;
 
+        const password = prompt('Введите пароль администратора для подтверждения:');
+        if (password === null) return;
+
         try {
-            await fetch(`${API_BASE}/api/files/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/files/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': password }
+            });
+
+            if (res.status === 401 || res.status === 403) {
+                alert('Неверный пароль администратора');
+                return;
+            }
+
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
@@ -142,13 +155,29 @@ export default function FilesPage() {
     };
 
     const executeDeleteAll = async () => {
+        if (!adminPassword) {
+            alert('Введите пароль администратора');
+            return;
+        }
+
         setIsDeleting(true);
         try {
-            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': adminPassword }
+            });
+
+            if (res.status === 401 || res.status === 403) {
+                alert('Неверный пароль администратора');
+                setIsDeleting(false);
+                return;
+            }
+
             const data = await res.json();
             setShowDeleteModal(false);
             alert(`✅ Удалено ${data.deleted_sales} записей`);
             fetchFiles();
+            setAdminPassword(''); // Clear password after success
         } catch (err) {
             console.error('Delete all failed:', err);
             alert('❌ Ошибка при удалении');
@@ -454,6 +483,17 @@ export default function FilesPage() {
                                     <li>Все записи в таблице sales</li>
                                     <li>Вся история импортов</li>
                                 </ul>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm text-gray-400 mb-1">Пароль администратора</label>
+                                <input
+                                    type="password"
+                                    value={adminPassword}
+                                    onChange={(e) => setAdminPassword(e.target.value)}
+                                    className="w-full bg-black/30 border border-gray-600 rounded-lg px-3 py-2 text-white focus:border-red-500 focus:outline-none"
+                                    placeholder="Введите пароль..."
+                                />
                             </div>
 
                             <div className="flex gap-3">

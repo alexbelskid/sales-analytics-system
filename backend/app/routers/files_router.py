@@ -3,10 +3,11 @@ Files API Router
 Manages import file history, details, and actions
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List
 from datetime import datetime
 from app.database import supabase
+from app.dependencies import verify_admin_access
 import logging
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ async def list_files(
 
 
 # IMPORTANT: Static routes MUST come before dynamic /{file_id} routes
-@router.delete("/delete-all-data")
+@router.delete("/delete-all-data", dependencies=[Depends(verify_admin_access)])
 async def delete_all_sales_data():
     """
     Delete ALL sales data from the database.
@@ -274,7 +275,7 @@ async def get_file_details(file_id: str):
         raise HTTPException(500, str(e))
 
 
-@router.delete("/{file_id}")
+@router.delete("/{file_id}", dependencies=[Depends(verify_admin_access)])
 async def delete_file(file_id: str, delete_data: bool = Query(True)):  # ✅ Changed default to True
     """
     Delete an import record and optionally its associated data
@@ -472,7 +473,7 @@ async def reset_stuck_imports():
         raise HTTPException(500, str(e))
 
 
-@router.delete("/sales-data/{file_id}")
+@router.delete("/sales-data/{file_id}", dependencies=[Depends(verify_admin_access)])
 async def delete_sales_data(file_id: str):
     """
     Delete all sales data imported from a specific file.
@@ -511,7 +512,7 @@ async def delete_sales_data(file_id: str):
         raise HTTPException(500, str(e))
 
 
-@router.delete("/all-sales")
+@router.delete("/all-sales", dependencies=[Depends(verify_admin_access)])
 async def delete_all_sales():
     """
     Delete ALL sales data from the database.
