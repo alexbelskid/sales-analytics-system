@@ -28,3 +28,11 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+backend.log
+frontend.log
+
+# Temporary documentation files
+COPY_THIS_SQL.txt
