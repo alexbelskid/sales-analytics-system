@@ -1,0 +1,22 @@
+# Railway.toml - Backend Service Configuration
+# This file tells Railway how to build and deploy the backend
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "backend/Dockerfile"
+watchPatterns = ["backend/**"]
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+startCommand = "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+
+[env]
+# Railway will inject these from the dashboard
+# SUPABASE_URL
+# SUPABASE_KEY
+# SUPABASE_SERVICE_KEY
+# OPENAI_API_KEY
+# PORT (automatically set by Railway)
