@@ -77,11 +77,27 @@ export default function FilesPage() {
     const handleDelete = async (id: string) => {
         if (!confirm('Удалить запись об импорте?')) return;
 
+        const adminKey = window.prompt("Введите ключ администратора (Admin Secret Key):");
+        if (!adminKey) return;
+
         try {
-            await fetch(`${API_BASE}/api/files/${id}`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/files/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': adminKey }
+            });
+
+            if (!res.ok) {
+                if (res.status === 403 || res.status === 401) {
+                    alert('Ошибка доступа: Неверный ключ администратора');
+                    return;
+                }
+                throw new Error('Delete failed');
+            }
+
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
+            alert('Ошибка при удалении');
         }
     };
 
@@ -111,8 +127,20 @@ export default function FilesPage() {
     };
 
     const clearCache = async () => {
+        const adminKey = window.prompt("Введите ключ администратора (Admin Secret Key):");
+        if (!adminKey) return;
+
         try {
-            await fetch(`${API_BASE}/api/files/clear-cache`, { method: 'POST' });
+            const res = await fetch(`${API_BASE}/api/files/clear-cache`, {
+                method: 'POST',
+                headers: { 'X-Admin-Key': adminKey }
+            });
+
+            if (!res.ok) {
+                alert('Ошибка доступа или сервера');
+                return;
+            }
+
             alert('Кэш аналитики очищен');
         } catch (err) {
             console.error('Clear cache failed:', err);
@@ -120,8 +148,20 @@ export default function FilesPage() {
     };
 
     const resetStuck = async () => {
+        const adminKey = window.prompt("Введите ключ администратора (Admin Secret Key):");
+        if (!adminKey) return;
+
         try {
-            const res = await fetch(`${API_BASE}/api/files/reset-stuck`, { method: 'POST' });
+            const res = await fetch(`${API_BASE}/api/files/reset-stuck`, {
+                method: 'POST',
+                headers: { 'X-Admin-Key': adminKey }
+            });
+
+            if (!res.ok) {
+                alert('Ошибка доступа или сервера');
+                return;
+            }
+
             const data = await res.json();
             if (data.reset_count > 0) {
                 alert(`Сброшено ${data.reset_count} застрявших импортов`);
@@ -142,9 +182,26 @@ export default function FilesPage() {
     };
 
     const executeDeleteAll = async () => {
+        const adminKey = window.prompt("Введите ключ администратора (Admin Secret Key):");
+        if (!adminKey) return;
+
         setIsDeleting(true);
         try {
-            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': adminKey }
+            });
+
+            if (!res.ok) {
+                if (res.status === 403 || res.status === 401) {
+                    alert('Ошибка доступа: Неверный ключ администратора');
+                } else {
+                    alert('Ошибка сервера');
+                }
+                setIsDeleting(false);
+                return;
+            }
+
             const data = await res.json();
             setShowDeleteModal(false);
             alert(`✅ Удалено ${data.deleted_sales} записей`);
