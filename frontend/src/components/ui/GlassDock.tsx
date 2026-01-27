@@ -77,7 +77,7 @@ const GlassDock = () => {
                                 className={`
                                     flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200
                                     ${isActive
-                                        ? 'bg-white/10 text-white shadow-[inner_0_0_10px_rgba(255,255,255,0.05)]'
+                                        ? 'bg-gray-700/40 text-gray-300 shadow-[inner_0_0_10px_rgba(0,0,0,0.3)]'
                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }
                                 `}
@@ -102,14 +102,14 @@ const GlassDock = () => {
                             href={item.path}
                             onClick={() => setIsMoreOpen(false)}
                             className={`group relative flex items-center justify-center rounded-full p-3 transition-all duration-300 ${isActive
-                                ? 'text-white bg-white/10 shadow-[inner_0_0_10px_rgba(255,255,255,0.1)]'
+                                ? 'text-gray-300 bg-gray-700/40 shadow-[inner_0_0_10px_rgba(0,0,0,0.3)]'
                                 : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                                 }`}
                         >
                             <Icon
                                 size={20}
                                 strokeWidth={isActive ? 2.5 : 2}
-                                className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : ''}`}
+                                className={`transition-transform duration-300 group-hover:scale-110 ${isActive ? '' : ''}`}
                             />
 
 
@@ -125,13 +125,13 @@ const GlassDock = () => {
                 <button
                     onClick={() => setIsMoreOpen(!isMoreOpen)}
                     className={`group relative flex items-center justify-center rounded-full p-3 transition-all duration-300 ${isMoreOpen
-                        ? 'text-white bg-white/10 shadow-[inner_0_0_10px_rgba(255,255,255,0.1)]'
+                        ? 'text-gray-300 bg-gray-700/40 shadow-[inner_0_0_10px_rgba(0,0,0,0.3)]'
                         : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                         }`}
                 >
                     <Grid
                         size={20}
-                        className={`transition-transform duration-300 ${isMoreOpen ? 'rotate-90 text-white' : ''}`}
+                        className={`transition-transform duration-300 ${isMoreOpen ? 'rotate-90 text-gray-300' : ''}`}
                     />
                 </button>
             </div>
