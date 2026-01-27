@@ -64,7 +64,7 @@ const GlassDock = () => {
                     ${isMoreOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-4 pointer-events-none'}
                 `}
             >
-                <div className="flex flex-col gap-1 rounded-3xl border border-gray-700 bg-gray-900/80 p-2 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 w-64">
+                <div className="flex flex-col gap-1 rounded-3xl border border-zinc-700 bg-zinc-900/80 p-2 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 w-64">
                     {secondaryNavItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.path;
@@ -77,7 +77,7 @@ const GlassDock = () => {
                                 className={`
                                     flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200
                                     ${isActive
-                                        ? 'bg-gray-800/60 text-gray-400'
+                                        ? 'bg-zinc-800/60 text-gray-400'
                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }
                                 `}
@@ -91,7 +91,7 @@ const GlassDock = () => {
             </div>
 
             {/* Main Dock */}
-            <div className="flex items-center gap-2 rounded-full border border-gray-700 bg-gray-900/60 p-2 backdrop-blur-xl shadow-2xl ring-1 ring-white/5">
+            <div className="flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-900/60 p-2 backdrop-blur-xl shadow-2xl ring-1 ring-white/5">
                 {mainNavItems.map((item) => {
                     const isActive = pathname === item.path;
                     const Icon = item.icon;
@@ -102,7 +102,7 @@ const GlassDock = () => {
                             href={item.path}
                             onClick={() => setIsMoreOpen(false)}
                             className={`group relative flex items-center justify-center rounded-full p-3 transition-all duration-300 ${isActive
-                                ? 'text-gray-400 bg-gray-800/60'
+                                ? 'text-gray-400 bg-zinc-800/60'
                                 : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                                 }`}
                         >
@@ -125,7 +125,7 @@ const GlassDock = () => {
                 <button
                     onClick={() => setIsMoreOpen(!isMoreOpen)}
                     className={`group relative flex items-center justify-center rounded-full p-3 transition-all duration-300 ${isMoreOpen
-                        ? 'text-gray-400 bg-gray-800/60'
+                        ? 'text-gray-400 bg-zinc-800/60'
                         : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                         }`}
                 >
