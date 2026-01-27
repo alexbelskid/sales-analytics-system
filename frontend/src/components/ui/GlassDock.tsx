@@ -77,7 +77,7 @@ const GlassDock = () => {
                                 className={`
                                     flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200
                                     ${isActive
-                                        ? 'bg-gray-700/40 text-gray-300 shadow-[inner_0_0_10px_rgba(0,0,0,0.3)]'
+                                        ? 'bg-gray-800/60 text-gray-400'
                                         : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }
                                 `}
@@ -102,7 +102,7 @@ const GlassDock = () => {
                             href={item.path}
                             onClick={() => setIsMoreOpen(false)}
                             className={`group relative flex items-center justify-center rounded-full p-3 transition-all duration-300 ${isActive
-                                ? 'text-gray-300 bg-gray-700/40 shadow-[inner_0_0_10px_rgba(0,0,0,0.3)]'
+                                ? 'text-gray-400 bg-gray-800/60'
                                 : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                                 }`}
                         >
@@ -125,13 +125,13 @@ const GlassDock = () => {
                 <button
                     onClick={() => setIsMoreOpen(!isMoreOpen)}
                     className={`group relative flex items-center justify-center rounded-full p-3 transition-all duration-300 ${isMoreOpen
-                        ? 'text-gray-300 bg-gray-700/40 shadow-[inner_0_0_10px_rgba(0,0,0,0.3)]'
+                        ? 'text-gray-400 bg-gray-800/60'
                         : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
                         }`}
                 >
                     <Grid
                         size={20}
-                        className={`transition-transform duration-300 ${isMoreOpen ? 'rotate-90 text-gray-300' : ''}`}
+                        className={`transition-transform duration-300 ${isMoreOpen ? 'rotate-90 text-gray-400' : ''}`}
                     />
                 </button>
             </div>
