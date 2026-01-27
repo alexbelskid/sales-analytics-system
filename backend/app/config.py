@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     
+    # Security
+    admin_secret_key: str = ""  # Secret key for administrative actions
+
     # App
     app_name: str = "Alterini AI API"
     debug: bool = True
