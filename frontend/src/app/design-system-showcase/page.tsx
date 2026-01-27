@@ -21,6 +21,23 @@ export default function DesignSystemShowcase() {
           <p className="text-foreground-secondary">All components in one place</p>
         </div>
 
+        {/* HERO SECTION: The New Liquid Glass Button */}
+        <div className="flex flex-col items-center justify-center p-12 bg-black/20 rounded-[40px] border border-white/5 space-y-6 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-tr from-brand-primary/20 via-transparent to-info/20 opacity-30 pointer-events-none" />
+            
+            <div className="text-center space-y-2 z-10">
+                <h2 className="text-2xl font-light text-white mb-4">The New "Liquid Glass" Primary Button</h2>
+                <div className="flex items-center justify-center gap-8">
+                    <Button variant="primary" size="lg" className="scale-125">
+                        Get Started
+                    </Button>
+                    <Button variant="primary" size="lg" icon={Download}>
+                        Download App
+                    </Button>
+                </div>
+            </div>
+        </div>
+
         {/* Buttons */}
         <Card>
           <CardHeader>
@@ -32,8 +49,8 @@ export default function DesignSystemShowcase() {
             <div className="space-y-3">
               <h3 className="text-lg font-medium text-foreground-secondary">Variants</h3>
               <div className="flex flex-wrap gap-4">
-                <Button variant="primary">Primary</Button>
-                <Button variant="secondary">Secondary</Button>
+                <Button variant="primary">Primary (Liquid)</Button>
+                <Button variant="secondary">Secondary (Glass)</Button>
                 <Button variant="accent">Accent</Button>
                 <Button variant="ghost">Ghost</Button>
                 <Button variant="destructive">Destructive</Button>

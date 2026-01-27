@@ -122,11 +122,27 @@ class SQLQueryService:
         - total_quantity, sales_count, avg_price_per_unit
         Use for: Best performing products
     
-    DATA ACCESS:
-    - You have access to ALL data (22,000+ sales, 500+ products)
-    - For "top N" queries, use LIMIT N
-    - For "all" or "complete" queries, NO LIMIT (get all rows)
-    - Use views for better performance on complex queries
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    🎯 DATA ACCESS POLICY (STEP 2 FIX - CRITICAL):
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    
+    ✅ YOU HAVE FULL ACCESS TO ALL DATA:
+      • 22,000+ sales records
+      • 500+ products
+      • All agents, customers, categories
+    
+    📋 LIMIT STRATEGY:
+      1. "топ N", "первые N", "лучшие N" → LIMIT N
+      2. "все", "полный список", "complete" → NO LIMIT
+      3. Aggregations (COUNT/SUM/AVG/MAX/MIN) → NO LIMIT
+      4. Vague queries ("покажи продажи") → LIMIT 100 (safety)
+      5. NEVER limit when user explicitly asks for "all"
+    
+    🚀 PERFORMANCE TIPS:
+      • Use views for better performance on complex queries
+      • Add indexes in WHERE clauses for speed
+      • Use EXPLAIN ANALYZE to check query performance
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     """
     
     # Allowed tables (whitelist for security)
@@ -134,14 +150,14 @@ class SQLQueryService:
         "sales", "sale_items", "customers", "products", "agents", "salary_calculations"
     }
     
-    # Sample queries for few-shot learning
+    # Sample queries for few-shot learning (STEP 2 FIX - Smart LIMIT examples)
     SAMPLE_QUERIES = """
-    EXAMPLES:
+    EXAMPLES OF SMART LIMIT USAGE:
     
-    Q: "Сколько мы продали в мае 2025?"
+    Q: "Сколько мы продали в мае 2025?" (Aggregation - NO LIMIT needed)
     SQL: SELECT SUM(total_amount) as total FROM sales WHERE sale_date >= '2025-05-01' AND sale_date < '2025-06-01';
     
-    Q: "Топ 5 продуктов по продажам за последний месяц"
+    Q: "Топ 5 продуктов по продажам за последний месяц" (Explicit "топ 5" - USE LIMIT 5)
     SQL: SELECT p.name, SUM(si.quantity) as total_qty, SUM(si.amount) as total_amount 
          FROM sale_items si 
          JOIN products p ON si.product_id = p.id 
@@ -151,28 +167,34 @@ class SQLQueryService:
          ORDER BY total_amount DESC 
          LIMIT 5;
     
-    Q: "Все товары с продажами" (ALL data, no limit)
+    Q: "Все товары с продажами" (User wants ALL - NO LIMIT!)
     SQL: SELECT name, total_quantity, total_revenue, sales_count 
          FROM product_performance 
          WHERE total_quantity > 0 
          ORDER BY total_revenue DESC;
     
-    Q: "Статистика по всем агентам"
+    Q: "Покажи полный список агентов" (User wants COMPLETE list - NO LIMIT!)
+    SQL: SELECT name, email, region, is_active 
+         FROM agents 
+         ORDER BY name;
+    
+    Q: "Статистика по всем агентам" (ALL agents - NO LIMIT!)
     SQL: SELECT name, total_sales, total_revenue, avg_sale_amount, unique_customers 
          FROM agent_performance 
          WHERE total_sales > 0 
          ORDER BY total_revenue DESC;
     
-    Q: "Сколько всего продаж?"
+    Q: "Сколько всего продаж?" (COUNT aggregation - NO LIMIT needed)
     SQL: SELECT COUNT(*) as total_sales, SUM(total_amount) as total_revenue 
          FROM sales;
     
-    Q: "Продажи за последнюю неделю"
+    Q: "Продажи за последнюю неделю" (Vague query - safety LIMIT 100)
     SQL: SELECT * FROM sales_analytics_complete 
          WHERE sale_date >= CURRENT_DATE - INTERVAL '7 days' 
-         ORDER BY sale_date DESC;
+         ORDER BY sale_date DESC 
+         LIMIT 100;
     
-    Q: "Какой агент продал больше всего в прошлом квартале?"
+    Q: "Какой агент продал больше всего в прошлом квартале?" (Only need best - LIMIT 1)
     SQL: SELECT a.name, SUM(s.total_amount) as total 
          FROM sales s 
          JOIN agents a ON s.agent_id = a.id 
@@ -182,7 +204,7 @@ class SQLQueryService:
          ORDER BY total DESC 
          LIMIT 1;
     
-    Q: "Продажи молочных продуктов в апреле"
+    Q: "Все продажи молочных продуктов в апреле" (User wants ALL - NO LIMIT!)
     SQL: SELECT p.name, SUM(si.quantity) as qty, SUM(si.amount) as amount
          FROM sale_items si
          JOIN products p ON si.product_id = p.id
@@ -190,7 +212,15 @@ class SQLQueryService:
          WHERE p.category LIKE '%молоч%' 
            AND s.sale_date >= '2025-04-01' 
            AND s.sale_date < '2025-05-01'
-         GROUP BY p.name;
+         GROUP BY p.name
+         ORDER BY amount DESC;
+    
+    Q: "Покажи все категории товаров" (DISTINCT query for reference data - NO LIMIT!)
+    SQL: SELECT DISTINCT category, COUNT(*) as products_count 
+         FROM products 
+         WHERE category IS NOT NULL 
+         GROUP BY category 
+         ORDER BY products_count DESC;
     """
     
     def __init__(self):
@@ -245,10 +275,24 @@ RULES:
 4. Use proper JOINs when needed
 5. Add meaningful column aliases (as total, as count, etc.)
 6. For date ranges, use proper date functions
-7. Always include LIMIT clause to prevent too many results (max 1000)
+7. SMART LIMIT USAGE (STEP 2 FIX - CRITICAL):
+   - For "топ N", "первые N", "лучшие N" → use LIMIT N
+   - For "все", "полный список", "complete list" → NO LIMIT (return ALL data)
+   - For aggregations (COUNT, SUM, AVG, MAX, MIN) → NO LIMIT needed
+   - For exploratory queries without specific "all" or "top N" → LIMIT 100 (safety)
+   - NEVER arbitrarily limit data when user asks for "all" or "complete"
+   - Maximum safety limit: 10,000 rows (only for unbounded queries)
 8. Use Russian column aliases when appropriate (as итого, as количество)
 9. Consider regional analysis when customer addresses or agent locations are relevant
 10. When analyzing sales trends, consider Belarus market seasonality
+
+EXAMPLES OF LIMIT USAGE:
+  ✅ "Покажи все товары" → SELECT * FROM products ORDER BY name; (NO LIMIT!)
+  ✅ "Топ 10 продуктов" → SELECT * FROM products LIMIT 10;
+  ✅ "Сколько всего продаж?" → SELECT COUNT(*) FROM sales; (NO LIMIT!)
+  ✅ "Список агентов" → SELECT * FROM agents; (NO LIMIT - they asked for all)
+  ⚠️  "Покажи продажи" → SELECT * FROM sales LIMIT 100; (safety limit for vague query)
+
 
 Return your response in this JSON format:
 {{

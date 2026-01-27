@@ -25,8 +25,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary - Mercury/Metallic style (main CTAs)
+        // Primary - The REAL "Liquid Glass" style (as requested)
         primary: [
+          "btn-liquid-glass", // Defined in globals.css
+          "text-white font-medium",
+        ],
+        
+        // Liquid - Explicit alias for primary
+        liquid: [
+          "btn-liquid-glass",
+          "text-white font-medium",
+        ],
+
+        // Mercury - Legacy metallic style (kept as option)
+        mercury: [
           "bg-gradient-to-b from-gray-100 to-gray-400",
           "border border-white/40",
           "text-black font-semibold",

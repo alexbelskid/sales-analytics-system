@@ -207,6 +207,68 @@
             inset 0 0 60px 0 var(--glass-highlight);
         border-color: var(--glass-highlight);
     }
+
+    /* --- ADVANCED LIQUID GLASS (Stand-out & Physical) --- */
+    .btn-liquid-glass {
+        @apply relative overflow-hidden rounded-full transition-all duration-700;
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(15px) saturate(200%);
+        -webkit-backdrop-filter: blur(15px) saturate(200%);
+        
+        /* 1. Double Border for Edge Light (Fresnel Effect) */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        
+        /* 2. Deep Internal Physics */
+        box-shadow: 
+            /* Inner glow at the top */
+            inset 0 1px 1px 0 rgba(255, 255, 255, 0.2),
+            /* Subtle brand tint in the depth */
+            inset 0 0 20px 0 rgba(155, 27, 48, 0.05),
+            /* Soft ambient drop */
+            0 5px 15px -5px rgba(0, 0, 0, 0.4);
+            
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 500;
+        letter-spacing: 0.05em;
+    }
+
+    /* Moving Light Streak (Liquid Physics) */
+    .btn-liquid-glass::after {
+        content: '';
+        @apply absolute inset-0 -translate-x-full transition-transform duration-1000;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.05),
+            transparent
+        );
+    }
+
+    .btn-liquid-glass:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #fff;
+        transform: translateY(-2px);
+        
+        /* Bloom Effect */
+        box-shadow: 
+            inset 0 0 25px 0 rgba(255, 255, 255, 0.1),
+            inset 0 0 10px 0 rgba(155, 27, 48, 0.1), /* Brand bloom */
+            0 15px 30px -10px rgba(0, 0, 0, 0.6),
+            0 0 20px 0 rgba(255, 255, 255, 0.05); /* External glow */
+    }
+
+    .btn-liquid-glass:hover::after {
+        transform: translateX(100%);
+    }
+
+    .btn-liquid-glass:active {
+        transform: scale(0.97);
+        transition-duration: 100ms;
+    }
+
 }
 
 @layer utilities {

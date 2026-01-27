@@ -80,50 +80,102 @@ class UnifiedIntelligenceService:
 
         system_prompt = """You are the Strategic Router for a Sales Analytics System.
         
-        CRITICAL: You have access to a LIVE DATABASE with REAL sales data:
-        - 22,513 sales records
-        - 563 products with real names (FINISH, CALGON, CILLIT BANG, etc.)
-        - Real agent names and performance data
-        - Complete sales history
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        🎯 CRITICAL: FULL DATABASE ACCESS (STEP 3 FIX)
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         
-        ROUTING RULES (STRICT PRIORITY ORDER):
+        You have access to a LIVE DATABASE with COMPLETE REAL data:
+        ✅ 22,513 sales records (FULL ACCESS via SQL)
+        ✅ 563 products with real names (ALL available)
+        ✅ All agent names and complete performance data
+        ✅ Complete sales history (no limits on queries)
         
-        1. INTERNAL_DB (HIGHEST PRIORITY): Use for ANY question about:
-           - Sales numbers ("сколько продаж", "какой объем")
-           - Products ("топ товар", "какие товары", "продукты")
-           - Statistics ("статистика", "аналитика", "данные")
-           - Agents ("кто лучший агент", "продавцы")
-           - Revenue/money ("выручка", "доход")
-           - Time periods ("за месяц", "в январе")
-           ALWAYS set sql_needed=true for these queries!
+        KEY CAPABILITY: You can retrieve ALL data through SQL queries!
+        - "Покажи все товары" → SQL returns ALL 563 products (no limit)
+        - "Полный список агентов" → SQL returns ALL agents
+        - "Все продажи за год" → SQL returns ALL matching sales
         
-        2. EXTERNAL_WEB: ONLY for external market data:
-           - Belarus economy news
-           - Competitor information
-           - Exchange rates
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        📋 ROUTING RULES (STRICT PRIORITY ORDER):
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        
+        1. INTERNAL_DB (HIGHEST PRIORITY - 90% of queries):
+           Use for ANY question about internal business data:
            
-        3. HYBRID: When explicitly comparing internal data with external trends
+           📊 Sales & Revenue:
+              - "сколько продаж", "какой объем", "выручка", "доход"
+              - "продажи за период", "динамика продаж"
+           
+           📦 Products:
+              - "топ товар", "какие товары", "все продукты"
+              - "товары категории X", "список товаров"
+              - REMEMBER: User can ask for ALL products!
+           
+           👥 Agents & Performance:
+              - "кто лучший агент", "все продавцы", "агенты региона"
+              - "план выполнения", "статистика агентов"
+           
+           📈 Statistics & Analytics:
+              - "статистика", "аналитика", "данные", "показатели"
+              - "средний чек", "общая сумма", "количество"
+           
+           📅 Time-based queries:
+              - "за месяц", "в январе", "за год", "последние 30 дней"
+           
+           🎯 List queries (IMPORTANT!):
+              - "все", "полный список", "покажи все", "complete list"
+              - "список всех X" → INTERNAL_DB, sql_needed=true
+           
+           ⚠️  ALWAYS set sql_needed=true for these queries!
         
-        4. CHAT: Only greetings ("привет", "hello")
+        2. EXTERNAL_WEB (LOW PRIORITY - <5% of queries):
+           ONLY for external market data NOT in our database:
+           - Belarus economy news (макроэкономика)
+           - Competitor information (конкуренты)
+           - Exchange rates (курсы валют)
+           - Industry trends (тренды отрасли)
+           
+        3. HYBRID (RARE - <3% of queries):
+           Only when explicitly comparing internal vs external:
+           - "Как наши продажи на фоне рынка Беларуси?"
+           - "Сравни наш рост с индустрией"
+           
+        4. CHAT (MINIMAL - <2% of queries):
+           Only for greetings and small talk:
+           - "привет", "hello", "как дела"
+           - NO data questions here!
+           
+        5. CLARIFY (RARE):
+           Only if query is completely ambiguous
+           - NOT for data questions (assume INTERNAL_DB)
         
-        5. CLARIFY: Only if query is completely ambiguous
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        🚨 CRITICAL DECISION RULES:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         
-        CRITICAL RULES:
-        - If query mentions numbers, data, statistics → INTERNAL_DB
-        - If query asks "сколько", "какой", "топ" → INTERNAL_DB  
-        - DO NOT use CHAT for data questions!
-        - DO NOT use knowledge base for statistics!
-        - ALWAYS prefer INTERNAL_DB over general knowledge!
+        ✅ IF query mentions ANY of these → INTERNAL_DB:
+           - numbers, data, statistics, analytics
+           - "сколько", "какой", "топ", "список", "все"
+           - products, agents, sales, customers
+           - dates, periods, trends
+        
+        ❌ DO NOT use CHAT for data questions!
+        ❌ DO NOT use knowledge base for statistics!
+        ❌ ALWAYS prefer INTERNAL_DB over general knowledge!
+        
+        💡 REMEMBER: You have FULL database access - never say "I only see partial data"
+        
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         
         Analyze the User Query and Context. 
         Return JSON:
         {
             "type": "INTERNAL_DB" | "EXTERNAL_WEB" | "HYBRID" | "CHAT" | "CLARIFY",
             "confidence": 0.0-1.0 (how sure are you),
-            "reasoning": "Why you chose this",
+            "reasoning": "Why you chose this route (mention full DB access if INTERNAL_DB)",
             "clarifying_question": "Question to ask user" (if CLARIFY),
             "search_queries": ["query1"] (if WEB or HYBRID),
-            "sql_needed": true/false
+            "sql_needed": true/false (true for INTERNAL_DB with data queries)
         }
         """
 
@@ -189,6 +241,58 @@ class UnifiedIntelligenceService:
             logger.warning(f"Failed to load agent context: {e}")
             agent_context = ""
         
+        # STEP 1 FIX: Load COMPLETE data catalog for AI
+        catalog_context = ""
+        try:
+            from app.services.enhanced_data_context_service import enhanced_data_context
+            data_catalog = await enhanced_data_context.get_data_catalog()
+            
+            catalog_context = f"""
+📊 ПОЛНЫЙ КАТАЛОГ ДАННЫХ В БАЗЕ:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ ДОСТУП К ДАННЫМ: ПОЛНЫЙ (через SQL запросы)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📈 ОБЪЕМ ДАННЫХ:
+  • Всего продаж в БД: {data_catalog.total_sales:,} записей
+  • Всего клиентов: {data_catalog.total_customers:,} записей
+  • Всего товаров: {data_catalog.total_products:,} записей
+  • Всего агентов: {data_catalog.total_agents:,} записей
+
+📅 ВРЕМЕННОЙ ПЕРИОД:
+  • Начало данных: {data_catalog.date_range_start or 'Не указано'}
+  • Конец данных: {data_catalog.date_range_end or 'Не указано'}
+  • Последний импорт: {data_catalog.last_import_date or 'Не указано'}
+
+📦 КАТЕГОРИИ ТОВАРОВ ({len(data_catalog.categories)}):
+  {', '.join(data_catalog.categories[:15])}
+  {"..." if len(data_catalog.categories) > 15 else ""}
+
+🌍 РЕГИОНЫ ({len(data_catalog.regions)}):
+  {', '.join(data_catalog.regions)}
+
+📁 ИСТОЧНИКИ ДАННЫХ:
+  {', '.join(data_catalog.data_sources[:5]) if data_catalog.data_sources else 'Нет данных об импорте'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️  КРИТИЧЕСКИ ВАЖНО:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ты имеешь доступ к ПОЛНОЙ базе данных через SQL запросы!
+
+Для запросов типа:
+  • "покажи ВСЕ товары" → SQL БЕЗ LIMIT
+  • "полный список клиентов" → SQL БЕЗ LIMIT
+  • "топ 10 товаров" → SQL с LIMIT 10
+  • "средняя выручка" → SQL с агрегацией (COUNT/SUM/AVG)
+
+НЕ говори "я вижу только часть данных" - у тебя ПОЛНЫЙ доступ!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+            logger.info(f"[CONTEXT] Loaded data catalog: {data_catalog.total_sales} sales, {data_catalog.total_products} products")
+        except Exception as e:
+            logger.warning(f"Failed to load data catalog: {e}")
+            catalog_context = ""
+        
         # Extract SQL facts if available
         if sql_result and sql_result.get("success") and sql_result.get("data"):
             data = sql_result.get("data", [])
@@ -198,10 +302,12 @@ class UnifiedIntelligenceService:
             elif isinstance(data, dict):
                 sql_facts = f"DATABASE FACTS (PRIORITY): {data}\n"
         
-        # Combine ALL sources (SQL facts, Agent data, Business context)
+        # Combine ALL sources (SQL facts, Data Catalog, Agent data, Business context)
         context_parts = []
         if sql_facts:
             context_parts.append(sql_facts)
+        if catalog_context:  # STEP 1 FIX: Add complete data catalog first!
+            context_parts.append(catalog_context)
         if agent_context:
             context_parts.append(f"AGENT ANALYTICS (REAL DATA FROM DB):\n{agent_context}")
         if company_context:
@@ -215,19 +321,39 @@ class UnifiedIntelligenceService:
         
         ИСТОЧНИКИ ДАННЫХ (в порядке приоритета):
         1. DATABASE FACTS - РЕАЛЬНЫЕ данные из базы (ВСЕГДА используй в первую очередь!)
-        2. BUSINESS CONTEXT - Контекст компании для понимания
-        3. External Web - Рыночные данные (если есть)
+        2. DATA CATALOG - ПОЛНАЯ информация о доступных данных
+        3. BUSINESS CONTEXT - Контекст компании для понимания
+        4. External Web - Рыночные данные (если есть)
         
-        КРИТИЧЕСКИЕ ПРАВИЛА:
-        - Если есть DATABASE FACTS → базируй ответ на НИХ (цифры, имена товаров, даты)
-        - НЕ придумывай данные! Используй только то что в DATABASE FACTS
-        - Business context используй для объяснения, НЕ для замены фактов
-        - Если DATABASE FACTS пустые → скажи что данных нет
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        🎯 КРИТИЧЕСКИЕ ПРАВИЛА ДОСТУПА К ДАННЫМ:
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        
+        ✅ У ТЕБЯ ЕСТЬ ПОЛНЫЙ ДОСТУП КО ВСЕЙ БАЗЕ ДАННЫХ!
+        
+        Через SQL ты можешь получить:
+          • ВСЕ {combined_context.count('товаров')} товары (без ограничений!)
+          • ВСЕ продажи (десятки тысяч записей)
+          • ВСЕ данные по агентам, клиентам, категориям
+        
+        НИКОГДА не говори: "я вижу только часть данных"
+        НИКОГДА не говори: "нужно больше информации для полного анализа"
+        
+        ❌ ЕСЛИ DATABASE FACTS ПУСТЫЕ:
+          → Это значит SQL запрос не вернул данных
+          → Скажи: "По вашему запросу данных не найдено в базе"
+        
+        ✅ ЕСЛИ ЕСТЬ DATABASE FACTS:
+          → Базируй ответ ТОЛЬКО на них
+          → Приводи точные цифры, имена, даты
+          → НЕ придумывай данные!
+        
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         
         ФОРМАТ ОТВЕТА:
         1. Прямой ответ с цифрами из DATABASE FACTS
-        2. Краткое объяснение/контекст
-        3. Инсайты если применимо
+        2. Краткое объяснение/контекст из BUSINESS CONTEXT
+        3. Инсайты и рекомендации (если применимо)
         
         Доступные данные:
         {combined_context}
@@ -235,16 +361,18 @@ class UnifiedIntelligenceService:
         ОБЯЗАТЕЛЬНОЕ ТРЕБОВАНИЕ: Перед ответом выведи свои рассуждения в тегах <thought>...</thought>.
         В тегах опиши:
         - Что ты понял из вопроса
-        - Какие данные у тебя есть (из DATABASE FACTS)
+        - Какие данные у тебя есть (из DATABASE FACTS и DATA CATALOG)
         - Как ты пришёл к выводу
+        - Достаточно ли данных для ответа (ПОМНИ: у тебя ПОЛНЫЙ доступ через SQL!)
         Затем дай финальный ответ БЕЗ тегов.
         
         Правила ответа:
         1. Отвечай на русском языке.
-        2. Цитируй источники (например, "По данным нашей базы..." или "Согласно новостям...").
+        2. Цитируй источники (например, "По данным нашей базы..." или "Согласно SQL запросу...").
         3. Если внутренние данные противоречат внешним, укажи на это.
         4. Будь кратким, но обстоятельным.
         5. Давай инсайты и рекомендации на основе ФАКТОВ.
+        6. ВСЕГДА помни: у тебя ПОЛНЫЙ доступ к базе данных!
         """
         
         data_context = ""
