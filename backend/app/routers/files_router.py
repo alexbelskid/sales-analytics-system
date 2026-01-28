@@ -3,10 +3,11 @@ Files API Router
 Manages import file history, details, and actions
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, List
 from datetime import datetime
 from app.database import supabase
+from app.dependencies import verify_admin_access
 import logging
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ async def list_files(
 
 
 # IMPORTANT: Static routes MUST come before dynamic /{file_id} routes
-@router.delete("/delete-all-data")
+@router.delete("/delete-all-data", dependencies=[Depends(verify_admin_access)])
 async def delete_all_sales_data():
     """
     Delete ALL sales data from the database.
@@ -115,6 +116,7 @@ async def delete_all_sales_data():
     """
     from app.database import get_supabase_admin
     from app.config import settings
+    from app.services.forecast_service import ForecastService
     
     db = get_supabase_admin()
     if db is None:
@@ -190,7 +192,6 @@ async def delete_all_sales_data():
             
         # 5. Reset Forecast Model (Prophet)
         try:
-            from app.services.forecast_service import ForecastService
             # Get or create a fresh instance and reset it
             # Since ForecastService is stateful, we need to access the global instance
             # But safer to just log that model should be retrained
@@ -221,6 +222,45 @@ async def delete_all_sales_data():
             "error": str(e)
         }
 
+
+@router.delete("/all-sales", dependencies=[Depends(verify_admin_access)])
+async def delete_all_sales():
+    """
+    Delete ALL sales data from the database.
+    Use with caution!
+    """
+    if supabase is None:
+        raise HTTPException(500, "Database not connected")
+
+    try:
+        # Count current sales
+        count_result = supabase.table("sales").select("id", count="exact").execute()
+        total_count = count_result.count or 0
+
+        if total_count > 0:
+            # Delete all using a single query
+            # Supabase requires a filter for delete, so we use neq nil UUID
+            supabase.table("sales").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+
+        # Clear analytics cache
+        from app.services.cache_service import cache
+        cache.invalidate_pattern("analytics:")
+
+        # Mark all imports as deleted
+        supabase.table("import_history").update({
+            "status": "deleted",
+            "error_log": "All sales data deleted by user"
+        }).execute()
+
+        return {
+            "success": True,
+            "message": "All sales data deleted",
+            "deleted_count": total_count
+        }
+
+    except Exception as e:
+        logger.error(f"Delete all sales error: {e}")
+        raise HTTPException(500, str(e))
 
 
 @router.get("/{file_id}")
@@ -508,44 +548,4 @@ async def delete_sales_data(file_id: str):
         raise
     except Exception as e:
         logger.error(f"Delete sales data error: {e}")
-        raise HTTPException(500, str(e))
-
-
-@router.delete("/all-sales")
-async def delete_all_sales():
-    """
-    Delete ALL sales data from the database.
-    Use with caution!
-    """
-    if supabase is None:
-        raise HTTPException(500, "Database not connected")
-    
-    try:
-        # Count current sales
-        count_result = supabase.table("sales").select("id", count="exact").execute()
-        total_count = count_result.count or 0
-        
-        if total_count > 0:
-            # Delete all using a single query
-            # Supabase requires a filter for delete, so we use neq nil UUID
-            supabase.table("sales").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
-        
-        # Clear analytics cache
-        from app.services.cache_service import cache
-        cache.invalidate_pattern("analytics:")
-        
-        # Mark all imports as deleted
-        supabase.table("import_history").update({
-            "status": "deleted",
-            "error_log": "All sales data deleted by user"
-        }).execute()
-        
-        return {
-            "success": True,
-            "message": "All sales data deleted",
-            "deleted_count": total_count
-        }
-    
-    except Exception as e:
-        logger.error(f"Delete all sales error: {e}")
         raise HTTPException(500, str(e))
