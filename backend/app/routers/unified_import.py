@@ -11,6 +11,7 @@ import pandas as pd
 import tempfile
 import os
 import logging
+import asyncio
 
 from app.services.unified_importer import UnifiedImporter, ImportResult
 
@@ -74,10 +75,12 @@ async def unified_upload(
             )
         
         # Read file into DataFrame
-        if file.filename.endswith('.csv'):
-            df = pd.read_csv(temp_path)
+        # Optimization: Offload blocking I/O to thread to prevent blocking the event loop
+        is_csv = file.filename.endswith('.csv')
+        if is_csv:
+            df = await asyncio.to_thread(pd.read_csv, temp_path)
         else:
-            df = pd.read_excel(temp_path)
+            df = await asyncio.to_thread(pd.read_excel, temp_path)
         
         logger.info(f"Loaded file {file.filename} with {len(df)} rows and columns: {df.columns.tolist()}")
         
@@ -196,10 +199,12 @@ async def detect_data_type(file: UploadFile = File(...)):
             temp_path = tmp.name
         
         # Read file
-        if file.filename.endswith('.csv'):
-            df = pd.read_csv(temp_path)
+        # Optimization: Offload blocking I/O to thread to prevent blocking the event loop
+        is_csv = file.filename.endswith('.csv')
+        if is_csv:
+            df = await asyncio.to_thread(pd.read_csv, temp_path)
         else:
-            df = pd.read_excel(temp_path)
+            df = await asyncio.to_thread(pd.read_excel, temp_path)
         
         # Detect type
         detected_type = UnifiedImporter.detect_data_type(df)
