@@ -8,7 +8,8 @@ import {
     XCircle,
     RefreshCw,
     AlertCircle,
-    Info
+    Info,
+    Trash2
 } from 'lucide-react';
 import LiquidButton from '@/components/LiquidButton';
 import GlassSelect from '@/components/GlassSelect';
@@ -131,14 +132,24 @@ export default function UploadPage() {
                 <div className="bg-card border border-border rounded-3xl p-8 mb-6">
                     {/* Drag and Drop Zone */}
                     <div
+                        role={!file ? "button" : undefined}
+                        tabIndex={!file ? 0 : undefined}
+                        aria-label={!file ? "Нажмите или перетащите файл для загрузки" : undefined}
                         className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${dragActive
                             ? 'border-rose-500 bg-rose-500/10'
                             : 'border-gray-600 hover:border-rose-500/50'
-                            }`}
+                            } ${!file ? 'cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none' : ''}`}
                         onDragEnter={handleDrag}
                         onDragLeave={handleDrag}
                         onDragOver={handleDrag}
                         onDrop={handleDrop}
+                        onClick={() => !file && document.getElementById('file-upload-input')?.click()}
+                        onKeyDown={(e) => {
+                            if (!file && (e.key === 'Enter' || e.key === ' ')) {
+                                e.preventDefault();
+                                document.getElementById('file-upload-input')?.click();
+                            }
+                        }}
                     >
                         <FileSpreadsheet className="mx-auto mb-4 text-gray-400" size={48} />
 
@@ -152,8 +163,10 @@ export default function UploadPage() {
                                 </p>
                                 <button
                                     onClick={() => setFile(null)}
-                                    className="mt-4 text-sm text-red-400 hover:text-red-300"
+                                    className="mt-4 text-sm text-red-400 hover:text-red-300 flex items-center justify-center gap-2 mx-auto"
+                                    aria-label="Удалить выбранный файл"
                                 >
+                                    <Trash2 size={16} />
                                     Удалить файл
                                 </button>
                             </div>
@@ -165,12 +178,15 @@ export default function UploadPage() {
                                 <p className="text-sm text-gray-400 mb-4">
                                     или
                                 </p>
-                                <div onClick={() => document.getElementById('file-upload-input')?.click()} className="flex justify-center">
-                                    <LiquidButton
-                                        icon={Upload}
-                                    >
-                                        Выбрать файл
-                                    </LiquidButton>
+                                <div className="flex justify-center">
+                                    <div className="pointer-events-none" aria-hidden="true">
+                                        <LiquidButton
+                                            icon={Upload}
+                                            tabIndex={-1}
+                                        >
+                                            Выбрать файл
+                                        </LiquidButton>
+                                    </div>
                                     <input
                                         id="file-upload-input"
                                         type="file"
