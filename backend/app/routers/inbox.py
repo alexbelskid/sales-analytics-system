@@ -68,47 +68,56 @@ def _sync_emails_blocking(config: Optional[EmailConfig] = None):
         new_emails_count = 0
         emails_to_insert = []
         
-        for email_id in email_ids[-5:]:  # Last 5 unseen (optimized for speed)
+        target_ids = email_ids[-5:]
+        if target_ids:
             try:
-                status, msg_data = mail.fetch(email_id, "(RFC822)")
-                msg = email.message_from_bytes(msg_data[0][1])
+                # Batch fetch for performance (reduces round-trips)
+                batch_ids = b",".join(target_ids)
+                status, messages_data = mail.fetch(batch_ids, "(RFC822)")
                 
-                # Decode subject
-                subject_header = decode_header(msg["Subject"])[0]
-                subject = subject_header[0]
-                if isinstance(subject, bytes):
-                    subject = subject.decode(errors="ignore")
-                
-                # Decode From
-                from_header = msg.get("From", "")
-                
-                # Get Body
-                body = ""
-                if msg.is_multipart():
-                    for part in msg.walk():
-                        if part.get_content_type() == "text/plain":
-                            body = part.get_payload(decode=True).decode(errors="ignore")
-                            break
-                else:
-                    body = msg.get_payload(decode=True).decode(errors="ignore")
-                
-                # Prepare for DB
-                if supabase:
-                    # Check if exists (simplified)
-                    email_data = {
-                        "subject": subject,
-                        "body_text": body[:1000] if body else "", # Limit for safety
-                        "sender_email": from_header, # Simplification
-                        "received_at": datetime.datetime.now().isoformat(),
-                        "is_read": False,
-                        "folder": "inbox", # Required by schema usually
-                        "settings_id": user_settings["id"] if user_settings else None
-                    }
-                    emails_to_insert.append(email_data)
+                for response_part in messages_data:
+                    if isinstance(response_part, tuple):
+                        try:
+                            msg = email.message_from_bytes(response_part[1])
 
-            except Exception as e:
-                print(f"Error processing email {email_id}: {e}")
-                continue
+                            # Decode subject
+                            subject_header = decode_header(msg["Subject"])[0]
+                            subject = subject_header[0]
+                            if isinstance(subject, bytes):
+                                subject = subject.decode(errors="ignore")
+
+                            # Decode From
+                            from_header = msg.get("From", "")
+
+                            # Get Body
+                            body = ""
+                            if msg.is_multipart():
+                                for part in msg.walk():
+                                    if part.get_content_type() == "text/plain":
+                                        body = part.get_payload(decode=True).decode(errors="ignore")
+                                        break
+                            else:
+                                body = msg.get_payload(decode=True).decode(errors="ignore")
+
+                            # Prepare for DB
+                            if supabase:
+                                # Check if exists (simplified)
+                                email_data = {
+                                    "subject": subject,
+                                    "body_text": body[:1000] if body else "", # Limit for safety
+                                    "sender_email": from_header, # Simplification
+                                    "received_at": datetime.datetime.now().isoformat(),
+                                    "is_read": False,
+                                    "folder": "inbox", # Required by schema usually
+                                    "settings_id": user_settings["id"] if user_settings else None
+                                }
+                                emails_to_insert.append(email_data)
+
+                        except Exception as e:
+                            print(f"Error processing email in batch: {e}")
+                            continue
+            except Exception as batch_error:
+                print(f"Error processing batch: {batch_error}")
 
         # Batch insert to DB
         if supabase and emails_to_insert:
