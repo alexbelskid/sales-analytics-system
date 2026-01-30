@@ -42,6 +42,7 @@ export default function FilesPage() {
     const [files, setFiles] = useState<ImportFile[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedFile, setSelectedFile] = useState<ImportFile | null>(null);
+    const [fileToDelete, setFileToDelete] = useState<ImportFile | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [sourceFilter, setSourceFilter] = useState<string>('');
     const [typeFilter, setTypeFilter] = useState<string>('');
@@ -74,11 +75,16 @@ export default function FilesPage() {
         return () => clearInterval(interval);
     }, [statusFilter, sourceFilter, typeFilter]);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Удалить запись об импорте?')) return;
+    const confirmDelete = (file: ImportFile) => {
+        setFileToDelete(file);
+    };
+
+    const executeDeleteFile = async () => {
+        if (!fileToDelete) return;
 
         try {
-            await fetch(`${API_BASE}/api/files/${id}`, { method: 'DELETE' });
+            await fetch(`${API_BASE}/api/files/${fileToDelete.id}`, { method: 'DELETE' });
+            setFileToDelete(null);
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
@@ -363,6 +369,7 @@ export default function FilesPage() {
                                                         onClick={() => handleDownload(file.id, file.filename)}
                                                         className="p-2.5 hover:bg-green-500/20 rounded-full transition-all duration-300 hover:scale-110"
                                                         title="Скачать файл"
+                                                        aria-label="Скачать файл"
                                                     >
                                                         <Download size={16} className="text-green-400" />
                                                     </button>
@@ -371,13 +378,15 @@ export default function FilesPage() {
                                                     onClick={() => setSelectedFile(file)}
                                                     className="p-2.5 hover:bg-rose-800/20 rounded-full transition-all duration-300 hover:scale-110"
                                                     title="Подробнее"
+                                                    aria-label="Просмотреть детали"
                                                 >
                                                     <Eye size={16} className="text-gray-400 hover:text-rose-400 transition-colors duration-300" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(file.id)}
+                                                    onClick={() => confirmDelete(file)}
                                                     className="p-2.5 hover:bg-red-500/20 rounded-full transition-all duration-300 hover:scale-110"
                                                     title="Удалить"
+                                                    aria-label="Удалить файл"
                                                 >
                                                     <Trash2 size={16} className="text-red-400" />
                                                 </button>
@@ -438,7 +447,7 @@ export default function FilesPage() {
                     </div>
                 )}
 
-                {/* Delete Confirmation Modal */}
+                {/* Delete ALL Confirmation Modal */}
                 {showDeleteModal && (
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
                         <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full mx-4 border-red-500/50 animate-scale-in shadow-2xl shadow-red-500/10">
@@ -472,6 +481,40 @@ export default function FilesPage() {
                                     className="flex-1 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 hover:shadow-red-900/20"
                                 >
                                     {isDeleting ? 'Удаление...' : 'Удалить всё'}
+                                </LiquidButton>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Single File Delete Confirmation Modal */}
+                {fileToDelete && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+                        <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full mx-4 border-red-500/50 animate-scale-in shadow-2xl shadow-red-500/10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <Trash2 className="text-red-500" size={24} />
+                                <h3 className="text-xl font-bold text-red-400">Удалить файл?</h3>
+                            </div>
+
+                            <div className="text-gray-300 mb-6">
+                                <p>Вы действительно хотите удалить файл <span className="text-white font-medium">{fileToDelete.filename}</span>?</p>
+                                <p className="text-sm text-gray-400 mt-2">Данные, связанные с этим импортом, могут быть потеряны.</p>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <LiquidButton
+                                    onClick={() => setFileToDelete(null)}
+                                    variant="secondary"
+                                    className="flex-1"
+                                >
+                                    Отмена
+                                </LiquidButton>
+                                <LiquidButton
+                                    onClick={executeDeleteFile}
+                                    icon={Trash2}
+                                    className="flex-1 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 hover:shadow-red-900/20"
+                                >
+                                    Удалить
                                 </LiquidButton>
                             </div>
                         </div>
