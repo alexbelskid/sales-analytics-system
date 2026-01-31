@@ -74,14 +74,20 @@ export default function FilesPage() {
         return () => clearInterval(interval);
     }, [statusFilter, sourceFilter, typeFilter]);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Удалить запись об импорте?')) return;
+    const handleDelete = (file: ImportFile) => {
+        setFileToDelete(file);
+    };
+
+    const executeDeleteFile = async () => {
+        if (!fileToDelete) return;
 
         try {
-            await fetch(`${API_BASE}/api/files/${id}`, { method: 'DELETE' });
+            await fetch(`${API_BASE}/api/files/${fileToDelete.id}`, { method: 'DELETE' });
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
+        } finally {
+            setFileToDelete(null);
         }
     };
 
@@ -136,6 +142,7 @@ export default function FilesPage() {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [fileToDelete, setFileToDelete] = useState<ImportFile | null>(null);
 
     const confirmDeleteAll = () => {
         setShowDeleteModal(true);
@@ -363,6 +370,7 @@ export default function FilesPage() {
                                                         onClick={() => handleDownload(file.id, file.filename)}
                                                         className="p-2.5 hover:bg-green-500/20 rounded-full transition-all duration-300 hover:scale-110"
                                                         title="Скачать файл"
+                                                        aria-label={`Скачать ${file.filename}`}
                                                     >
                                                         <Download size={16} className="text-green-400" />
                                                     </button>
@@ -371,13 +379,15 @@ export default function FilesPage() {
                                                     onClick={() => setSelectedFile(file)}
                                                     className="p-2.5 hover:bg-rose-800/20 rounded-full transition-all duration-300 hover:scale-110"
                                                     title="Подробнее"
+                                                    aria-label={`Подробнее о ${file.filename}`}
                                                 >
                                                     <Eye size={16} className="text-gray-400 hover:text-rose-400 transition-colors duration-300" />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleDelete(file.id)}
+                                                    onClick={() => handleDelete(file)}
                                                     className="p-2.5 hover:bg-red-500/20 rounded-full transition-all duration-300 hover:scale-110"
                                                     title="Удалить"
+                                                    aria-label={`Удалить ${file.filename}`}
                                                 >
                                                     <Trash2 size={16} className="text-red-400" />
                                                 </button>
@@ -434,6 +444,40 @@ export default function FilesPage() {
                             >
                                 Закрыть
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* File Delete Confirmation Modal */}
+                {fileToDelete && (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300">
+                        <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full mx-4 border-red-500/50 animate-scale-in shadow-2xl shadow-red-500/10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <AlertTriangle className="text-red-500" size={32} />
+                                <h3 className="text-xl font-bold text-red-400">Удаление файла</h3>
+                            </div>
+
+                            <div className="text-gray-300 mb-6 space-y-2">
+                                <p>Вы собираетесь удалить файл <strong>{fileToDelete.filename}</strong></p>
+                                <p className="text-sm text-gray-400">Это действие удалит запись об импорте и связанные с ним данные.</p>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <LiquidButton
+                                    onClick={() => setFileToDelete(null)}
+                                    variant="secondary"
+                                    className="flex-1"
+                                >
+                                    Отмена
+                                </LiquidButton>
+                                <LiquidButton
+                                    onClick={executeDeleteFile}
+                                    icon={Trash2}
+                                    className="flex-1 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 hover:shadow-red-900/20"
+                                >
+                                    Удалить
+                                </LiquidButton>
+                            </div>
                         </div>
                     </div>
                 )}
