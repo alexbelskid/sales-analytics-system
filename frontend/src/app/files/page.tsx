@@ -75,10 +75,14 @@ export default function FilesPage() {
     }, [statusFilter, sourceFilter, typeFilter]);
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Удалить запись об импорте?')) return;
+        const pass = prompt('Введите пароль администратора для подтверждения:');
+        if (pass === null) return;
 
         try {
-            await fetch(`${API_BASE}/api/files/${id}`, { method: 'DELETE' });
+            await fetch(`${API_BASE}/api/files/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': pass }
+            });
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
@@ -120,8 +124,14 @@ export default function FilesPage() {
     };
 
     const resetStuck = async () => {
+        const pass = prompt('Введите пароль администратора:');
+        if (pass === null) return;
+
         try {
-            const res = await fetch(`${API_BASE}/api/files/reset-stuck`, { method: 'POST' });
+            const res = await fetch(`${API_BASE}/api/files/reset-stuck`, {
+                method: 'POST',
+                headers: { 'X-Admin-Key': pass }
+            });
             const data = await res.json();
             if (data.reset_count > 0) {
                 alert(`Сброшено ${data.reset_count} застрявших импортов`);
@@ -136,15 +146,20 @@ export default function FilesPage() {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [password, setPassword] = useState('');
 
     const confirmDeleteAll = () => {
         setShowDeleteModal(true);
+        setPassword('');
     };
 
     const executeDeleteAll = async () => {
         setIsDeleting(true);
         try {
-            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, { method: 'DELETE' });
+            const res = await fetch(`${API_BASE}/api/files/delete-all-data`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': password }
+            });
             const data = await res.json();
             setShowDeleteModal(false);
             alert(`✅ Удалено ${data.deleted_sales} записей`);
@@ -454,6 +469,17 @@ export default function FilesPage() {
                                     <li>Все записи в таблице sales</li>
                                     <li>Вся история импортов</li>
                                 </ul>
+                            </div>
+
+                            <div className="mb-6">
+                                <label className="block text-sm text-gray-400 mb-2">Пароль администратора</label>
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-red-500/50 transition-colors"
+                                    placeholder="Введите пароль..."
+                                />
                             </div>
 
                             <div className="flex gap-3">
