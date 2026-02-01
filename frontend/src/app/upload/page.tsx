@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
     Upload,
     FileSpreadsheet,
@@ -10,7 +10,7 @@ import {
     AlertCircle,
     Info
 } from 'lucide-react';
-import LiquidButton from '@/components/LiquidButton';
+import { Button } from '@/components/unified';
 import GlassSelect from '@/components/GlassSelect';
 import GlassDatePicker from '@/components/GlassDatePicker';
 
@@ -36,6 +36,7 @@ export default function UploadPage() {
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<UploadResult | null>(null);
     const [dragActive, setDragActive] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDrag = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -113,6 +114,17 @@ export default function UploadPage() {
         }
     };
 
+    const handleZoneClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleZoneKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInputRef.current?.click();
+        }
+    };
+
     return (
         <div className="min-h-screen p-6">
             <div className="max-w-4xl mx-auto">
@@ -131,7 +143,10 @@ export default function UploadPage() {
                 <div className="bg-card border border-border rounded-3xl p-8 mb-6">
                     {/* Drag and Drop Zone */}
                     <div
-                        className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 ${dragActive
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Область загрузки файла. Перетащите файл сюда или нажмите для выбора."
+                        className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 ${dragActive
                             ? 'border-rose-500 bg-rose-500/10'
                             : 'border-gray-600 hover:border-rose-500/50'
                             }`}
@@ -139,8 +154,18 @@ export default function UploadPage() {
                         onDragLeave={handleDrag}
                         onDragOver={handleDrag}
                         onDrop={handleDrop}
+                        onClick={handleZoneClick}
+                        onKeyDown={handleZoneKeyDown}
                     >
                         <FileSpreadsheet className="mx-auto mb-4 text-gray-400" size={48} />
+                        <input
+                            ref={fileInputRef}
+                            id="file-upload-input"
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
 
                         {file ? (
                             <div>
@@ -150,12 +175,18 @@ export default function UploadPage() {
                                 <p className="text-sm text-gray-400">
                                     {(file.size / 1024 / 1024).toFixed(2)} MB
                                 </p>
-                                <button
-                                    onClick={() => setFile(null)}
-                                    className="mt-4 text-sm text-red-400 hover:text-red-300"
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setFile(null);
+                                    }}
+                                    className="mt-4 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                    aria-label="Удалить выбранный файл"
                                 >
                                     Удалить файл
-                                </button>
+                                </Button>
                             </div>
                         ) : (
                             <div>
@@ -165,19 +196,26 @@ export default function UploadPage() {
                                 <p className="text-sm text-gray-400 mb-4">
                                     или
                                 </p>
-                                <div onClick={() => document.getElementById('file-upload-input')?.click()} className="flex justify-center">
-                                    <LiquidButton
+                                <div className="flex justify-center">
+                                    <Button
+                                        variant="primary"
                                         icon={Upload}
+                                        tabIndex={-1}
+                                        aria-hidden="true"
+                                        onClick={(e) => e.stopPropagation()} // Prevent double click event but let the parent handle it? No, if we stop prop here, button click won't trigger parent click.
+                                        // Actually, if we click the button, we want it to work.
+                                        // Since the parent has onClick, and this button is visual, we can either:
+                                        // 1. Let it bubble (parent handles it). Button itself does nothing.
+                                        // 2. Button handles it.
+                                        // Since we set tabIndex=-1 and aria-hidden, it's decorative. Let it bubble.
+                                        // BUT if Button has its own onClick logic or is a button element, it might fire.
+                                        // UnifiedButton renders a button.
+                                        // We should probably just make it `pointer-events-none` so clicks go through to the div?
+                                        // Or just let it bubble.
+                                        className="pointer-events-none"
                                     >
                                         Выбрать файл
-                                    </LiquidButton>
-                                    <input
-                                        id="file-upload-input"
-                                        type="file"
-                                        accept=".xlsx,.xls,.csv"
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                    />
+                                    </Button>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-4">
                                     Поддерживаемые форматы: Excel (.xlsx, .xls), CSV (.csv)
@@ -263,14 +301,15 @@ export default function UploadPage() {
                             )}
 
                             {/* Upload Button */}
-                            <LiquidButton
+                            <Button
                                 onClick={handleUpload}
                                 disabled={uploading}
                                 className="w-full"
                                 icon={uploading ? RefreshCw : Upload}
+                                variant="primary"
                             >
                                 {uploading ? 'Загрузка...' : 'Загрузить файл'}
-                            </LiquidButton>
+                            </Button>
                         </div>
                     )}
                 </div>
