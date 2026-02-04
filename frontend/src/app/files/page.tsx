@@ -12,6 +12,7 @@ import {
     Download,
     AlertTriangle
 } from 'lucide-react';
+import { Button } from '@/components/unified';
 import LiquidButton from '@/components/LiquidButton';
 import GlassSelect from '@/components/GlassSelect';
 
@@ -359,28 +360,37 @@ export default function FilesPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-center gap-2">
                                                 {file.storage_path && (
-                                                    <button
+                                                    <Button
+                                                        size="icon-sm"
+                                                        variant="ghost"
                                                         onClick={() => handleDownload(file.id, file.filename)}
-                                                        className="p-2.5 hover:bg-green-500/20 rounded-full transition-all duration-300 hover:scale-110"
+                                                        className="hover:bg-green-500/20 text-green-400 hover:scale-110"
                                                         title="Скачать файл"
+                                                        aria-label={`Скачать файл ${file.filename}`}
                                                     >
-                                                        <Download size={16} className="text-green-400" />
-                                                    </button>
+                                                        <Download />
+                                                    </Button>
                                                 )}
-                                                <button
+                                                <Button
+                                                    size="icon-sm"
+                                                    variant="ghost"
                                                     onClick={() => setSelectedFile(file)}
-                                                    className="p-2.5 hover:bg-rose-800/20 rounded-full transition-all duration-300 hover:scale-110"
+                                                    className="hover:bg-rose-800/20 text-gray-400 hover:text-rose-400 hover:scale-110"
                                                     title="Подробнее"
+                                                    aria-label={`Посмотреть детали файла ${file.filename}`}
                                                 >
-                                                    <Eye size={16} className="text-gray-400 hover:text-rose-400 transition-colors duration-300" />
-                                                </button>
-                                                <button
+                                                    <Eye />
+                                                </Button>
+                                                <Button
+                                                    size="icon-sm"
+                                                    variant="ghost"
                                                     onClick={() => handleDelete(file.id)}
-                                                    className="p-2.5 hover:bg-red-500/20 rounded-full transition-all duration-300 hover:scale-110"
+                                                    className="hover:bg-red-500/20 text-red-400 hover:scale-110"
                                                     title="Удалить"
+                                                    aria-label={`Удалить файл ${file.filename}`}
                                                 >
-                                                    <Trash2 size={16} className="text-red-400" />
-                                                </button>
+                                                    <Trash2 />
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
