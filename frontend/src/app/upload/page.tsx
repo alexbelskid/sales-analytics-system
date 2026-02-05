@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
     Upload,
     FileSpreadsheet,
@@ -10,7 +10,7 @@ import {
     AlertCircle,
     Info
 } from 'lucide-react';
-import LiquidButton from '@/components/LiquidButton';
+import { Button } from '@/components/unified';
 import GlassSelect from '@/components/GlassSelect';
 import GlassDatePicker from '@/components/GlassDatePicker';
 
@@ -36,6 +36,8 @@ export default function UploadPage() {
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<UploadResult | null>(null);
     const [dragActive, setDragActive] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleDrag = useCallback((e: React.DragEvent) => {
         e.preventDefault();
@@ -165,13 +167,16 @@ export default function UploadPage() {
                                 <p className="text-sm text-gray-400 mb-4">
                                     или
                                 </p>
-                                <div onClick={() => document.getElementById('file-upload-input')?.click()} className="flex justify-center">
-                                    <LiquidButton
+                                <div className="flex justify-center">
+                                    <Button
+                                        variant="primary"
                                         icon={Upload}
+                                        onClick={() => fileInputRef.current?.click()}
                                     >
                                         Выбрать файл
-                                    </LiquidButton>
+                                    </Button>
                                     <input
+                                        ref={fileInputRef}
                                         id="file-upload-input"
                                         type="file"
                                         accept=".xlsx,.xls,.csv"
@@ -263,14 +268,15 @@ export default function UploadPage() {
                             )}
 
                             {/* Upload Button */}
-                            <LiquidButton
+                            <Button
+                                variant="primary"
+                                fullWidth
                                 onClick={handleUpload}
                                 disabled={uploading}
-                                className="w-full"
                                 icon={uploading ? RefreshCw : Upload}
                             >
                                 {uploading ? 'Загрузка...' : 'Загрузить файл'}
-                            </LiquidButton>
+                            </Button>
                         </div>
                     )}
                 </div>
