@@ -65,10 +65,14 @@ export default function DataUploader() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-2 mb-6" role="tablist" aria-label="Тип данных">
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
+                        role="tab"
+                        aria-selected={activeTab === tab.id}
+                        aria-controls="upload-panel"
+                        id={`tab-${tab.id}`}
                         onClick={() => { setActiveTab(tab.id as UploadType); setResult(null); }}
                         className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${activeTab === tab.id
                             ? 'bg-white text-black font-medium'
@@ -84,6 +88,9 @@ export default function DataUploader() {
             {/* Dropzone */}
             <div
                 {...getRootProps()}
+                id="upload-panel"
+                role="tabpanel"
+                aria-labelledby={`tab-${activeTab}`}
                 className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all duration-200 ${isDragActive
                     ? 'border-green-500 bg-[#333333] scale-[1.01]'
                     : 'border-[#404040] hover:border-gray-500 hover:bg-[#222]'
@@ -112,7 +119,7 @@ export default function DataUploader() {
             {/* Settings */}
             <div className="mt-6 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between bg-[#222] p-4 rounded-lg">
                 <div className="flex gap-6">
-                    <label className="flex items-center gap-3 cursor-pointer group">
+                    <label className="flex items-center gap-3 cursor-pointer group rounded-lg p-1 focus-within:ring-2 focus-within:ring-green-500 focus-within:ring-offset-2 focus-within:ring-offset-[#222]">
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${uploadMode === 'append' ? 'border-green-500' : 'border-gray-500'}`}>
                             {uploadMode === 'append' && <div className="w-2.5 h-2.5 rounded-full bg-green-500" />}
                         </div>
@@ -122,7 +129,7 @@ export default function DataUploader() {
                             value="append"
                             checked={uploadMode === 'append'}
                             onChange={(e) => setUploadMode(e.target.value as UploadMode)}
-                            className="hidden"
+                            className="sr-only"
                         />
                         <div className="flex flex-col">
                             <span className="text-sm font-medium group-hover:text-white transition-colors">Добавить</span>
@@ -130,7 +137,7 @@ export default function DataUploader() {
                         </div>
                     </label>
 
-                    <label className="flex items-center gap-3 cursor-pointer group">
+                    <label className="flex items-center gap-3 cursor-pointer group rounded-lg p-1 focus-within:ring-2 focus-within:ring-red-500 focus-within:ring-offset-2 focus-within:ring-offset-[#222]">
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${uploadMode === 'replace' ? 'border-red-500' : 'border-gray-500'}`}>
                             {uploadMode === 'replace' && <div className="w-2.5 h-2.5 rounded-full bg-red-500" />}
                         </div>
@@ -140,7 +147,7 @@ export default function DataUploader() {
                             value="replace"
                             checked={uploadMode === 'replace'}
                             onChange={(e) => setUploadMode(e.target.value as UploadMode)}
-                            className="hidden"
+                            className="sr-only"
                         />
                         <div className="flex flex-col">
                             <span className="text-sm font-medium group-hover:text-white transition-colors">Заменить</span>
@@ -160,7 +167,7 @@ export default function DataUploader() {
 
             {/* Progress & Result */}
             {uploading && (
-                <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center gap-3 animate-pulse">
+                <div role="status" aria-live="polite" className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center gap-3 animate-pulse">
                     <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                     <span className="text-blue-400 text-sm">Загружается и обрабатывается...</span>
                 </div>
@@ -168,6 +175,8 @@ export default function DataUploader() {
 
             {result && (
                 <div
+                    role="status"
+                    aria-live="polite"
                     className={`mt-4 p-4 rounded-lg border flex items-start gap-3 ${(result.success || result.rows_added !== undefined)
                         ? 'bg-green-500/10 border-green-500/20'
                         : 'bg-red-500/10 border-red-500/20'
