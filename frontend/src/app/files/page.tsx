@@ -42,6 +42,7 @@ export default function FilesPage() {
     const [files, setFiles] = useState<ImportFile[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedFile, setSelectedFile] = useState<ImportFile | null>(null);
+    const [fileToDelete, setFileToDelete] = useState<ImportFile | null>(null);
     const [statusFilter, setStatusFilter] = useState<string>('');
     const [sourceFilter, setSourceFilter] = useState<string>('');
     const [typeFilter, setTypeFilter] = useState<string>('');
@@ -74,14 +75,23 @@ export default function FilesPage() {
         return () => clearInterval(interval);
     }, [statusFilter, sourceFilter, typeFilter]);
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Удалить запись об импорте?')) return;
+    const handleDelete = (id: string) => {
+        const file = files.find(f => f.id === id);
+        if (file) setFileToDelete(file);
+    };
 
+    const executeDeleteFile = async () => {
+        if (!fileToDelete) return;
+        setIsDeleting(true);
         try {
-            await fetch(`${API_BASE}/api/files/${id}`, { method: 'DELETE' });
+            await fetch(`${API_BASE}/api/files/${fileToDelete.id}`, { method: 'DELETE' });
+            setFileToDelete(null);
             fetchFiles();
         } catch (err) {
             console.error('Delete failed:', err);
+            alert('Ошибка удаления');
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -378,6 +388,7 @@ export default function FilesPage() {
                                                     onClick={() => handleDelete(file.id)}
                                                     className="p-2.5 hover:bg-red-500/20 rounded-full transition-all duration-300 hover:scale-110"
                                                     title="Удалить"
+                                                    aria-label={`Удалить файл ${file.filename}`}
                                                 >
                                                     <Trash2 size={16} className="text-red-400" />
                                                 </button>
@@ -434,6 +445,47 @@ export default function FilesPage() {
                             >
                                 Закрыть
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Single File Delete Modal */}
+                {fileToDelete && (
+                    <div
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 transition-all duration-300"
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="delete-file-title"
+                    >
+                        <div className="bg-card border border-border rounded-3xl p-6 max-w-md w-full mx-4 border-red-500/50 animate-scale-in shadow-2xl shadow-red-500/10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <AlertTriangle className="text-red-500" size={32} />
+                                <h3 id="delete-file-title" className="text-xl font-bold text-red-400">Удаление файла</h3>
+                            </div>
+
+                            <div className="text-gray-300 mb-6 space-y-2">
+                                <p>Вы уверены, что хотите удалить файл <strong className="text-white">{fileToDelete.filename}</strong>?</p>
+                                <p className="text-sm text-gray-400">Это действие удалит запись об импорте и связанные данные.</p>
+                            </div>
+
+                            <div className="flex gap-3">
+                                <LiquidButton
+                                    onClick={() => setFileToDelete(null)}
+                                    disabled={isDeleting}
+                                    variant="secondary"
+                                    className="flex-1"
+                                >
+                                    Отмена
+                                </LiquidButton>
+                                <LiquidButton
+                                    onClick={executeDeleteFile}
+                                    disabled={isDeleting}
+                                    icon={Trash2}
+                                    className="flex-1 hover:border-red-500/50 hover:bg-red-500/10 hover:text-red-400 hover:shadow-red-900/20"
+                                >
+                                    {isDeleting ? 'Удаление...' : 'Удалить'}
+                                </LiquidButton>
+                            </div>
                         </div>
                     </div>
                 )}
