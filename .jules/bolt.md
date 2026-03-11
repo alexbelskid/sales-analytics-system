@@ -1,0 +1,3 @@
+## 2025-05-24 - Testing FastAPI Endpoints Directly
+**Learning:** When calling FastAPI endpoint functions directly in unit tests (bypassing the FastAPI dependency injection system), arguments with `Query(...)` or `Depends(...)` defaults are NOT resolved to their inner values (e.g., `None`). Instead, they remain as `Query` or `Depends` objects, which are truthy.
+**Action:** Always explicitly pass all arguments (including optional ones) when calling FastAPI endpoint functions in unit tests to ensure correct behavior, or check for `Query`/`Depends` instances in the code (though the former is preferred for cleaner code).
