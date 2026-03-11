@@ -5,6 +5,7 @@ from app.database import supabase
 from app.models.sales import DashboardMetrics, SalesTrend, TopCustomer, TopProduct
 from app.services.cache_service import cache
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -51,11 +52,12 @@ async def get_dashboard(
     try:
         # Try RPC function first (most efficient)
         try:
-            result = supabase.rpc('get_dashboard_metrics', {
+            query = supabase.rpc('get_dashboard_metrics', {
                 'p_start_date': start_date.isoformat() if start_date else None,
                 'p_end_date': end_date.isoformat() if end_date else None,
                 'p_customer_id': customer_id
-            }).execute()
+            })
+            result = await asyncio.to_thread(query.execute)
             
             if result.data and len(result.data) > 0:
                 row = result.data[0]
@@ -76,9 +78,10 @@ async def get_dashboard(
         
         # FAST Fallback: Get totals from import_history only (NO sales table scan!)
         try:
-            import_result = supabase.table("import_history").select(
+            query = supabase.table("import_history").select(
                 "imported_rows, status"
-            ).eq("status", "completed").execute()
+            ).eq("status", "completed")
+            import_result = await asyncio.to_thread(query.execute)
             
             total_sales = sum(r.get("imported_rows", 0) or 0 for r in import_result.data)
             
@@ -117,7 +120,7 @@ async def get_dashboard(
 async def get_summary():
     """Общая статистика - alias для ext-analytics/summary"""
     from app.services.extended_analytics_service import extended_analytics
-    return extended_analytics.get_summary(year=None, month=None, force_refresh=False)
+    return await asyncio.to_thread(extended_analytics.get_summary, year=None, month=None, force_refresh=False)
 
 
 @router.get("/top-customers", response_model=List[TopCustomer])
@@ -142,10 +145,11 @@ async def get_top_customers(
     try:
         # Try RPC function first
         try:
-            result = supabase.rpc('get_top_customers_by_revenue', {
+            query = supabase.rpc('get_top_customers_by_revenue', {
                 'p_limit': limit,
                 'p_days': days
-            }).execute()
+            })
+            result = await asyncio.to_thread(query.execute)
             
             if result.data:
                 response_data = [
@@ -164,9 +168,10 @@ async def get_top_customers(
             cutoff_date = (datetime.now() - timedelta(days=days)).date().isoformat()
             
             # Step 1: Get sales aggregated by customer_id
-            result = supabase.table("sales").select(
+            query = supabase.table("sales").select(
                 "customer_id, total_amount"
-            ).gte("sale_date", cutoff_date).execute()
+            ).gte("sale_date", cutoff_date)
+            result = await asyncio.to_thread(query.execute)
             
             if result.data:
                 # Aggregate by customer_id
@@ -190,7 +195,8 @@ async def get_top_customers(
                 if sorted_customers:
                     # Step 2: Lookup customer names
                     customer_ids = [str(cid) for cid, _ in sorted_customers]
-                    customers_result = supabase.table("customers").select("id, name").in_("id", customer_ids).execute()
+                    query_customers = supabase.table("customers").select("id, name").in_("id", customer_ids)
+                    customers_result = await asyncio.to_thread(query_customers.execute)
                     
                     # Build name lookup
                     name_lookup = {c['id']: c['name'] for c in (customers_result.data or [])}
@@ -210,7 +216,8 @@ async def get_top_customers(
             logger.warning(f"Fallback aggregation failed: {fallback_error}")
         
         # Final fallback: return customers with total=0
-        customers_result = supabase.table("customers").select("id, name, total_purchases").order("total_purchases", desc=True).limit(limit).execute()
+        query_fallback = supabase.table("customers").select("id, name, total_purchases").order("total_purchases", desc=True).limit(limit)
+        customers_result = await asyncio.to_thread(query_fallback.execute)
         response_data = [
             {"customer_id": c['id'], "name": c['name'], "total": float(c.get('total_purchases') or 0)}
             for c in (customers_result.data or [])[:limit]
@@ -246,10 +253,11 @@ async def get_top_products(
         
         # Try RPC function first for efficient aggregation
         try:
-            result = supabase.rpc('get_top_products_by_sales', {
+            query = supabase.rpc('get_top_products_by_sales', {
                 'p_limit': limit,
                 'p_days': days
-            }).execute()
+            })
+            result = await asyncio.to_thread(query.execute)
             
             if result.data:
                 response_data = [
@@ -268,9 +276,10 @@ async def get_top_products(
         
         # Fallback: Aggregate from sales table, then lookup product names
         try:
-            result = supabase.table("sales").select(
+            query = supabase.table("sales").select(
                 "product_id, quantity, total_amount"
-            ).gte("sale_date", cutoff_date).execute()
+            ).gte("sale_date", cutoff_date)
+            result = await asyncio.to_thread(query.execute)
             
             if result.data:
                 product_totals = {}
@@ -295,7 +304,8 @@ async def get_top_products(
                 if sorted_products:
                     # Lookup product names
                     product_ids = [str(pid) for pid, _ in sorted_products]
-                    products_result = supabase.table("products").select("id, name").in_("id", product_ids).execute()
+                    query_products = supabase.table("products").select("id, name").in_("id", product_ids)
+                    products_result = await asyncio.to_thread(query_products.execute)
                     
                     name_lookup = {p['id']: p['name'] for p in (products_result.data or [])}
                     
@@ -315,7 +325,8 @@ async def get_top_products(
             logger.warning(f"Products fallback failed: {fallback_error}")
         
         # Final fallback: products table with pre-calculated totals
-        products_result = supabase.table("products").select("id, name, total_revenue, total_quantity").order("total_revenue", desc=True).limit(limit).execute()
+        query_fallback = supabase.table("products").select("id, name, total_revenue, total_quantity").order("total_revenue", desc=True).limit(limit)
+        products_result = await asyncio.to_thread(query_fallback.execute)
         response_data = [
             {
                 "product_id": p.get("id", ""),
@@ -353,9 +364,10 @@ async def get_sales_trend(
         # Try RPC function first
         try:
             months = days // 30 if days > 30 else 1
-            result = supabase.rpc('get_sales_trend_monthly', {
+            query = supabase.rpc('get_sales_trend_monthly', {
                 'p_months': months
-            }).execute()
+            })
+            result = await asyncio.to_thread(query.execute)
             
             if result.data:
                 response_data = [
@@ -371,9 +383,10 @@ async def get_sales_trend(
         
         # FAST Fallback: Generate trend from import_history (NO sales table scan!)
         try:
-            import_result = supabase.table("import_history").select(
+            query = supabase.table("import_history").select(
                 "started_at, imported_rows, status"
-            ).eq("status", "completed").execute()
+            ).eq("status", "completed")
+            import_result = await asyncio.to_thread(query.execute)
             
             if not import_result.data:
                 return []
@@ -442,7 +455,8 @@ async def get_customers():
     """Список всех клиентов"""
     if supabase is None:
         return []
-    result = supabase.table("customers").select("*").execute()
+    query = supabase.table("customers").select("*")
+    result = await asyncio.to_thread(query.execute)
     return result.data
 
 
@@ -451,7 +465,8 @@ async def get_products():
     """Список всех товаров"""
     if supabase is None:
         return []
-    result = supabase.table("products").select("*").execute()
+    query = supabase.table("products").select("*")
+    result = await asyncio.to_thread(query.execute)
     return result.data
 
 
@@ -460,5 +475,6 @@ async def get_agents():
     """Список всех агентов"""
     if supabase is None:
         return []
-    result = supabase.table("agents").select("*").eq("is_active", True).execute()
+    query = supabase.table("agents").select("*").eq("is_active", True)
+    result = await asyncio.to_thread(query.execute)
     return result.data
