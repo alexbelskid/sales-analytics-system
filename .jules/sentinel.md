@@ -1,0 +1,4 @@
+## 2025-02-18 - Unprotected Destructive Endpoints
+**Vulnerability:** Several high-risk endpoints in `files_router.py` (e.g., `/delete-all-data`, `/delete-file`) were completely public, allowing any user to wipe the entire database without authentication.
+**Learning:** The application lacked a centralized administrative authentication mechanism. Developers likely relied on the endpoints being "secret" or intended to add auth later but forgot. Destructive actions were mixed with read-only actions in the same router without specific guards.
+**Prevention:** Enforce a "secure by default" policy where all destructive endpoints (DELETE, POST) require authentication middleware. Use `dependencies` at the router or endpoint level to mandate checks like `verify_admin_access`. Implement fail-secure logic that disables admin features if no secret key is configured.
