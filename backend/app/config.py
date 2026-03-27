@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     database_url: str = ""
     storage_bucket: str = "import-files"  # Supabase Storage bucket for uploaded files
     
+    # Admin Security
+    admin_secret_key: str = ""  # For protecting critical endpoints
+
     # AI APIs
     groq_api_key: str = ""
     tavily_api_key: str = ""  # For web search
