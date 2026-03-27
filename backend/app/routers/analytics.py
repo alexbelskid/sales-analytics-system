@@ -31,11 +31,10 @@ async def get_dashboard(
     
     # Build cache key with all filters
     filters = [start_date, end_date, customer_id, agent_id, product_id, region, category]
-    has_filters = any(filters)
     cache_key = f"{CACHE_DASHBOARD}:{hash(tuple(str(f) for f in filters))}"
     
-    if not has_filters and not force_refresh:
-        cached = cache.get(CACHE_DASHBOARD)
+    if not force_refresh:
+        cached = cache.get(cache_key)
         if cached:
             return DashboardMetrics(**cached)
     
@@ -67,8 +66,7 @@ async def get_dashboard(
                     "period_end": end_date
                 }
                 
-                if not any([start_date, end_date, customer_id, agent_id]):
-                    cache.set(cache_key, response_data)
+                cache.set(cache_key, response_data)
                 
                 return DashboardMetrics(**response_data)
         except Exception as rpc_error:
@@ -94,8 +92,7 @@ async def get_dashboard(
                 "period_end": end_date
             }
             
-            if not any([start_date, end_date, customer_id, agent_id]):
-                cache.set(cache_key, response_data)
+            cache.set(cache_key, response_data)
             
             return DashboardMetrics(**response_data)
         except Exception as fallback_error:
@@ -130,7 +127,7 @@ async def get_top_customers(
 ):
     """Топ клиентов по выручке - использует RPC для эффективности"""
     
-    cache_key = f"{CACHE_TOP_CUSTOMERS}:{limit}:{days}"
+    cache_key = f"{CACHE_TOP_CUSTOMERS}:{limit}:{days}:{region}:{agent_id}"
     if not force_refresh:
         cached = cache.get(cache_key)
         if cached:
@@ -232,7 +229,7 @@ async def get_top_products(
 ):
     """Топ товаров по продажам с кэшированием"""
     
-    cache_key = f"{CACHE_TOP_PRODUCTS}:{limit}:{days}"
+    cache_key = f"{CACHE_TOP_PRODUCTS}:{limit}:{days}:{category}:{region}"
     if not force_refresh:
         cached = cache.get(cache_key)
         if cached:
