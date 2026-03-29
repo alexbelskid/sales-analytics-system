@@ -203,11 +203,9 @@ async def generate_response(request: Dict):
     }
 
 
-@router.post("/test-imap-only")
-async def test_imap_only(config: EmailConfig):
-    """Test IMAP connection only - for debugging"""
+def _test_imap_blocking(config: EmailConfig):
+    """Blocking function to handle IMAP test"""
     start_time = time.time()
-    socket.setdefaulttimeout(10)
     
     steps = []
     try:
@@ -215,7 +213,8 @@ async def test_imap_only(config: EmailConfig):
         steps.append(f"2. Email: {config.email}")
         steps.append("3. Connecting to imap.gmail.com:993...")
         
-        mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)
+        # Use timeout in constructor
+        mail = imaplib.IMAP4_SSL("imap.gmail.com", 993, timeout=10)
         elapsed = time.time() - start_time
         steps.append(f"4. Connected in {elapsed:.2f}s")
         
@@ -268,8 +267,13 @@ async def test_imap_only(config: EmailConfig):
             "time_seconds": round(elapsed, 2),
             "steps": steps
         }
-    finally:
-        socket.setdefaulttimeout(None)
+
+
+@router.post("/test-imap-only")
+async def test_imap_only(config: EmailConfig):
+    """Test IMAP connection only - for debugging"""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, _test_imap_blocking, config)
 
 
 def _test_smtp_blocking(config: EmailConfig):
