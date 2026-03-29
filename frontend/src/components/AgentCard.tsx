@@ -55,7 +55,16 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
     return (
         <>
             <div
+                role="button"
+                tabIndex={0}
+                aria-label={`View details for ${agent.agent_name}`}
                 onClick={() => setShowDetails(true)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setShowDetails(true);
+                    }
+                }}
                 className={`
                     relative overflow-hidden
                     rounded-[32px] 
@@ -69,6 +78,7 @@ export default function AgentCard({ agent, rank }: AgentCardProps) {
                     hover:shadow-[0_30px_80px_-20px_rgba(244,63,94,0.4),inset_0_0_60px_0_rgba(255,255,255,0.04)]
                     hover:scale-[1.02]
                     hover:-translate-y-1
+                    focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none
                     group
                     ${isTopPerformer ? 'ring-1 ring-yellow-500/20' : ''}
                 `}
